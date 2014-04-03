@@ -1,0 +1,167 @@
+fejlesztes:
+
++ online help: probald ki hogy mennyire lehetne doxygen html oldalakat
+  bepaszirozni JTextPane-be vagy mas Java controlba.
+  -> JEditorPane-be kell tenni, annak van egy setPage(URL) muvelete.
+     A relativ linkeket frankon betolti, a .css fajlokat es a kepeket
+     is, es megbirkozik a "charset=windows-1250" beallitassal is.
+     Szepen megjeleniti.
+     Mar csak a kattintasra valo ugrast kell megoldani valahogyan 
+     (ezzel egyutt a Forward/Backward gombokat is) -> a SwingSet demoban
+     ez meg van oldva, onnan kinezheted.
+        JEditorPane.addHyperlinkListener()
+     ott a pelda is hogy hogyan mukodjon a HyperlinkListener.
+     -> Akkor mar csak a nyomtatas a kerdes, de ebben meg vszleg 
+     Rajmund tud segiteni.
+  -> Allitolag az RTF-et is megerti... De abba hogyan teszel linkeket?
+  Ha nem megy, akkor keress ra arra hogy van-e platformfuggetlen modja
+  egy URL inditasanak; s akkor lehetne mellekelni a help-et pl. html
+  formatumban (de lehet h. a pdf-et is el tudod inditani vele).
++ A registry-ben legyen egy bejegyzes a MEME verzioszamra. A registry-ben
+  levo adatok kezelesere legyen egy beepitett "migrator", ami programindulaskor
+  megnezi, hogy a registry-ben regebbi verzio altal otthagyott adatok vannak-e,
+  es ha igen, akkor automatikusan vegye at kozuluk amit lehet, a tobbit meg
+  takaritsa ki.
++ refresh funkcio: kulso adatbazisszerver eseten tobb MEME peldany is
+  kapcsolodhat ugyanahhoz az adatbazishoz szimultan. Ilyenkor az egyik 
+  a masik tudta nelkul torolhet, valtoztathat. Ezt automatikusan 
+  detektalni nem tudjuk, de kezi frissitesre kellene adni lehetoseget 
+  (F5). Pl. Refresh tree (Results Panel), refresh list (views panel, 
+  charts stb.)
+  Masik megoldas: kulso db eseten a MEME tegyen egy lock jelzest az 
+  adatbazisba, amit a connection megszunesekor az adatbazismotornak 
+  automatikusan torolnie kell. Kapcsolodasnal nezi ezt a lock-ot es 
+  ha van, akkor nem hajlando bemenni eroltetes nelkul (= csak komoly
+  figyelmeztetes mellett).
++ ha az ethernet cimet nem sikerul lekerdezni (pl. mert olyan unixon vagyunk
+  amihez nincs nativ tamogatas, vagy mert nincs halokartya a gepben), 
+  akkor hasznald a gepnevet meg ilyeneket! -> Egyebkent is hasznalhatnal
+  ilyeneket, mert jelenleg a vedelem feltorheto a DLL lecserelesevel.
+  -> Tegyel be ellenorzest a DLL-ek es mas libek checksum-jaira is.
+- memory leak:
+  + bug: egy ures adatbazisba Ant-Ropy-t importalom, majd create view. 
+    Create view az 5. perc tajekan ennyit ir ki: "Java heap space".
+    Se azt, hogy hiba, se azt, hogy nem sikerult. 
+    (java.lang.OutOfMemoryError eseten ezt adja vissza getLocalizedMessage().
+    Erdemes lenne erre az exception-ra kulon figyelni LOPProducer-ben, 
+    es a hibauzenetet valami ertelmesebbre cserelni. A Stack trace ilyenkor
+    altalaban nincs meg.
+    )
+    A problema gyokere pedig sztem abban rejlik, hogy a RepastImport 
+    dialog-gal egyutt bennmaradt a memoriaban a beolvasott adatmennyiseg.
+    A memoriafoglalas egyebkent 120M koruli volt (+80 virtual).
+  + Page_ResultsBrowser, es igy az egesz Wizard bennmarad a memoriaban 
+    Swing memory leak miatt (JScrollPane->JViewport->JTextPane)
+  + erdemes lenne egy kis Java progit irni arra hogy kordiagramon abrazolja
+    a memoriaban bennmaradt objektumokat. Az azonos tipusu objektumokat
+    osszesiteni kellene (osszmeret) es szint+korcikket kellene rendelni hozza.
+    Eleg ha a legnagyobb helyet elfoglalo 90%-ot kijelzi, a kicsiket meg 
+    osszevonja egy "maradek" kalapba.
+    Az osszes objektum listajat nem tudod megkapni, hanem csak a valamely
+    kiszemelt bennmaradt peldanybol elerhetoeket: jhat-ban raallsz, es az 
+    oldal aljan az "Objects reachable from here" linket fajlba mented. 
+    Ebbol a listabol dolgozhat az emlitett progi.
+  + BUG: hiba volt RepastImportDialog-ot JDialog-bol szarmaztatni, mert igy
+    nem tudod elvagni a hivatkozasait, amikor bezarod. Igy aztan bennmarad 
+    a memoriaban, hala a Swing hibainak. Ezen javitani kellene!
+    -> mi marad bent? Az adatokat tartalmazo tombot elvileg kinullazom 
+      (dialog.dispose(): parser = null) meg kellene nezni!
++ tobbfele plugin-t tudunk mar kezelni. PluginManager-t boviteni
+  kellene ezeknek megfeleloen:
+  - import/export
+  - sqldialect                  (SQLDialect.register())
+  - IDbChangedListener          (MEMEApp.getDatabase().dbChanged.add..())
+  - IProgramStateChangeListener (MEMEApp.PROGRAM_STATE.change.add..())
+  - IBeanShellExprPlugin (??) -> ezeket csak bepakoljuk egy listaba, nev
+    alapjan. Hasznalatara csak akkor kerul sor, amikor egy XML hivatkozik
+    ra a neve alapjan. (Igazabol addig kar is foglalnia a memoriat!)
+  - chart-ot megvalosito interfesz
+  + lehetne csinalni Shape-renderer-plugint a Shape2D- es CompositeGrid2D 
+    diagramokhoz, hogy lehessen tobbfele shape is ha a user akarja.
+  Ugyelj h. ugyanaz az object egyszerre tobbe is tartozhat.
+  Ezeket majd vhol dokumentalni is kellene (h. mely helyzetekben hivodik meg
+  az a muvelet amit az interfesz eloir).
++ bug: ha inditasnal hibas .mes fajlt adsz meg a MEME-nek, akkor GZIP 
+  formatumot hianyolo uzenettel panaszkodik, ami nem jo (kiderul belole
+  hogy a .mes fajlok gzip-el vannak tomoritve). Ne hagyd hogy ilyen 
+  hibauzenet jelenjen meg. Megj: ez a hiba mar a mostani install verzioval 
+  is jon, ha radobsz egy fajlt a MEME ikonjara a desktopon.
++ repast import: a run szamok egyesevel novekednek, nem tukrozik
+  a repast fajlban levo ertekeket.
++ Legyen Open session, ami egy új JVM-ben egy új MEME-t indít el a megadott
+  .mes fájllal.
++ gondold at hogy Wizard-nal az onClose esemeny helyett nem jobb lenne 
+  ActionMap-et hasznalni?
+- a log fajl helyet is konfiguralhatova kellene tenni (b690_userprefs)
+- kellene egy preferences ablakot csinalni az ilyen beallitasoknak.
+x makeGrid()-et tedd at Utils-ba is. Vagy JGoodies Forms?
+- csinalni egy adatbazis-bevizsgalo funkciot, ami validalja az aktualis
+  adatbazist: megnezi, hogy minden invarians fennall-e. A File menubol
+  lehessen elerni, kezdetben lehet h. csak Debug modban. Azert kell, 
+  hogy a bugreportokhoz mellekelt db-ket ellenorizni tudjam hogy a db
+  hibas es az okozza a hibat, vagy mashol van a hiba.
+x Gulya kerte a CSV importot is. A user adhassa meg a tagolo stringet, 
+  a quote stringet, a komment karaktert, az ignore first n rows-t, 
+  valamint azt is, hogy vannak-e oszlopfejlecek a fajlban. (Ha nincsenek, 
+  akkor a user bepotyoghesse, ill. letezo model oszlopneveit is lehessen 
+  hasznalni). Ld. bug#7.
+  Alapertelmezesben a program general oszlopneveket: col01 col02 ...
+  Ezeket a user egyenkent atirhatja.
+  Ne feledd, hogy tick & run hozzarendelesre is szukseg van. Lehessen 
+  ilyeneket is valasztani: run=konstans, vagy minden N sor utan 
+  novexik, vagy olyankor novexik amikor a tick nem novexik stb.
+  Ha beir egy letezo modelnevet, akkor a prg. megkerdezi, hogy annak
+  oszlopneveire lecserelje-e az aktualis oszlopneveket?
+  Nezd meg az Excelben hogyan van a CSV import es amit erdemes, utanozd le.
++ teszteld repast importot is, mert a results-ok atvarialasa erintheti
+
+
+- textfield-eknel egy csomo helyen kellene hossz-korlatozas.
+  Pl. column-nevek, batch description, view tabla neve, modelnev,
+  verzionev stb. Ezekre kellene csinalni egy altalanos eszkozt,
+  amit tetszoleges JTextField-re ra lehet kotni es korlatozza
+  a beirhato karakterek szamat. Hogy mikor mennyire kell korlatozni,
+  arra SQLDialect-ben vannak konstansok.
+- Modelt, versiont lehessen atnevezni. bekotni: model_rename.png
+- gui.ResultsBrowser.refreshInfo(): MEMEApp.getResultsDb().getModelColumns()
+  ha megszakad a Connection az adatbazisszerverrel (code 08003)
+  akkor null-ot ad vissza, amit csendben lenyelunk. Hibauzenetet
+  kellene kitenni, de ehhez tudni kellene, h. mi volt a hiba. 
+  Kellene egy getLastError() muvelet amivel a hiba exception 
+  lekerdezheto (abban benne van a hiba tipusa, SQL hiba eseten 
+  az SQL kod, a hibauzenet es a call stack is), lehessen kerni
+  hogy egyben torolje is a hibat.
+  Kellene ilyen ViewsDb-be is. Mindazokat a helyeket, ahol a hibakat
+  lenyeljuk, fel kellene okositani ezzel. Persze lehet h. az is eleg
+  lenne, ha nem nyelnenk le a hibat s akkor a progress dialog kijelezhetne.
+  Ez csak addig nem surgos amig a userek nem tudjak hasznalni a programot
+  a beepitett HSQLDB-n kivul mas adatbazissal (mivel azzal nem tud 
+  megszakadni a kapcsolat).
+- Repast Import: a model nev alapertelmezese lehetne a fajlnev, amikor
+  egyebkent ures lenne.
+- Import menu: ha nincs adatbaziskapcsolat, akkor legyen letiltva
+- View kivalasztasaval is indithato legyen a wizard, ne csak results-al.
+- Gulya kerte nezzem meg OutOfMemory eseten le lehet-e loni az adatbazismotort
+  s lehet-e ujrakonnektalni -> elvileg lehet, de maceras. OutOfMemory sok
+  helyrol johet, szamos helyen kaphatjuk el. Ha lelojuk az adatbazist, es
+  tovabbengedjuk a programot, akkor nem tudom mi tortenik. Ki kellene
+  probalgatni, hogy hogyan reagal a program az ilyesmire. Elvileg ki kellene
+  birnia legfeljebb egy-ket SQLException keletkezhet. De attol tartok nehol 
+  NullPointerException-ok is johetnek. Ezeket mind vegigprobalgatni es 
+  atnezni nem 1-2 ora. Ezert egyszerubb volt nem megengedni a folytatast,
+  hanem exit()-el kilepni.
+  Ha kesobb megcsinaljuk is ezt, az adatbazis leloveset majd "SHUTDOWN 
+  IMMEDIATELY"-el kell vegezni, hogy semmikepp se irodjek ki tobb adat a 
+  memoriabol, mert a memoria tartalma az OutOfMemory miatt osszefuggestelen 
+  es zavaros lehet. SHUTDOWN IMMEDIATELY hatasa olyasmi, mint az aramszunet: 
+  kovetkezo inditaskor a .log es .backup fajlokbol fogja helyreallitani
+  az adatbazist a hsqldb, akkor mar velhetoen OutOfMemory nelkul. Ezen
+  helyreallitas miatt persze hosszabb ideig tart majd a "kapcsolodas az
+  adatbazishoz".
+  -> erdemes lenne kiprobalni azt, hogy OutOfMemory es beagyazott HSQLDB 
+  eseten lelojuk az adatbazist (SHUTDOWN IMMEDIATELY), majd egypar gc(),
+  es aztan anelkul hogy tovabbengednenk a programot, ujrakapcsolodunk
+  MEMEApp.reconnect()-el. Latok ra eselyt, hogy igy komolyabb karosodas
+  nelkul folytathato a munka (bar szerintem ebben sosem lehetunk biztosak,
+  mert ha a HSQLDB nem is, a MEME egyeb reszei (pl. GUI) szemetelodhetnek,
+  ugyhogy jobb ha ujrainditjak a programot...)

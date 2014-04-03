@@ -1,0 +1,61 @@
+// repast-related jars
+repast.jar
+asm.jar
+beanbowl.jar
+colt.jar
+commons-collections.jar
+commons-logging.jar
+geotools_repast.jar
+ibis.jar
+jakarta-poi.jar
+jep-2.24.jar
+jgap.jar
+jh.jar
+jmf.jar
+jode-1.1.2-pre1.jar
+joone.jar
+JTS.jar
+junit.jar
+log4j-1.2.8.jar
+OpenForecast-0.4.0.jar
+openmap.jar
+plot.jar
+ProActive.jar
+trove.jar
+violinstrings-1.0.2.jar
+		
+// jre-related jars
+charsets.jar
+deploy.jar
+javaws.jar
+jce.jar
+jsse.jar
+rt.jar
+dnsns.jar
+localedata.jar
+sunjce_provider.jar
+sunpkcs11.jar
+		
+// built-in plugins
+BeanShell.jar
+coltPlugin.jar
+CSVExportPlugin.jar
+CSVImportPlugin.jar
+NetLogoImportPlugin.jar
+intellisweepPlugin.jar
+IntelliResultProcessPlugin.jar
+mathPlugin.jar
+operatorPlugin.jar
+RepastImportPlugin.jar
+VCPlugins.jar
+
+//other jars
+MEME.jar
+dps.jar
+dps_common.jar
+org.eclipse.emf.common_2.4.0.v200808251517.jar
+org.eclipse.emf.ecore_2.4.1.v200808251517.jar
+repast.simphony.bin_and_src.jar
+saf.core.runtime.jar
+
+// TODO: további jarok a többi platformhoz

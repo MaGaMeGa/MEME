@@ -1,0 +1,3 @@
+;!@Install@!UTF-8!
+RunProgram="launcher.exe -Xmx512m -jar MEME.jar"
+;!@InstallEnd@!

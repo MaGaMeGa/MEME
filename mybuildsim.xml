@@ -1,0 +1,60 @@
+<project name="ParamSweep" default="all" basedir=".">
+	
+	<property file="build.properties" />
+	<property file="${user.home}/build.properties" />
+	
+	<property name="app.name" value="${ant.project.name}" />
+	
+	<!-- Here we put the generated jar. -->
+	
+	<property name="build.home" value="${basedir}/build" />
+	<property name="dist.home"  value="${basedir}/dist"  />
+	<property name="src.home"   value="${basedir}/src"   />
+	
+	<property name="compile.debug" 		 value="true"  />
+	<property name="compile.deprecation" value="false" />
+	<property name="compile.optimize" 	 value="true"  />
+	<property name="compile.nowarn"		 value="true"  />
+	
+	<path id="compile.classpath">
+		<fileset dir="lib">
+			<include name="*.jar" />
+		</fileset>
+		<pathelement location="PlatformPlugins/NetLogoPlugin"/>
+		<pathelement location="../Platforms/classes"/>
+		<pathelement location="../BatchAbstractionLayer/bin"/>
+
+	</path>
+	
+	<target name="clean" description="Delete old build and dist directories">
+		<delete dir="${build.home}" />
+		<delete dir="${dist.home}"  />
+	</target>
+	
+	<target name="prepare" depends="clean" description="Preparing build directories">
+		<mkdir dir="${build.home}" />
+		<mkdir dir="${dist.home}"  />
+	</target>
+	
+	<target name="compile" depends="prepare" description="Compile Java sources">
+		<javac srcdir="${src.home}" destdir="${build.home}" debug="${compile.debug}" 
+			deprecation="${compile.deprecation}" optimize="${compile.optimize}" 
+			nowarn="${compile.nowarn}">
+
+			<classpath refid="compile.classpath" />
+
+		</javac>
+	</target>
+	
+	<target name="genjar">
+		<jar destfile="${dist.home}/${ant.project.name}.jar" basedir="./src" manifest="manifest2.mft" includes="ai/aitia/meme/gui/icons/ ai/aitia/meme/gui/icons/about/ ai/aitia/AITIA_COPYRIGHT.TXT ai/aitia/meme/dummy.txt ">
+			<fileset dir="${build.home}"/>
+			<manifest>
+				<attribute name="Built-By" value="${user.name}" />
+			</manifest>
+		</jar>
+	</target>
+	
+	<target name="all" depends="compile, genjar" description="Clean build and dist directories, then compile, then generate the lib" />
+	
+</project>

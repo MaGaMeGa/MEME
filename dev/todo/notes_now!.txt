@@ -1,0 +1,11 @@
+surgos bug:
+
+- bug: a views lapon vagyok, megis el az Import menu.
+- a 176-os bugban leirtakat ellenorizd hogy valoban bekerultek-e a chPkg-be.
+- MEME_Manual_Eng.pdf, MEME_Tutorial_Hun.pdf fajlnevei a jovoben valtoznak.
+  Keszitsd fel a programot ra hogy meg tudja talalni akarmilyen nyelvu;
+  eloszor _Eng/_Hun vegzodes nelkul keresse, ha ugy nincs, akkor fogadjon
+  el barmit ezek helyen.
+- bugzillaba ird be feladatkent hogy 
+  - recreate view-nal nem volna szabad megengedni hogy az inputok kozott 
+    szerepeljen az aktualis view.

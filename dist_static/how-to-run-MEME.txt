@@ -1,0 +1,21 @@
+
+1. Create a directory for the MEME.
+2. Extract the archive file into this directory.
+3. Change to the above-mentioned directory.
+4. You can start MEME from a terminal with the following command:
+	java -Xmx512m -Djava.library.path=./lib/j3d -javaagent:%MEME%\lib\aspectjweaver.jar -jar MEME.jar (On Linux use java -Xmx512m -Djava.library.path=./lib/j3d:./lib/linux/x86 -javaagent:%MEME%\lib\aspectjweaver.jar -jar MEME.jar instead).
+
+Notes:
+
+a, Use full path of java if the command above doesn't work.
+b, The MEME needs java version 1.6 or higher to run properly.
+c, The Xmx switch increases the MAXIMUM heap size to 512 Mb (usually the application uses only 10-50 Mb heap memory). This should be optimal if your computer has at least 1 Gb RAM. If your
+   machine has only 512 Mb RAM, you would decrease this amount to 256. In this case use the following command: java -Xmx256m -jar MEME.jar
+d, The application doesn't tested in MAC, but the most of the program is written in platform-independent way. If you encounter any problem or error
+   please send an e-mail to the following address: mass@aitia.ai or mass-support-request@lists.mass.aitia.ai
+   If you send and error report, please include the MEME.log file from the directory of MEME, and also describe the steps that you
+   have taken in the program before the error occurred.
+e, Known issue: On MAC, you couldn't access the documentation inside the MEME, but you can find the documentation files in pdf format in the
+   Documentation directory.
+f, The above MEME installation operates under the assumption that you have Repast J
+   3.x installed on your computer.

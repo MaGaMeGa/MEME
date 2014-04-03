@@ -1,0 +1,9 @@
+Timestamp: 2012.07.10. 11:50:24
+Alpha: false
+Beta: false
+Gamma: false
+Kappa: 40.5
+Yotta: 700.1
+RngSeed: 1
+
+

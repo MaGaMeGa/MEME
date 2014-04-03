@@ -1,0 +1,613 @@
+x db.properties-ben miert van loc=M\:\\ loc=M:/db/ helyett?
+x ha nem sikerul kapcsolodni az adatbazishoz, akkor adjon hibauzenetet
+  a program es ne fusson ra olyan reszekre amik exception-t dobnak ha
+  nincs connection! Jelenleg ui. ez tortenik.
+x Utananezni mik ezek: 
+  FlexDock framework https://flexdock.dev.java.net/
+    Dokkolhato GUI keszitesere valo konyvtar. Nem rossz, de meg csak 0.4-es
+    verzio es masfel eve nem jott ki ujabb. Sok gyerekbetegsege van meg,
+    nem igazan stabil, erosen hianyos a doksi stb. Idonkent a demo alkalmazas 
+    egy-egy ablaka nem mukodik. A forumban kulonfele bugokat emlegetnek, 
+    pl. L&F valtasnal osszemegy az alkalmazas ablaka stb. 
+    Nem szivesen hasznalnam, amig nem lesz stabilabb.
+    Ugy latom, utolag is be lehet majd dolgozni a MEME-be.
+  Java Plugin Framework (JPF) http://jpf.sourceforge.net/
+    Plug-in model, extension points.
+    Phase III-ban vagy PhaseIV-ben erdemes atallni ra.
+    Agyu. Szerintem olyankor erne meg hasznalni, amikor 
+    - az alkalmazast kitesszuk annak, hogy egy egesz kozosseg fejlesszen 
+      hozza, mint pl. Eclipse vagy TeX, vagy egy Application server 
+      vagy korhazi kozponti szoftver stb.
+    - ennek megfeleloen nagyon sok pluginbol all, es nem szeretnenk,
+      ha minden lehetseges plugin egyszerre benn lenne a memoriaban.
+    Magaval hozza az agyuk problemait: bizonyos szukos helyeken nem
+    lehet atcipelni. Ilyen keskeny hely lehet pl. a Grid-rendszereken
+    beluli mukodes (ez persze csak gyanu, nem vagyok benne biztos).
+    Vegul: "The latest framework version is 0.11." (de legalabb 2006-jun)
+    .
+    Azzal egyutt jo tudni rola hogy van ilyen is. Ha a MEME nagyra no, 
+    es ezert utobb kiderul hogy megis jo lenne hasznalni JPF-et, 
+    akkor 3-4 emberhet alatt, azt gondolom, at lehet allni ra (meg 
+    nagy MEME forraskoddal es sok pluginnal is).
+    A mostani, vagy PhaseIII-beli bevezeteset sem tartanam _teljesen_
+    ertelmetlennek vagy szuksegtelennek, bar szerintem nincs ra igazan
+    szukseg.
+  Eclipse RCP ?
+    RCP = Rich Client Platform
+    The minimal set of plug-ins needed to build a rich client application 
+    is collectively known as the Eclipse Rich Client Platform.
+    http://wiki.eclipse.org/index.php/Rich_Client_Platform
+x vesd fel otletkent Gulyanak: olyan telefonos GIS szolgaltatas, amibe
+  betelefonal az autos, megmondja honnan hova szeretne eljutni, es a 
+  valaszt kerheti szoban, SMS-ben, e-mailben vagy akar faxon is.
+  Akkor lenne igazan vonzo, ha naprakesz szolgaltatast tudna nyutani,
+  azaz figyelembe venne az utlezarasokat es a napszakbol adodo dugokat,
+  torlodasokat is. Ehhez Fovinform adatok alapjan allandoan frissiteni
+  kellene az adatbazist, tovabba folyamatosan lehetne futtatni rajta
+  egy kozlekedes-szimulaciot, ami egy ujabb adat bevitele utan perceken
+  belul kiadja hogy mely utszakaszokon alakul majd ki dugo, s ezzel
+  egyutt azt is hogy mely utszakasznak milyen "sulya" kell legyen az
+  utvonalkeresesben.
+  Ezt a szolgaltatast meg lehetne csinalni varosfuggetlenre, es a vilag
+  osszes nagyvarosaban be lehetne inditani.
+
+= release valtozat generalasakor ne felejtsd MEMEApp.assert-et false-ra
+  allitani es igy ujraforditani!
+= databaseStructure.dox-ban ird le h. melyik oszlop milyen tipusu,
+  melyik tablaban mi a kulcs, mi az idegen kulcs
+x Class diagram-hoz kellene magyarazat, hogy melyik doboz micsoda
+  es mi az adatfolyam (hol keletkezik es mi, az hova kerul tovabb,
+  mik a folyamatok)
+= ures adatbazis eseten ki kellene irni: <no tables> v. ilyesmi
+x a faban a legfelso node lehetne a database neve. Esetleg host:name
+= ha mas adatbazismotorral hasznaljak a MEME-t, akkor az SQL inkompatibilitasok
+  miatt a legkulonfelebb helyeken keletkezhet adatbaziskezelesi hiba (SQLExc.)
+  Teszteld ezert ugy is a programot, hogy itt-ott kiveszel egy-egy betut
+  egy SQL parancsbol h. elszalljon, es nezd h. kulturalt modon kozli-e a 
+  Felhasznaloval a hibat, ill. hogy mindig konzisztens allapotban marad-e
+  az adatbazis?
+= databasemanager-t nevezd at dbManager-re (miért is?)
+= GUI_general.dox -ban folytatni a mukodes specifikalasat
+= Kellene egy splash screen ami elobb jon be, annak az aljan lehetne
+  a fent emlitett progress bar, meg loading plugins.. stb. Mint Acrobat-nal.
+= Ki kellene talalni hogy dockolhato layout eseten mi dockolhato es hova
+x XML formatum hasznalata helyett fontold a java.util.prefs.Preferences
+  hasznalatat is. Amolyan Windows registry-fele cuccnak szantak, amibe
+  binaris adatot is lehet pakolni, de valtoztathato, hogy hol tarolodik.
+  -> a MEME user prefs dolgait kellene eltarolni benne (ablak meret,
+     elrendezes stb.) Meggondolando, hogy a db.properties-t is abban 
+     taroljuk-e?
+x ai.aitia.visu.ds.AbstractDataProducer.removeDataChangeListener()
+  javitani: 
+     listeners.remove(listeners);
+  helyesen:
+     listeners.remove(listener);
+x GUI elemek letiltasa, vezerlese
+  - nemcsak letiltasrol van szo, hanem csoportos vezerlesrol
+  - a GUI elemet fogd fel ugy, mint egy elvont dolgot, ami a program 
+    funkcioinak egy szeletet, reszletet, darabkajat megvalositja. 
+    A 3DClick-ben ilyen GUI-elemek lehettek volna a szinteren valo
+    egermuveletek reszeletei, pl. move, rotate, pan, navigation, select stb.
+    Ezek a "funkciok" egy-egy kozos teruleten osztoznak, megis kulonallo,
+    "lathatatlan" control-ok, GUI elemek. Talalo szo rajuk az InputHandler.
+    Persze a lathato GUI komponensek is kozejuk tartoznak, viszont nem
+    feltetlenul egyenkent, hanem esetleg csoportosan.
+  - Szukseg van arra, hogy az InputHandler-eket letiltsuk/engedelyezzuk
+    kisebb-nagyobb csapatostul egyuttesen, de ezen tulmenoen finomabb 
+    mukodesmodositasokra is szukseg lehet (pl. mas uzemmodba valtani
+    egy vagy egyszerre tobb InputHandler-t).
+  - otletek:
+    - az InputHandler-eket rendezzuk iranyitott grafba. A graf pontjai
+      InputHandler-ek, egyenertekuek. Barmelyiknek lehet uzenetet kuldeni,
+      aminek a hatasa az, hogy o azt az uzenetet onmagan vegrehajtja,
+      majd tovabbkuldi az uzenetet valtoztatas nelkul a kimeno elek menten
+      az alaja rendelteknek.
+      Igy 1 adott InputHandler tobb "csoportba" is tartozhat, tobbfelol
+      is kaphat uzenetet, es a csoportba-tartozast nem kell a letrehozas
+      helyen felepiteni, utolag is osszerendelhetoek.
+      A hatranya az, hogy ha felepult vhogy ez a graf es utana hozok letre
+      meg pontokat, akkor azokat ki fogja becsatolni minden meglevo helyre
+      ahova be kell csatolni? Azon a helyen, ahol letrehozom, nem tudhatom,
+      hogy mi minden helyre kell ot betenni. 1-2 helyet tudok biztosan, de 
+      hogyan jut el a tobbihez?
+      Nyilvan azt lehet tenni, hogy megkerdezek minden eddigi szereplot a
+      grafban, hogy az uj node alaja tartozik-e? A node-ok tartalmazhatnak
+      valamilyen wildcard-os szabalyokat ami alapjan viszonylag konnyen 
+      el tudjak donteni, hogy az uj node kapcsolatos-e veluk vagy sem.
+    - masik otlet: az InputHandler-ekrol legyen egy kozponti nyilvantartas,
+      ami linearis felsorolas, mint egy vektor. Minden InputHandler-nek
+      legyen egy neve, ami pontokkal elvalasztott string, mint Tcl-ben.
+      Amikor kikuldok egy uzenetet, akkor azt megkapja mindenki a vektorban,
+      es mindenki eldonti, hogy ra vonatkozik-e ez az uzenet. Az uzenet 
+      kiadasanak helyen kell megmondanom, hogy kikre vonatkozik (cimzes).
+      Itt jonnek  be a nevek: a cimzesben hasznalhatok wildcard-okat (*,**).
+    - harmadik otlet: legyen egy kozponti "program allapota" globalis valtozo
+      (ProgramState kozpont). Ennek megvaltozasakor ProgramStateChanged 
+      esemenyt generalunk, amire megfigyelok allithatok be.
+      A program allapotairol (== a valtozo ertekerol) a kovetkezoket lehet
+      elmondani:
+      - a program allapotait megcimkezzuk: egy-egy allapot tobb cimket is
+        kaphat. Tehat az aktualis allapothoz tartozik egy cimkekbol allo halmaz.
+      - Minden cimkehez tartozhat tetszoleges szamu parameter, amiket elvileg
+        csak lekerdezni lehet allapotvaltas nelkul. A modositasnak allapotvaltast
+        kell okoznia, ami egy ProgramStateChanged esemeny kibocsatasat jelenti
+        a modositas vegen. Ez azonban nem automatikusan tortenik meg, mert:
+        - egyreszt azert, hogy a tobb parametert erinto modositasok ne 
+          generaljanak feleslegesen halmozott ProgramStateChanged esemenyeket
+        - masreszt azert, mert a cimkehez tartozo parameterek abrazolasara
+          nincs megkotes, igy azok barhol lehetnek a programban es ennelfogva
+          modositasuk kozponti erzekelese technikailag nem megoldhato.
+        A modositast vegzo felelossege es erdeke, hogy az allapotvaltozasrol
+        minden erdekelt ertesuljon a kello idoben, ami ProgramStateChanged 
+        esemeny kivaltasaval lehetseges.
+        ? Mi van, ha egy modositast vegzo nem tudja, hogy az amit modositott,
+          beletartozik ebbe a korbe, vagyis ProgramStateChanged esemenyt kellene
+          kivaltania? Ez konnyen elofordulhat, amennyiben egy valtozot utolag 
+          vonunk be a program allapotanak leirasaba, pl. mert utolag kiteszunk
+          a GUI-ra egy olyan InputHandler-t is, ami ettol a valtozotol is fugg.
+          -> ez tk. a rendszer bovitesenek az esete, amikor egy uj modosulas-forrast
+             kell bevonni a rendszerbe. Ez semmikeppen sem automatizalhato,
+             fejlesztest igenyel.
+        ? Mi van, ha tobb cimkeben is elofordul ugyanaz a parameter?
+          -> a cimkeket egymashoz rendelhetjuk, kialakitva egy iranyitott fuggosegi
+             grafot. Amikor beteszunk egy B cimket a cimkehalmazba, akkor bekerul
+             vele egyutt a tranzitiv lezart is (minden mas cimke a grafbol akikre
+             hivatkozik, tranzitivan, a koroket elvagva).
+             Igy ha uaz a parameter 2 cimkenek is kell, akkor kitehetjuk egy
+             harmadik cimkebe amire mindket cimke hivatkozik.
+        A cimkeknek igazabol csak az a jelentoseguk, hogy kozponti helyrol, a
+        ProgramState globalis valtozobol el lehessen erni mindenfele allapot-informaciot
+        a programrol, amelyek egyebkent csak a kulonbozo programreszekben szanaszet
+        szejjelszorva lennenek jelen. Cimkek nelkul is mukodhetne a dolog,
+        amennyiben ProgramStateChanged minden megfigyeloje tudja, hogy honnan
+        vadassza elo a szukseges informaciot. (Sot nemcsak tudnia kell, de hozzaferesi
+        joggal is kell rendelkeznie.)
+        Mondhatjuk tehat azt is, hogy a cimkek halmaza nem nagyon valtozik 
+        (esetleg bovul), inkabb csak a cimkek parameterei valtoznak. Egy ujabb 
+        cimke beregisztralasaval tulajdonkeppen kozhirre tesszuk parameterek egy 
+        csoportjat, igy azokat ezentul a ProgramState kozponton keresztul is
+        le lehet kerdezni.
+        Mi ertelme van annak, hogy egy cimkehez tobb parameter is tartozik?
+        Mi ertelme van megkulonboztetni a kettot? Mi lenne ha egybol csak 
+        parametereket lehetne beregisztralni?
+        Legyen igy. Ki kell alakitani a parameterek interfeszet:
+        - Regisztracional megadando: Object. equals()-al nezi meg h. ugyanezt
+          beregisztraltak-e mar es ha igen, akkor lecsereli a bentlevot, kulonben
+          ujkent veszi fel.
+        - Lekerdezesnel/Unregister-nel megadando: Object, amit equals()-al keres meg.
+        - toString(): debugolas celjara hasznaljuk, a parameter nevet adja meg
+        - get(): lekerdezi a parameter aktualis erteket (Object)
+        - nincsen set muvelet: hogy modositani csak az tudja, aki ismeri a pontos
+          tipust es hozzaferese is van.
+        fireProgramStateChange()-nel megadhato, hogy mely parameter(ek) valtoztak.
+        A tenyleges ertesites invokeLater()-el, _mindig az EDT szalban_ fog 
+        megtortenni, igy a halmozott modositasok ossze tudnak gyulni.
++ select batch, count(run) from RESULTS_INPUT_1160086062544 group by batch
+  felsorolja a batch-eket es mindegyikhez megmondja a run-ok szamat:
+     batch count(run)
+       1     100
+       2     100 
+       ...
++ select count(*) from (select distinct batch from RESULTS_INPUT_1160086062544)
+  megszamolja hany batch van
+x a nagy Ant-Ropy-s fajlt nem tudta beirni az adatbazisba. NullPointerException-el
+  elszallt a masodik run-nal. Nezd meg miert!
+x az Ant-Ropy-s fajl beolvasasa kozben kiteszi a progress bart. Elotte azonban
+  nincs homokora eger! A progressbar ablak parent-jen allit homokorat, pedig
+  nem azon kellene.
+x IResultsDb.writeResult() IResult-ot kellene fogadjon! (import-nal is javitsd)
+x Javitsd ezeken a helyeken is: 
+  LocalAPI, DataSource, 
+x javitani amit JF csinalt: ha modelt jelol ki a results faban, akkor
+  minen verzionak ki kell jelolodnie. Ez allitolag nem mukodik most.
+x nezd meg hogy kilepeskor in-process hsqldb-nek adsz-e ki SHUTDOWN-t?
+  Kellene. Sot talan adatbazisvaltaskor is...
+x okositsd fel a "run Database Server.bat" batch-fajlt hogy ahhoz az
+  adatbazishoz kapcsolodjon ami a db.properties-ben szerepel. Ez azert
+  fontos, mert fejlesztes alatt hasznalhatsz 2 adatbazist: egyet normal,
+  masikat stressz-teszt celokra.
+x DatabaseConnection-ba tegyel fgv.t annak megallapitasara, hogy milyen
+  fajta dbengine van (isHSQLDB()).
+x hasznalj "create CACHED table ..." parancsot a nagy tablak szamara.
+  Mi a nagy tabla? Pl. a Results_output_* tablak, illetve a view tablak
+  kozul azok amik n. sok adatot tarolnak.
+  Maga a VIEWS tabla is eleg nagy, a belementett View-letrehozasi szabalyok
+  miatt.
+= Utils.invokeModelExclusive(): legyen kotelezo nevet adni a task-nak!
+  A tobbi muveletben is! Legjobb lenne mar begin()-nel megadni a nevet,
+  kulonben mindig elfelejted!
+x Results tree-ben meg kellene jelennie az egyes batch-eknek is,
+x tovabba informacioban ki kellene irni hogy hany batch es hany run van.
+  A batch-ekhez irhato megjegyzes max. 64 karakter lehet, amit szinten
+  szerepeltetni kellene a tree-ben.
+  Ennek megoldasa: a faban ResultsTree.Node-ok vannak, ami eddig ketfele
+  lehetett: String vagy Model. Most bevezetunk egy harmadikat, a Batch-et.
+  Kezdetben minden Model ala beteszunk 1 Batch-et, csak hogy legyen ott
+  valami. Kihasznaljuk, hogy ennek toString()-je nem hivodik meg addig, 
+  amig a user elso alkalommal ki nem nyitja a szulo node-ot. Amikor tehat
+  toString() elso alkalommal hivodik meg, akkor azt adja vissza hogy
+  <<loading...>>, majd longoperation-ben elkezdi beolvasni a Model-hez
+  tartozo batch-ek listajat es azok description-jeit. Ezek alapjan uj 
+  Batch node-okat helyez be szukseg szerint es frissiti a fat. A Batch-ek
+  megjegyzik a stringeket es kovetkezo toString()-nel mar ezt adjak 
+  vissza, nem olvastatnak meg egyszer.
+x appendModel/createModel utan frissiteni kellene a ResultsBrowser-t is
+x db.properties-t folosleges minden alkalommal beolvasni. Raadasul
+  ha hibas, akkor vszleg az elso es utana minden lekerdezesnel
+  exception-t dob, nem pedig a program indulasakor egy ellenorzott helyen.
+x Repast Import ablak szelessege a fajlnev hosszatol is fugg. Ez nem jo!
+x NewColumnDialog-ban 
+  x parameter eseten nem kell engedni a gepelest a ComboBox-ba.
+  x a konstruktorban Row.source atvetelekor setSelectedItem() ne stringet
+    kapjon hanem Parameter-t, de legalabbis ellenorizd, h. ha stringet kap
+    akkor beall-e a megfelelo Parameter-re? Ha igen, akkor ki lehet venni 
+    azt a string->Parameter kavarast ami enableDisableButtons()-ban van.
+x Input columns/Output columns: columns helyett parameters vagy esetleg 
+  factors legyen.
++ keress ra a neten csinalt-e mar vki olyan ClassLoader-t ami memoria-beli
+  .jar-bol mukodik? Sztem az RMI-ben is kene lennie ilyennek...
+x Utils.format()-okat csereld le String.format()-ra!
+x pofozd ki a Database Settings ablakot is. RadioButton-ok tegyek egyertelmuve
+  hogy ketfele lehetoseg kozott kell donteni. Ertelmesebb tajekoztatas kell
+  arrol, hogy Stand-alone esetben HSQLDB adatbazisrol van szo aminek 
+  egy konyvtar+fajlnev prefixre van szuksege. A file selection dialog-ban 
+  *.script vagy *.properties legyen a filter. A "stand-alone" kifejezes helyett
+  sztem talalobb az "embedded database engine" elnevezes.
+  db.properties is a registry-ben tarolodjon Preferences objektum segitsegevel.
+  Igy a temporary-onkitomorito-indito MEME_setup.exe-nek eleg 1x megadni, hogy
+  hol van az adatbazis; az ujabb valtozatok automatikusan kapcsolodnak hozza.
+x A databasemanager package szunjon meg, a GUI-s reszei atmehetnek gui-ba.
+x Csinaljunk egy Session nevu osztalyt, ami a session-t olvassa be es irja 
+  ki. Mindig lenne egy aktualis session, ami globalis es MEMEApp-on keresztul 
+  el lehet erni. Ez XML Node-ban tarolna az adatokat (illetve praktikusan 
+  egy Properties-ben).
+x DataBaseSettings-et atteheted a database package-be, ugy mukodne, hogy
+  az aktualis session-bol olvas bizonyos nevu key-eket. Inicializalasa nem
+  kell csinaljon semmit sem.
+  Ezutan jojjon a Database Settings ablak atvarialasa.
+x Az kovetkezik, hogy DataBaseSettings Session-bol dolgozzon. 
+  Ha a Session registry-bol jon, es inprocess hsqldb van beallitva,
+  es az eleresi ut nem talalhato, akkor 1. irjon rola uzenetet 2. a MEME 
+  telepitesi konyvtaraban levo db/ alkonyvtar legyen a default. 
+  A kesobbiekben ezt a default-ot esetleg modositjuk majd, pl. 
+  a user home konyvtaraban hozzon letre egy MEME/db konyvtarat 
+  es az legyen a default v ilyesmi, vagy lesz installer ami kitorli
+  a registry-bol az ottmaradt beallitast es igy nem jon majd az uzi stb.
+  Ha a hibas beallitas helyett sikerul talalni egy mukodot, akkor azt 
+  mentse le DataBaseSettings-be is (vagyis Session-ba). Ha nem mukodik
+  az amit talalt helyette, akkor azt nem muszaj elmenteni (bar lehet).
+x programbol valo kilepeskor Session-t mentsd el. Ez meg hianyzik.
+x StringBuffer-eket csereld le StringBuilder-re!
++ Rajmundnak lehetseges munkak:
+  x egybol DataSet-et ado adatforrasok, fokepp Grid2D esetekben gyorsithat!
+  x tobb chartconfig 1 XML fajlban 
+  x shape es composite Grid2D
+  x tobbretegu grafikonok
+  - animacio
+x db.properties-ben legyen egy kapcsolo, hogy debug modban kulon
+  processzben induljon-e a dbEngine vagy ne. Igy debug modban is 
+  lehetne tesztelni az egyprocesszes felallast (pl. tuzfal-problemak
+  nem jelentkeznek).
+  -> ezt inkabb forraskodba valo belenyulassal allitgassuk!
+x view letrehozasnal listazzuk ki vhogyan h. milyen batch-ek vannak
+  az adatbazisban (pl. datummal). A user valaszthasson csak nehany
+  batch-et, ne az osszeset.
+  A batch usually includes several runs of the same model. When 
+  creating views/charts, the user may wish to see the results 
+  of particular batches only.
+x probald ki, hogy mi van, ha Model nevnek vagy version-nak olyan stringet
+  adsz meg amiben html tag-ek vannak, pl. piros szoveg vagy kep vagy applet 
+  tag... -> nem lehet gond, mivel htmlQuote()-tal iratom ki, tehat ha van
+  benne <..> html tag, abbol &lt;...&gt; lesz, es igy hatasat veszti.
+x AbstractResultsDb.dataChanged-et nevezd at resultsDbChange-re.
+  DataChangeEvent pedig legyen ResultDbChangeEvent.
+  Csinalj hasonlokat ViewsDb-be is.
+x ViewCreationDialog-ban nem kell createNew. Mindig újat csinálunk,
+  ha létezõnek a nevét adják meg, akkor felülírjuk (újracsináljuk).
+  Ha a start()-nak megadott rule nem üres, akkor is teljesen újraépítjuk
+  a megadott view táblát. Ha sok result-ot választott bele és ezért sokáig
+  tart, vessen magára. Pl. grouping használata esetén úgyis muszáj ezt 
+  csinálni.
+x ne legyen ResultsTree.refresh() minden egyes IResult kiiras utan!
+  ResultsBrowser figyelje, hogy olyan IResult-ot adtak-e hozza, aminek a
+  model-je vagy a batch-e hianyzik, es csak ha igen, akkor mondjon refresh()-t.
+  A batch-et ugy figyelje, hogy ha nincs expandolva, akkor nem szamit!
+  -> van egyaltalan minden IResult kiiras utan? Nem csak a longoperation
+  vegen van? Hiszen amikor sok IResult-ot adunk be egyszerre, az 1 
+  longoperation-ban tortenik, nemde? -> igen, viszont az EDT szal
+  kezdemenyez egy csomo masik long operation-t a refresh()-ekbol,
+  es ezek felgyulemlenek, foloslegesen. Ezt kell elkerulni.
+x az kovetkezik, hogy legyenek views database muveletek, hogy az elkeszult
+  ViewCreationRule-t ki lehessen irni.
+x most odaig van meg, hogy a create view wizard-on a Finish gomb lenyomasat
+  meg nem teszteltem. Azt kellene vegigdebugolni. Utana pedig jojjon a 
+  Views panel!
+x View wizard, Columns lap: a szöveg ez legyen: Add or edit columns _of_ the
+  view table
+x NameAndColumn dialog: ha a nev ures amikor a comboboxbol kivalaszt
+  egy elemet, akkor irja be automatikusan a kivalasztott parameter nevet 
+  nevnek.
+x azt meg szukseges volna megcsinalni, hogy ResultsTree.adjustSelection()
+  eszlelje ha egy szulo alatt minden node ki van valasztva es valassza ki 
+  a szulot is. Enelkul rosszul fog mukodni a view update/recreation.
+x csinald meg az aktivalo fajlt! Az ellenorzese lehetoleg onallo programresz
+  legyen, hogy konnyen lehessen valtoztatni rajta. A fajl megletet (es tartalmat)
+  a registry-bol ellenorizze. Ha nincs meg, akkor MainApp-bol, az adatbazishoz
+  valo kapcsolodas elott rakjunk ki egy modalis ablakot, amiben felszolitunk
+  az aktivalasra. Lehet valasztani fajl hely megadast vagy kilepest.
+x a log-ba "Connection succeeded" utan ird ki a conn.stringet is.
+x database package doksijaba ird bele hogy minden muveletet a Model szalban kell
+  futtatni, ez nincs kulon feltuntetve.
+x name&description lapon gepeles kozben nem indul ujra a timer.
+x ha nincs adatbaziskapcsolat, akkor a Results Browser info reszeben
+  jelenjen meg egy uzenet (nincs adatbaziskapcsolat, kerem modositsa
+  a beallitasokat a File/Database settings ablakban)
+  Ha ures az adatbazis, akkor egy masik uzenet jelenjen meg
+  (The database is empty. Use File/Import to add data)
+  Ha nincs kivalasztva semmi, akkor egy harmadik uzenet jelenjen meg
+  (Click on the tree at the left to select recorded results from the 
+   database. Use CTRL+Click to select more.)
+= SQL UNION nem mukodik amikor a tablak eltero felepitesuek. create view-nal
+  tehat nem tudsz az egeszre group by-t mondani.
+  Ebbol az adodik, hogy 
+  a) GROUP BY-t csak olyankor tudunk engedelyezni, amikor a GROUP BY-ban szereplo 
+     oszlopok mindegyike _es_ a projektalt oszlopok mindegyike is szerepel 
+     (es azonos tipusu) mindegyik tablaban.
+  b) atmeneti tablaba atramolunk mindent es ugy mondunk GROUP_BY-t
+x RepastImport esetében *.out fájl pattern is legyen.
+x Gulya kerte hogy rePast importnal lehessen allitani a delimiter karaktert
+  Lehet detektalni az alapjan, hogy az oszlopneveket tartalmazo sorban
+  mindig idezojelbe teszi a neveket. Tehat elvileg mindig igy kezdodik:
+  "run"<itt valami>"tick"
+  Namost az <itt valami> lesz a delimiter string. Nemcsak 1 karakteres
+  lehet, hanem egesz string is. Csak akkor van gaz, ha az elvalaszto karakter
+  tartalmaz idezojelet...
+x bug: amikor in-process hsqldb van, kilepeskor nem zarodik le rendesen. 
+  Az .lck fajl ottmarad!
+x Import-nal version alapertelmezese lehetne "1". 
+x Ellenorizd, hogy ures version stringgel ne lehessen letrehozni uj Model-t.
+x Rajmundnak:
+  x IDataSourceProducer.getDisplayName(): nagyon zavaro hogy hol ezt hasznalja
+    a GUI, hol meg toString()-et, es nem kovetkezetes. Inkabb akkor szuntessuk 
+    meg getDisplayName()-et es legyen csak toString().
+  x van egy csomo (JFrame)... tipuskenyszerites a kodban, ellenorzes nelkul.
+    JDialog-gal ez mind elszall!
+  x Tobbretegu grafikon eseten a konfiguralo ablakban a Save/Display/Cancel
+    a legalso alatt legyen, ne a legfolso alatt!
+  x amikor Cancel-el becsukom az ablakot, legyen mod arra is hogy automatice
+    becsukja a grafikonokat is! A grafikon-ablakokat is lehessen kerni JDialog-ba
+    (sztem mindig abba kene.. -> JDialog 2 ok miatt nem jo: 1. nem lehet 
+     minimalizalni 2. mindig a parent elott marad, nem lehet mogeje tenni)
+  x ai.aitia.chart.dialogs.CCCollectionDialog.getNewChartMenu() a menupontok
+    listaja ne legyen bedrotozva, hanem registerAll()-tol fuggo legyen!
+  x modositottam a chartTest alkalmazast: a componentHidden() esemenyfigyelest
+    nem a frame-re kell tenni, hanem a chart-ot kozvetlenul tartalmazo JPanel-re.
+  x 3.1 mire hasznaljuk IDataSourceProducer.getElements()-et? Pl:
+    - Colormap eseten: hogy felsoroljuk a usernek, hogy az adatforrasnak
+      milyen ertekei vannak, amikhez szineket rendelhet.
+    - Colormap eseten: ha a Details lapon mar hozzarendelt szineket
+      az adatforras egyes szamertekeihez, es azutan kivalaszt egy masik 
+      adatforrast amiben mas szamertekek vannak, akkor megkerdezzuk hogy
+      eldobhatjuk-e az elozo hozzarendeleseket. (Do we drop the table colormap 
+      and return to an rainbow colormap, or cancel the selection?)
+    - ShapeGrid2DDialog: ha a Details lapon mar hozzarendelt shape-eket
+      az adatforras egyes szamertekeihez, es azutan kivalaszt egy masik 
+      adatforrast amiben mas szamertekek vannak, akkor megkerdezzuk hogy
+      eldobhatjuk-e az elozo hozzarendeleseket.
+x a datatype .png-ket javitsd: egyreszt egy picivel kisebb betuk, masreszt
+  I helyett Z, es S helyett T.
+x ikonokat bekotni:
+  x chart_create.png
+  = chart_delete.png
+  x chart_open.png
+x Window.setLocationRelativeTo() a create view es egyeb dialogoknak
+  -> System.setProperty("java.awt.Window.locationByPlatform", "true"); megoldotta.
+= View-t lehessen kiegesziteni adatokkal (append). Ilyenkor a View Creation
+  wizard elso lapja nem jon be, a Columns lapon ?-ek kerulnek a hianyzo 
+  oszlopok forrasahoz: 
+  - ViewCreation.trun()-ban nincs createView() hanem csak addRows()
+  - IDataTypeCalculator.getViewColDataType(): ha egy DBCOLUMN-t nem talal
+    meg a selection-ben, akkor adjon null-ot
+  - JTableScrollPane.getJTable() renderer: ilyenkor a datatype ikon egy piros 
+    ? legyen, ezzel jelezzuk hogy ez az oszlop hianyzik, az src oszlopnev
+    pedig legyen athuzva vagy irjuk utana dolttel hogy misssing vagy ilyesmi.
+  - Page_Columns: ha torolnek egy oszlopot ami pedig a view-ban szerepel,
+    akkor annak az oszlopnak az SrcType-ja valtson null-ra.
+  - ViewCreationDialog.onClose(): ha SrcType==null, akkor hagyja ki az oszlopot.
+    Mivel nem lesz createView(), ezert az osszeallitott rule nem tarolodik majd
+    el az adatbazisban. Vagyis ha recreate-et mond a view-ra, akkor ezek a 
+    hozzafuzesek nem kerulnek bele...
+x MDI modban honnan tudod, hogy melyik panel az aktiv? Kellene hogy
+  panelmanager-be listener-t lehessen tenni erre. -> Listener helyett
+  legyen egy programstate parameter aminek az erteke JPanel tipusu,
+  hogy melyik panel aktiv most. Amikor valtozik, akkor megcsengeted.
+x Letiltasok:
+  x a Views menu elemeit le kell tiltani, amikor nem a Views panel az aktiv
+  x Import menut is le kell tiltani, amikor nem a Results panel az aktiv.
+  x Export menut is le kell tiltani, amikor az aktualis lapon nincs kivalasztva.
+  Ezeket ugy lehetne megvalositani, hogy amiket eddig control(...) hivasokkal
+  oldottal meg, azokat ki kellene tenni kulon muveletbe. Megpedig 
+  onProgramStateChange() muveletbe. Ezaltal a Results/Views/Charts panel
+  egy IProgramStateChangeListener-re valik. Azutan ra kell akasztani a 
+  megfelelo "adatokra". Ilyen adat maradhat a kivalasztott result-ok
+  szama, a kivalasztott view-k szama, az aktualis panel stb. Tehat tobb
+  helyre. Amikor barmelyik valtozik, akkor onProgramStateChange() meghivodik
+  es az ott leirtak alapjan ujraszamoljuk hogy mi van engedelyezve es mi 
+  nincs.
+x ha ResultsTree-ben egy modelnev alatt csak 1 version van, akkor
+  a model kivalasztasat ekvivalensnek lehetne tekinteni a version
+  kivalasztasaval (ne kelljen a usernek kinyitnia a modelnevet is
+  ahhoz, hogy megtekinthesse a description-t).
+x Charts/Open chart: hatasara nyiljon meg egy open dialog, es a user tolthessen
+  be egy elmentett chart config-ot. Az eredmenyt nyisd meg a chart lapon.
+  Ez a menupont legyen letiltva, amikor a charts lap hasznalatban van.
+x a VIEW_nn tablaban legyen IDENTITY oszlop is!
+x bug: MDI esetben Views lapon Create chart... hatasara nem jon elore a Charts ablak.
+x bug: Page_Columns.fill() hamarabb akarja feltolteni a tablazatot mint ahogy
+  setSelection() megtortenne. Emiatt Recreate indulasnal elszall. Javitsd!
+x bug: TimeSeries a sorozat elso elemet mutatja mindig. XYLineChart is.
+  Azert, mert a view-t rosszul hozod letre! view letrehozasnal az input 
+  oszlopokban nem valtozik az ertek, hiaba van tobb run.
+x bug: Views panel-ben a Create Chart gomb hasznalhato olyankor is
+  amikor mar folyik egy masik create chart!
+x bug: ha view letrehozasnal mas nevet adok az oszlopnak mint ami a
+  forras neve, akkor a view-ba null-ok kerulnek ki!
+x bug: nem tudom hogyan sikerult okozni, de Page_ResultsBrowser.getViewColDataType()-ban
+  a throw new IllegalArgumentException()-re futott. Oldd meg ezt ugy, hogy ha
+  null-ot ad vissza, akkor a tablazatban vmi kerdojellel jelenjen meg a dolog,
+  legfeljebb Finish ne fogadja el v. adjon hibat, de ne legyen ezt az exception.
+  -> talan ugy sikerult osszehozni, hogy letrehoztam egy view-t, majd utana
+  toroltem az egesz modellt, amibol az adatokat kapta. Kesobb ujra letrehoztam
+  azt a modellt, de masok voltak benne az oszlopok. Recreate-et nyomtam a view-ra. 
+  A results browser lap ures volt, tehat kijeloltem rajta az uj modellt. Amikor
+  azonban tovabbleptem a columns lapra, akkor kereste az uj selection-ben a regi
+  oszlopot. 
+  Vszleg ezt a hibat ugy is elo lehet allitani, hogy beveszel az oszlopok
+  koze vmit, majd a Back gombbal kiveszed a selectionbol a megfelelo modellt.
+x kosd be a Rajmund-fele aktivalo programreszt. Utana csinald ujra a 
+  kepeket a user manualhoz, es javitsd a leirast is a user manualban.
+x chart creation-nal, amikor viewcache betolti a view adatokat, 
+  a progressbar nincs beallitva es user beak-re sem figyelsz!
+x bug: chart collection, tobb chart, kozottuk valo valtaskor egyre szelesedik
+  a MEME ablak. repack()-eknel szelesedik az ablak. A Results Panel-en
+  levo JSplitPane okozza valahogy. Ha a tree-t szelesebbre huzzuk mint
+  a legszelesebb szoveg (alt. a jdbc: string), akkor repack() osszefele
+  huzza a chart lapot, kulonben pedig noveli azzal aranyosan, amennyi
+  nem latszik a jdbc: stringbol.
+x bug: Database Settings-ben megadtam egy uj helyet egy adatbazisnak.
+  Bezarta a jelenlegit (nem volt ures) es megnyitotta az ujat, de 
+  egyreszt nem jott ki a progress ablak (vszleg vmi nem longop-ban 
+  tortent), masreszt nem irodott ki utana az info panelbe hogy ures 
+  az adatbazis, importaljon dolgokat. Exception-t sem irt ki.
+x az Open chart menure bejovo open dialog-ban a filter neve ne 
+  "XML files" legyen hanem "Saved chart configurations"
+x About ablakba copyright.
+x logolas ne stdout-ra menjen, hanem valami fajlba...
+x Modelt, versiont, batch-et lehessen torolni. bekotni: model_delete.png
+x ha a Page_Columns laprol a Back gombbal visszalepek es megvaltoztatom
+  a kijelolest, akkor torolni kellene azokat az oszlopokat amiknek a forrasa
+  az uj kijeloles eseten ertelmezhetetlen. Errol egy kerdest is fel kellene
+  dobni a kijeloles megvaltoztatasakor => ezt megoldottam ugy, hogy a 
+  Page_Columns lapra valo visszalepeskor frissitem a tablat es ennek soran
+  ellenorzom az oszlopok elerhetoseget. Ha hianyossagot talalok, akkor a
+  Finish gomb letiltodik, egy ikon pedig jelzi a problemas oszlopot.
+  Edit-tel tud javitani a user.
+x online help: Az about ablakba, vagy a help menube tedd be a tutorial 
+  es a userman elerhetoseget -> hogyan? -> Legalabb Windowson oldd meg.
+x Create view dialog-ban a nev beirasa utan muszaj az egeret hasznalni,
+  tab-ra vagy enter-re is tovabbmehetne a kovetkezo lapra!
+x import dialog jegyezze meg az utoljara hasznalt konyvtarat, legalabb
+  addig amig ki nem lepsz a MEME-bol.
+x views lapon a 'del' billentyu legyen uaz mint a Delete View gomb.
+x kilepesnel zavaro hogy elobb tunik el a foablak mint ahogy az 
+  adatbazisbol kilep es emiatt a progress dialog meg elojohet utana.
+x ai\aitia\chart\charttypes\dialogs\BarChartDialog.java: 
+  "Titles of the chart" helyett "Chart title"
+x a HTML megjelenitesu cimkek betutipusat egyeztessuk a programeval
+  Igy kell kezdeni mindig - a kesobbiekben ez theme-fuggo...
+   "<html>" +
+   "<body style=\"font-family:sans-serif;font-size:100%\">Hello, world!"
+x A Views panelen a "Contains...rows" meg a description jojjenek
+  par pixellel jobbra
+x a pluginek nevet ado fgv.t getLocalizedName()-nek nevezzuk
+x repast import-nal erdemes lenne elore megnezni a fajl meretet. 
+  Ha nagy (>100k) akkor vagy elore megszamolni hogy hany sor van benne,
+  es csak utana kezdeni el a parse-olast, vagy szamon tartani hogy
+  hanyadik byte-nal tartunk; lenyeg az, hogy a progress bar ablak
+  kijelezhesse hogy mennyi van meg hatra hozzavetolegesen.
+x progress dialog tul nagyra nyilik hibauzenet eseten. Kiprobalhatod
+  pl. ugy hogy elinditod a MEME-t ketszer in-process hsqldb-vel. A 
+  masodik nem tud kapcsolodni az adatbazishoz, mert az elso lock-olja.
+  Az errol szolo hibauzenet alatt csomo ures hely van.
+x Open chart es Create charts legyenek mindig elerhetoek, es kerdezzenek
+  ha rosszkor nyomjak meg oket! -> bug#68
+x valahogy meg kellene oldani h. a user lathassa az adatokat, a szamokat.
+  Legalabb a view-kban. A views panel info reszen egy gombbal lehessen ra
+  atvaltani.
+x view tablak azonositoit egy sequence-el generald. Lehetne ugyanazt
+  a sequence-et hasznalni a modelid-k generalasara is (csak akkor
+  vissza kellene terni integer-re...)
+x bug: a view creation wizard ablakon nincs maximalizalas gomb
+       -> JRootPane.setWindowDecorationStyle()
+       -> nem mukodik ez sem. Nem tudom hogyan lehetne megoldani.
+       Nagyon ugy nez ki hogy nem lehet. Ld.
+       http://forum.java.sun.com/thread.jspa?threadID=720196&messageID=4157194
+x Probald megcsinalni a 3DStudios gorgetest.
+x Columns-ot atalkitani hogy ArrayList<Parameter>-bol oroklodjon. Egy 
+  Parameter tartalmaz nevet es tipust. Columns az sql neveket teszi hozza.
+  Neha a tipus elhagyhato (null) ilyenkor csak nev szerint megy az 
+  osszehasonlitas, egyebkent pedig tipus szerint is.
+  Az osszehasonlitasnal a tipusok konvertalhatosagat kellene tekinteni
+  (ta < tb ha ta konvertalhato tb-re azaz tb bovebb mint ta) <- ezt nem lehet
+x ha azt mondom Cancel uruljon ki az oszlopnev. Edit-nel teljen meg es
+  szelektalodjon ki
+x a pluginek betolteset ossze lehetne-e vonni az application starting uzenettel?
+  Tovabba mi lenne ha az application start/stop uzenetek fogadasa nem lenne
+  kotelezo? (Reflection-nal megnezzuk, h. van-e statikus muvelet ami fogadja,
+  s ha nincs, akkor nem hivjuk meg). A start uzenetet fogado statikus muvelet
+  a plugin objektum letrehozoja is lehetne, es ilyen modon adhatna NULL-ot is,
+  ha azt akarja, hogy a plugin megse toltodjon be (pl. matlab analysis plugin:
+  ha nem talal matlabot, be sem toltodik).
+  Ha nincs ilyen statikus muvelet, akkor hasznaljuk a newInstance()-t (azaz
+  default konstruktort).
+x az Order by lapon egy egyoszlopos tablazat legyen, fel/le/remove gombokkal.
+  Duplakatt egy sorban elkezdi szerkeszteni azt, kiveve a masodik es azutani
+  ures sorok eseten. A szerkesztes egy comboboxot jelent amiben valaszthat
+  a parameterek kozul. Ha olyat valaszt ami a tablaban mar szerepel akkor 
+  helyet cserelnek.
+x a kovetkezo lepesek:
+  - a hatralevo "kozmetika" (pl. beiras kozbeni ellenorzes, 
+    mashol-hasznaljak-mar ellenorzes stb.)
+    Ezt szerintem halasztani kellene hogy minel elobb lehessen hasznalni
+    az egeszet.
+  x aggregacios fgv.ek megvalositasa pluginbol
+  x beanshell bekotese
+x Csak a fenti utan kezdodhet az erdemi algoritmus implementalasa.
+x Views lapon a view tablak rosszul jelennek meg: csak rule alapjan jelennek 
+  meg, igy latszanak a rejtett oszlopok is, a splitted oszlopok pedig %-jeles
+  nevvel latszanak a tenyleges nevuk helyett. Ezt javitani kell.
+x Talan erdemes egy pillantast vetni DefaultSQLDialect.createTmpTable()-re,
+  hogy ha temporary a tabla akkor miert lesz ures mire olvasok belole?
+x About ablakot atalakitani
+x chartingPackage-t letolteni, berakni
+x csinalj egy fgv.t ami a "See the error log for details" stringet eloallitja
+  ugy h. beleirja a fajl helyet is. Lehessen parameterben megadni h. tegyen-e
+  a fajlnev ele sortorest, vagy String[]-be tegye-e vagy csak siman.
+x Page_Columns: select all pars context menu
+x Page_Columns: a hidden flag-et is lehessen allitani a tablaban
+x Page_Columns: Splitter van, splitted nincs -> figyelmeztessen
+x felpakolni a CVS-be
+x Page_Columns: "Use grouping" nem kell, legyen automatikus
++ Page_Columns: villogjon a Modify gomb amig meg nem nyomjak vagy ot vagy
+  a Cancel-t! 
+x Finish foglalja magaban a Modify-t is.
+x ViewsBrowser.columnsChanged() ahol remaining-et hozzaadod: nem sokbol
+  tartana egy ciklussal szetosztani egyenletesen az osszes oszlop kozott;
+  vagy akar sulyozva hogy a keskenyebb tobbet kapjon, a szelesebb kevesebbet
+  az eredmeny viszont szebb lenne tole.
+x ha gyakori exception jon a visubol akkor ne tegyel ki ujabb ablakot
+  (ha meg kint van az elozo ablak akkor addig ne tegyel ki ujabbat).
+  Ezt megcsinalhatnad minden uncaughexception-kezelore egysegesen, mert
+  ez a gond mashol is elojohet.
+x inconsistent specification of splitting: hozzaadok projekcioval 4 oszlopot,
+  a legfelsot kijelolom tagolonak, utana hozzaadok egy Columns1% nevu 
+  projekciot splitted -> a warning uzenet tovabbra is kintmarad. Pedig
+  az Add elerheto, el is fogadja. A Next/Finish gombok is elfogadjak.
+  Miert nem tunik el a warning? Akkor is kint van ha oda-visszalapozok 
+  masik lapokra.
+x chart letrehozasnal ahol beallitod a Loading data.. tasknevet allitsd
+  is vissza arra ami volt hogyha sikeres a befejezes!
+x SQLException-ban lehet OutOfMemory is. Ilyenkor dobjunk OutOfMemoryError-t
+x OS muveletek koze vedd be az explorer-el valo URL megnyitast
+x default theme: Moderate
+x splitter eseten kapcsoljon be a hidden is alapertelmezeskent
+x splitted oszlopnal a % jel specialis kezelese. bug354-hez ird be hogy a
+  forrasban hol van ez, hol kell atirni.
+x ird be Bugzillaba feladatkent: 
+  x Page_Columns: vektoros-e a sor - kijelzese
+  x Use grouping checkbox kiszedese
+x a Views lapon a tablazatban Splitter es Hidden oszlopoknak nem kellene
+  latszaniuk: ami hidden, az ugyse latszodhat, az meg hogy vki splitter
+  volt, nem erdekes (leginkabb azert mert a splitterek altalaban hiddenek). 
+  Ellenben ki lehetne irni az oszlopok szamat is, amikor >10.
+x Views lapon tablatartalom megjelenites kozben kurzorral fel/le -> fagyas

@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Extension-Name: aitia-generated-scripts
+Class-Manager: ai.aitia.script.extension.ScriptExtensionManager
+NetLogo-Extension-API-Version: 4.1

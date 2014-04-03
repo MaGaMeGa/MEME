@@ -1,0 +1,332 @@
+<?xml version="1.0"?>
+
+<project name="MEMEApp" default="makebuild" basedir=".">
+
+	<tstamp />
+
+	<!-- set global properties for this build -->
+	<property name="bin" value="bin" />
+	<property name="settings" value="wizardsettings" />
+	<property name="src" value="src"/>
+	<property name="plugins" value="Plugins" />
+	<property name="platforms" value="PlatformPlugins" />
+	<property name="tmp" value="tmp" />
+	<property name="docs" value="Documents" />
+	<property name="output" value="." />
+	
+	<property name="hsqldb"     value="lib/hsqldb/lib/hsqldb.jar" />
+	<property name="activation" value="lib/Activation" />
+	<property name="jug"        value="lib/Activation/lib/jug-lgpl-2.0.0.jar" />
+	<property name="libs"       value="lib" />
+	<property name="plugins"    value="plugins" />
+	<property name="resources"  value="resources" />
+
+	<property name="distDir" value="dist"/>
+	<property name="dist" value="${distDir}/MEME" />
+	<property name="distlib" value="${dist}/lib" />
+	<property name="distplugins" value="${dist}/Plugins" />
+	<property name="distresources" value="${dist}/resources" />
+	<property name="distplatforms" value="${dist}/PlatformPlugins" />
+	<property name="diststatic" value="dist_static"/>
+
+	<property name="snapshotprefix" value="memesnapshot-"/>
+	<property name="snapshotnumber" value="${DSTAMP}${TSTAMP}"/>
+	<property name="snapshotfile" value="${snapshotprefix}${snapshotnumber}.zip"/>
+
+	<!-- Define the appbundler task -->
+	<path id="ant-classpath">
+		<fileset dir="${basedir}/ant-lib" includes="*.jar"/>
+	</path>
+	
+	<path id="junit-classpath">
+		<pathelement location="${bin}"/>
+		<pathelement location="${src}"/>
+		<!-- <fileset dir="${libs}/fest" includes="*.jar"/> -->
+		<fileset dir="${libs}/hsqldb/lib" includes="*.jar"/>
+		<!-- <pathelement location="${libs}/junit-4.11.jar"/> -->
+		<!-- <pathelement location="${libs}/hamcrest-core-1.3.jar"/> -->
+		<path refid="javac-classpath"/>
+	</path>
+	
+	<path id="javac-classpath">
+		<fileset dir="${libs}" includes="*.jar"/>
+		<fileset dir="${libs}/fest" includes="*.jar"/>
+		<fileset dir ="${plugins}" includes="*.jar"/>
+		<fileset dir ="${platforms}" includes="*.jar"/>
+		<fileset dir ="testlibs" includes="*.jar"/>
+	</path>
+	
+	<path id="javac-classpath2">
+		<path refid="javac-classpath"/>
+		<pathelement location="${bin}"/>
+	</path>
+		
+	<!-- <taskdef name="bundleapp" classpathref="ant-classpath" classname="com.oracle.appbundler.AppBundlerTask"/> -->
+	
+	<target name="makejar">
+		<mkdir dir="${tmp}" />
+		<unjar overwrite="false" dest="${tmp}">
+			<fileset file="${hsqldb}" />
+			<fileset file="${jug}" excludes="LICENSE LGPL2.1" />
+			<fileset dir="${libs}" includes="visu.jar" />
+			<fileset dir="${libs}" includes="*.jar" 
+            				   excludes="visu.jar vecmath.jar j3d* ant-apache-log4j NetLogo.jar  mysql-connector* org.eclipse* saf.core.runtime.jar trass.jar repast.simphony.* BehaviorSpace.jar scala-library.jar picocontainer-2.13.6.jar mason-all-16.0.0-RELEASE.jar mason.16.jar" />
+		</unjar>
+		<delete file="${tmp}/META-INF/MANIFEST.MF" />
+		<delete file="${tmp}/META-INF/INDEX.LIST" />
+		<jar jarfile="${output}/MEME.jar"
+         compress="yes"
+         duplicate="preserve"
+    	 manifest="manifest3.mft"
+    	 excludesfile="**/INDEX.LIST">
+			<fileset dir="${bin}" defaultexcludes="yes"
+		                             excludes="**/*.java* .**/ .* **/*.bak **/package-info.class **/Test* ai/aitia/meme/netlogo/**/* *.txt *.nlogo aitia-generated-scripts/ table5/ typechecker5/" />
+			
+			<fileset dir="${bin}" includes="**/TestableDialog.class" />
+			<fileset dir="${activation}" includes="ai/aitia/Activation*.class" />
+			<fileset dir="${src}/ai/aitia/meme/gui" includes="ai/aitia/Activation*.class" />
+			<fileset dir="${src}" includes="**/ai/aitia/meme/gui/icons/**"/>
+			<fileset dir="test" includes="**/ai/aitia/testing/fest/KeyMap.txt"/>
+			<fileset dir="${tmp}" />
+		</jar>
+	</target>
+
+	<target name="makeplugins">
+		<ant dir="${plugins}" inheritall="false" target="buildPlugins"/>
+		<ant dir="${platforms}" inheritall="false" target="buildPlugins" />
+	</target>
+
+	<target name="makebuild" depends="compile ,makejar, makeplugins">
+		<mkdir dir="${dist}"/>
+
+		<copy todir="${dist}" includeemptydirs="true">
+			<fileset dir="${diststatic}" />
+		</copy>
+
+		<copy file="MEME.jar" todir="${dist}" overwrite="true"/>
+		<copy file="MEME.bat" todir="${dist}" overwrite="true"/>
+		<copy file="MEME.sh" todir="${dist}" overwrite="true" />
+
+		<ant dir="." antfile="mybuild-mpjar.xml" inheritall="false" target="genjar" />
+		<copy file="meme-paramsweep.jar" todir="${dist}" overwrite="true"/>
+
+		<mkdir dir="${distplugins}"/>
+		<copy todir="${distplugins}">
+			<fileset dir="${plugins}" includes="*.jar" excludes=".**/" defaultexcludes="yes" />
+		</copy>
+
+		<mkdir dir="${distplatforms}" />
+		<copy todir="${distplatforms}">
+			<fileset dir="${platforms}" includes="*.jar" excludes=".**/" defaultexcludes="yes" />
+		</copy>
+
+		<mkdir dir="${distresources}" />
+		<copy todir="${distresources}">
+			<fileset dir="${resources}" />
+		</copy>
+
+		<mkdir dir="${distlib}" />
+		<copy todir="${distlib}">
+			<fileset dir="${libs}" includes="j3d* j3d/**/* vecmath.jar trass.jar linux/** mason.16.jar aspectjweaver.jar mysql-connector-java-5.1.6-bin.jar" defaultexcludes="yes" />
+		</copy>
+
+		<copy file="usertools_empty.xml" todir="${dist}" />
+		<rename dest="${dist}/usertools.xml" src="${dist}/usertools_empty.xml"/>
+
+		<zip destfile="${snapshotfile}" basedir="${distDir}" />
+		
+	</target>
+
+<!-- 	<target name="MacApp">
+		<property name="MEMEAppDir" value="${basedir}" />
+		<property name="MEMEAppName" value="MEME"/>
+		<property name="JAVAROOT" value="$APP_ROOT/Contents/Java"/>
+		
+		<bundleapp 
+			outputdirectory="${MEMEAppDir}"
+			name="${MEMEAppName}"
+			displayname="${MEMEAppName}"
+			identifier="ai.aitia.meme.MEMEApp"
+			icon="${basedir}/dist_static/MEME.icns"
+			shortversion=""
+			applicationcategory="public.app-category.developer-tools"
+			mainclassname="ai/aitia/meme/MEMEApp" >
+			
+			<classpath file="${basedir}/MEME.jar"></classpath>
+			<option value="-Duser.dir=${JAVAROOT}"/>
+			<option value="-Xmx512m"/>
+			<option value="-javaagent:${JAVAROOT}/lib/aspectjweaver.jar"/>
+			<option value="-Djava.library.path=${JAVAROOT}/lib/j3d"/>
+			<option value="-Dapple.laf.useScreenMenuBar=true"/>
+		</bundleapp>
+		
+		<copy todir="${MEMEAppDir}/${MEMEAppName}.app/Contents/Java/">
+			<fileset dir="${dist}" includes="**/*" excludes="MEME.jar"/>
+		</copy>
+		
+</target> -->
+
+<target name="compile" depends="clean">
+	<delete dir="${bin}"/>
+	<mkdir dir="${bin}" />
+	<javac destdir="${bin}" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" includeantruntime="false" source="1.6" target="1.6" encoding="utf-8">
+		<compilerclasspath>
+			<pathelement location="${libs}/ecj.jar"/>
+		</compilerclasspath>
+		<src path="${basedir}" />
+		<include name="${src}/**" />
+		<include name="test/ai/aitia/testing/fest/**" />
+		<include name="${platforms}/CustomJavaPlugin/**" />
+		<include name="${plugins}/intellisweepPlugin/**" />
+		<include name="${plugins}/IntelliResultProcessPlugin/**" />
+		<!-- <exclude name="${src}/ai/aitia/meme/paramsweep/platform/mason/impl/*" /> -->
+		<compilerarg value="-time" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" /> 
+		<classpath refid="javac-classpath"/>
+	</javac>
+</target>
+
+
+<target name="runtest" depends="compile, makeplugins">
+	 <junit fork="yes">
+		<jvmarg value="-ea"/>
+		<classpath refid="junit-classpath" />
+		<formatter type="brief" usefile="false" />
+		<batchtest>
+			<fileset dir="${bin}" includes="**/testing/**/*Test.class" />
+		</batchtest>
+    </junit>
+</target>
+
+<target name="recompile-tests">
+	<javac destdir="${bin}" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" includeantruntime="false" source="1.6" target="1.6">
+		<compilerclasspath>
+			<pathelement location="${libs}/ecj.jar"/>
+		</compilerclasspath>
+		<src>
+			<pathelement location="test/ai/aitia/testing/fest" />
+		</src>
+		<compilerarg value="-time" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" /> 
+		<classpath refid="javac-classpath"/>
+	</javac>
+</target>
+
+<target name="runtest-short" depends="recompile-tests">
+	<delete>
+	   <fileset dir="screenshots">
+			<include name="*"/>
+	   </fileset>
+	</delete>
+	 <junit fork="yes">
+		<jvmarg value="-ea"/>
+		<classpath refid="junit-classpath" />
+		<formatter type="brief" usefile="false" />
+		<batchtest>
+			<fileset dir="${bin}" includes="**/testing/**/*Test.class" />
+		</batchtest>
+    </junit>
+</target>
+
+
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+       Deletes javadoc files
+       Deletes plugins' .jar files from Plugins directory
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	<target name="clean">
+		<delete dir="${tmp}" />
+		<delete dir="${dist}" />
+		<!-- <delete dir="${bin}"/> -->
+		<delete includeemptydirs="true">
+			<exclude name="**/screenshots/**" />
+			<fileset dir="${docs}" includes="**/*BatchGenerated*"/>
+			<fileset dir="screenshots" includes="*"/>
+			<fileset dir="${settings}" includes="*"/>
+			<fileset dir="${plugins}" includes="*.jar *.pack* **/*.class" />
+			<fileset dir="${platforms}" includes="*.jar *.pack* **/*.class" />
+			<fileset dir="${activation}" includes="**/*.class" />
+			<fileset dir="." includes="*Recorder*.txt *.out MEME.jar"/>
+			<fileset dir="db" includes="*.*"/>
+		</delete>
+		<delete file="${snapshotfile}" />
+	</target>
+
+	<target name="FormsUtils">
+		<jar jarfile="${output}/MEME-FormsUtils.jar"
+         compress="yes">
+			<fileset dir="${bin}" includes="ai/aitia/meme/utils/FormsUtils*.class" />
+		</jar>
+		<zip destfile="${output}/MEME-FormsUtils-src.zip" compress="no">
+			<fileset dir="${src}" includes="ai/aitia/meme/utils/FormsUtils.java" />
+			<fileset dir="${src}" includes="ai/aitia/AITIA_COPYRIGHT.TXT" />
+		</zip>
+	</target>
+	
+	<target name="result-data-classes">
+		<jar destfile="${output}/meme-result-data.jar">
+			<fileset dir="${bin}" includes="ai/aitia/meme/database/*.class" />
+			<fileset dir="${bin}" includes="ai/aitia/meme/pluginmanager/Parameter.class, ai/aitia/meme/gui/lop/UserBreakException.class" />
+		</jar>
+	</target>
+	
+	<target name="generate-jaxb-source">
+		<property name="src.source.dir" value="src" />
+		<property name="jaxb.out.package" value="ai.aitia.meme.paramsweep.settingsxml" />
+		<property name="jaxb.out.dir" value="src" />
+		<property name="jaxb.out.xsdfile" value="MEMERecorderPage.xsd" />
+
+		<delete>
+			<fileset dir="${jaxb.out.dir}/ai/aitia/meme/paramsweep/settingsxml" includes="**/*.java" excludes="package-info.java"/>
+		</delete>
+
+		<exec executable="xjc">
+			<arg value="-p" />
+			<arg value="${jaxb.out.package}" />
+			<arg value="-d" />
+			<arg value="${jaxb.out.dir}" />
+			<arg value="${jaxb.out.xsdfile}" />
+		</exec>
+	</target>
+
+	<!-- ================================= 
+          target: mason-recording-jar              
+         ================================= -->
+	<target name="mason-recording-jar" depends="" description="creates a small jar to be included in Mason projects">
+		<property name="paramsweepdir" value="ai/aitia/meme/paramsweep"/>
+		<jar destfile="${output}/mason-recording.jar" >
+			<fileset dir="${bin}">
+				<or>
+					<filename name="${paramsweepdir}/**"/>
+					<filename name="ai/aitia/meme/pluginmanager/IPlugin.class"/>
+					<filename name="ai/aitia/meme/utils/Util*.class"/>
+				</or>
+			</fileset>
+			<fileset dir="${bin}" includes="${paramsweepdir}/platform/mason/recording/annotation/*.class"/>
+			<fileset dir="${bin}" includes="${paramsweepdir}/settingsxml/*.class"/>
+			<fileset dir="${plugins}/operatorPlugin/">
+					<filename name="ai/aitia/meme/paramsweep/operatorPlugin/Operator_MultiColumnRecordable.class" />
+			</fileset>
+			<fileset dir="${platforms}/MasonPlugin-16">
+				<or>
+					<filename name="ai/aitia/meme/paramsweep/platform/mason/impl/IMasonGeneratedModel.class" />
+					<filename name="ai/aitia/meme/paramsweep/platform/mason/impl/MasonModelGenerator.class" />
+					<filename name="ai/aitia/meme/paramsweep/platform/mason/recording/RecordingHelper*.class"/>
+				</or>
+			</fileset>
+			<zipfileset src="${plugins}/coltPlugin.jar" includes="ai/**"/>
+			<zipfileset src="${libs}/dps_common.jar" />
+			<zipfileset src="${libs}/jsch-0.1.33.jar"/>
+        </jar>
+	</target>
+
+	<target name="meme-wizard">
+		<jar destfile="${output}/meme-wizard.jar">
+			<fileset dir="${bin}">
+				<or>
+					<filename name="ai/aitia/meme/gui/Wizard*.class"/>
+					<filename name="ai/aitia/meme/events/Event.class"/>
+					<filename name="ai/aitia/meme/utils/GUIUtils.class"/>
+					<filename name="ai/aitia/meme/utils/Utils*.class"/>
+				</or>
+			</fileset>
+		</jar>
+	</target>
+</project>

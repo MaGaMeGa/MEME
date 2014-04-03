@@ -1,0 +1,151 @@
+cmenu elemek:
+	"btn_cut"
+	"btn_paste"
+	"btn_selectall"
+
+joptionpane dialog nev: "popupdialog"
+
+dialog gombok:
+	okbutton.setname("btn_ok");
+	cancelbutton.setname("btn_cancel");
+	nobutton.setname("btn_no");
+	yesbutton.setname("btn_yes");
+	
+	
+classloader extend dialog:
+	dial.setname("dial_classpath");
+	cancelbutton.setname("btn_cancel");
+	okbutton.setname("btn_ok");
+
+utils:
+	useralert.button.setname("btn_ok");
+	useralert.dialog.setname("dial_useralert");
+		
+fõablak toolbar gombok:
+	g_AppWindow.getJFrame().setName("wnd_main");
+	components[0].setName("btn_mainwindow_import");
+	components[1].setName("btn_mainwindow_export");
+	components[2].setName("btn_mainwindow_renamemodel");
+	components[3].setName("btn_mainwindow_deletemodel");
+	components[4].setName("btn_mainwindow_createview");
+	components[5].setName("btn_mainwindow_loadview");
+	components[6].setName("btn_mainwindow_createchart");
+	components[7].setName("btn_mainwindow_runsimulation");
+	components[8].setName("btn_mainwindow_monitorsimulation");
+	components[9].setName("btn_mainwindow_clouddownload");
+
+fõablak.
+	jTree.setName("tree_mainwindow_resulttree");
+	resultsContextMenu.setName("cmenu_mainwindow_treecmenu");
+	TestableDialog.showConfirmDialog(this, msg, "Delete results", JOptionPane.YES_NO_OPTION,"dial_mainwindow_deleteresults");
+	
+	treecontexmenu gombok:
+		comps[0].setName("btn_mainwindow_treecmenuimport");
+		comps[1].setName("btn_mainwindow_treecmenuexport");
+		comps[2].setName("btn_mainwindow_treecmenurename");
+		comps[3].setName("btn_mainwindow_treecmenudelete");
+		comps[6].setName("btn_mainwindow_treecmenucreateview");
+		comps[7].setName("btn_mainwindow_treecmenuimportloadview");
+		comps[9].setName("btn_mainwindow_treecmenuimportcreatechart");
+	
+wizard elemek:
+	wizDialog.setName("wnd_wizard");
+	jBackButton.setName("btn_back");
+	jBackButton.setName("btn_next");
+	jBackButton.setName("btn_cancel");
+	jBackButton.setName("btn_finish");		
+	chooser.setName("filechooser_paramsweep");
+
+	platform selection:
+		platformList.setName("lst_wizard_platformlist");
+
+	
+	model selection:
+		dBrowseButton.setName("btn_wizard_modelselection_dirbrowse");
+		browseButton.setName("btn_wizard_modelselection_browse");
+		pBrowseButton.setName("btn_wizard_modelselection_parambrowse");
+		modelDirectoryField.setName("fld_wizard_modelselection_moddirfld");
+		modelFileField.setName("fld_wizard_modelselection_modfilefld");
+		addButton.setName("btn_wizard_modelselection_add");
+		removeButton.setName("btn_wizard_modelselection_remove");
+		moveUpButton.setName("btn_wizard_modelselection_up");
+		moveDownButton.setName("btn_wizard_modelselection_down");
+		topButton.setName("btn_wizard_modelselection_top");
+		bottomButton.setName("btn_wizard_modelselection_bottom");
+		loadSettingsButton.setName("btn_wizard_modelselection_load");
+		resourcesButton.setName("btn_wizard_modelselection_resources");
+		preferencesButton.setName("btn_wizard_modelselection_preferences");
+		aboutButton.setName("btn_wizard_modelselection_about");
+	
+	method selection:
+		methodList.setName("lst_wizard_methodselection_methodlist");
+	
+	parameters:
+		constDefPanel.setName("CONST");
+		listDefPanel.setName("LIST");
+		incrDefPanel.setName("INCREMENT");
+		outputTree.setName("tree_wizard_params");
+		runsField.setName("fld_wizard_params_runs");
+		constDef.setName("rbtn_wizard_params_const");
+		listDef.setName("rbtn_wizard_params_list");
+		incrDef.setName("rbtn_wizard_params_incr");
+		modifyButton.setName("btn_wizard_params_modify");
+		cancelButton.setName("btn_wizard_params_cancel");
+		incrStartValueField.setName("fld_wizard_params_incrstart");
+		incrEndValueField.setName("fld_wizard_params_incrend");
+		incrStepField.setName("fld_wizard_params_incrstep");
+		constDefField.setName("fld_wizard_params_constval");
+		context.setName("cmenu_wizard_parameters_treecmenu");
+		context.getComponent(3).setName("btn_wizard_params_cmenuedit");
+		context.getComponent(4).setName("btn_wizard_params_cmenumoveup");
+		context.getComponent(5).setName("btn_wizard_params_cmenumovedown");
+	recorders:
+		iterationRadioButton.setName("rbtn_wizard_record_stopiteration");
+		conditionRadioButton.setName("rbtn_wizard_record_stopcondition");
+		whenIterationButton.setName("rbtn_wizard_record_enditeration");
+		whenIterationIntervalButton.setName("rbtn_wizard_record_afteriteration");
+		whenRunRadioButton.setName("rbtn_wizard_record_endrun");
+		whenConditionRadioButton.setName("rbtn_wizard_record_whencnd");
+		stopField.setName("fld_wizard_record_stopfld");
+		nameField.setName("fld_wizard_record_namefld");
+		outputField.setName("fld_wizard_record_output");
+		whenIterationIntervalField.setName("fld_wizard_record_afteriteration");
+		whenConditionField.setName("fld_wizard_record_whencnd");
+		stopEEButton.setName("btn_wizard_record_stopextended");
+		whenEEButton.setName("btn_wizard_record_whenextended");
+		outputBrowseButton.setName("btn_wizard_record_browseoutput");
+		advancedButton.setName("btn_wizard_record_advanced");
+		addRecorderButton.setName("btn_wizard_record_addrecorder");
+		cancelButton.setName("btn_wizard_record_cancel");
+		recordableTabbedPane.setName("pane_wizard_record_recordables");
+		addButton.setName("btn_wizard_record_add");
+		addAsButton.setName("btn_wizard_record_addas");
+		createScriptButton.setName("btn_wizard_record_create");
+		editScriptButton.setName("btn_wizard_record_edit");
+		removeScriptButton.setName("btn_wizard_record_remove");
+		recordableVariables.setName("lst_wizard_record_varlst");
+		recordableMethods.setName("lst_wizard_record_methodlst");
+		recordableScripts.setName("lst_wizard_record_datasrclst");
+		nonRecordableScripts.setName("lst_wizard_record_misclst");
+		addasdialog.setname("dial_wizard_record_addas");
+		contextMenu.setName("cmenu_wizard_record_recorderscmenu");
+		pMenu.setName("cmenu_wizard_record_recordablescmenu");
+		recorderTree.setName("tree_wizard_record_recordertree");
+		recorderscmenu:
+			"btn_newrecorder"
+			"btn_editrecorder"
+			"btn_removerecorder"
+
+	RepastImportDialog.java (12 matches):
+		687: jFilenameTextField.setName("fld_repast_filename"); 
+		705: jFilenameButton.setName("btn_repast_openfile"); 
+		811: jOkButton.setName("btn_ok"); 
+		868: jCancelButton.setName("btn_cancel"); 
+		932: jMoveToOutputButton.setName("btn_repast_output"); 
+		950: jMoveToInputButton.setName("btn_repast_input"); 
+		1 102: jModelTextField.setName("fld_repast_modelname"); 
+		1 118: jVersionTextField.setName("fld_repast_version");
+		1 157: jBatchDescTextArea.setName("fld_repast_batch"); 
+		1 179: jIntelliSweepBrowseButton.setName("btn_repast_intellibrowse"); 
+		1 216: jIntelliSweepFileTextField.setName("fld_repast_intellisweep"); 
+		CheckBox.setName("cbox_repast_intellicbox");

@@ -1,0 +1,42 @@
+/* Copyright notice (c) 2006-2007 AITIA International, Inc.
+ * 
+ * This software [Both binary and source (if released)] (hereafter, Software) 
+ * is intellectual property owned by AITIA International Inc. and is copyright 
+ * of AITIA International Inc. in all countries in the world, and ownership 
+ * remains with AITIA International, Inc..
+ * 
+ * Permission to use, copy, modify, and distribute this software for 
+ * educational, research, and not-for-profit purposes, without fee and 
+ * without a signed licensing agreement, is hereby granted, provided that 
+ * the above copyright notice, this paragraph and the following two 
+ * paragraphs appear in all copies, modifications, and distributions.
+ * 
+ * The software is delivered 'as is' without warranty and without any 
+ * support services. AITIA International, Inc. makes no warranties, either 
+ * expressed or implied, as to the software and its derivatives. It is 
+ * understood that AITIA International, Inc. shall not be liable for any 
+ * loss or damage that may arise, including any indirect special or 
+ * consequential loss or damage in connection with or arising from the
+ * performance or use of the software, including fitness for any particular 
+ * purpose.
+ * 
+ * Szerzõi jogok (c) 2006-2007 AITIA International Zrt.
+ * 
+ * Ez a szoftver (mind a bináris állományok, mind a forráskód, ha kiadásra 
+ * kerül, továbbiakban Szoftver) az AITIA International Zrt. a világ minden 
+ * országában szerzõi jogokkal védett szellemi tulajdona, amely tulajdonjogot 
+ * az AITIA International Zrt. minden esetben fenntartja.
+ * 
+ * A Szoftver oktatási, kutatási és más nem profit-orientált felhasználása 
+ * díj és a jogtulajdonos írásos beleegyezése nélkül is megengedett, amennyiben
+ * ezek a szerzõi jogokról szóló paragrafusok bele kerülnek minden másolatba 
+ * és módosított változatba.
+ * 
+ * A Szoftver bárminemû garancia, vagy támogató szolgáltatás nélkül értendõ.
+ * Az AITIA International Zrt. elhárít minden nemû, akár közvetett, akár 
+ * közvetlen felelõsségvállalást mind a Szoftverrel, mind leszármazottaival 
+ * kapcsolatban. Az AITIA International Zrt. nem tehetõ felelõssé sem 
+ * közvetlen, sem közvetett kárért vagy veszteségért, amely a Szoftver 
+ * teljesítményébõl, vagy használatából adódik, és nem vállal felelõsséget 
+ * a Szoftver bármilyen célú használhatóságára.
+ */

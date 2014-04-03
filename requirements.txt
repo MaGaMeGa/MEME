@@ -1,0 +1,35 @@
+Mit kell tudni ahhoz, hogy a Parameter Sweep tetszõleges szimulációs platformmal menjen? (Vázlat)
+
+* Modell
+	- Mi felel meg a RepastJ-beli modell koncepciónak? (A RepastJ-ben ez egy Java osztály, aminek meg kell valósítania egy interfészt; ez az 
+	  interfész egy csomó további kérdést megválaszol). Konkrétabban, az a kérdés, hogy mi(k) az(ok) file(-ok), amely(ek)et elemezve feltérképezhetjük
+	  a modell-t.
+
+* Paraméterek
+	- Hogyan azonosítjuk a paramétereket?
+	- Hogyan definiálhatunk új paramétereket (pontosabban, hogyan tehetünk paraméterekké már létezõ nem-paraméter változókat)?
+	- Hogyan deríthetõ ki a paraméterek kezdeti értéke?
+	- Milyen formátumú paraméter file-t kell generálni?
+
+* Adatgyûjtés
+	- Hogyan definiálunk adatrögzítõket? 
+	- Hogyan ütemezünk adatrögzítõket? (rögzítés és file-ba írás idõzítése)
+	- Hol és hogyan definiálhatunk scripteket? (A legegyszerûbb eset az szvsz, amit most csinálunk a RepastJ-vel: származtatunk a modell osztályból,
+	  és abba kerülnek függvényként.)
+	- Mi az eredmények formátuma?
+
+* Szimuláció leállítása
+	- Hogyan ütemezhetjük a szimuláció leállítását?
+
+* Run/tick
+	- Jelenleg a MEME erõteljesen épít erre a két fogalomra. Mi a megfelelõjük (van-e) az adott platformon?
+
+* Szimulációfuttatás (helyi gépen)
+	- Hogyan indíthatjuk el a szimulációt batch módban programból?
+	- Hogyan értesülhetünk a run/tick (illetve azok megfelelõi) értékek változásáról, illetve a szimuláció leállásáról?
+	- Hogyan állíthatjuk le a futtatóból (gombbal) az adott runt (ez szvsz nem túl fontos, minden további nélkül el lehet hagyni), illetve az
+	  egész batchet (ez viszont kell)?
+
+
+* Szimulációfuttatás (distributed):
+	- ??? (Ez nem az én asztalom.)

@@ -1,0 +1,65 @@
+dokumentacio:
+
+x a dokumentációban, sõt a view creation wizard-ban is lehetne használni a 
+  "view table" kifejezést, hiszen táblázat, mivel oszlopai vannak. (Ezeket
+  már nem paramétereknek nevezzük, hanem oszlopoknak.)
+x emlitsd meg, hogy a 'Save' gomb nem mûködik addig amíg minden szükséges
+  adatot meg nem adsz mindegyik grafikonnál
+x emlitsd meg, hogy ha egy View-hoz hozzafuzni szeretne meg adatokat, akkor
+  valassza a Recreate view funkciot, es a Data lapon Ctrl+click-el jeloljon ki 
+  tobb result-ot.
+x copyright a forraskodok elejere, visu-bol masolhatod
+x ujra kell gyartani a kepeket az aktivaciorol a user manualhoz 
+x ket valtozat kell a userman doksibol: az egyikbol szedd ki az AITIA-s cimeket
+  a masikba ird bele alaposabban.
+x troubleshooting-ba vedd be hogy ha nincs adatbaziskapcsolat vmiert
+  akkor forduljon a File/Database settings menuhoz.
+  Ha relativ eleresi utat irsz be, akkor a MEME telepitesi konyvtarahoz
+  kepest ertelmezodik. Kezdetben ott kell lennie egy ures db/ konyvtarnak.
+  Ha azt letorolod, akkor a "db/meme" beallitas nem fog mukodni.
+  Tovabba azt is ird le itt, hogy a MEME emlekszik az utoljara hasznalt
+  adatbazis helyre es ha az azota megszunt (konyvtarastol), akkor letrehozni
+  sem tudja igy aztan normalis hogy nincs adatbazis.
+x MEME User Manual 4.8.7 Histogramrol szolo leirasat ki kell egesziteni 
+  azzal, hogy melyik esetben hogyan jelennek meg a kivul eso ertekek, 
+  hogyan kell erteni azt, amit a program kiir.
++ az osztalydiagramrol torold le DataSource-ot. Kiszedtem, mert csak 
+  osszekavarna chartingPackage-el.
+x Gulyanak kuldjel forraskodot
+- dokumentalni a plugin-eket (h. mely helyzetekben hivodik meg
+  az a muvelet amit az interfesz eloir). + statikus betolto muveleteket
+= az itteni bugokat kezdd el atirni bugzillaba, hogy Gulya is lathassa,
+  velemenyezhesse -> ez szep, de itt tudom oket csoportositani, sorbarakni,
+  egyben latni, a Bugzillaban meg csak nagy osszevisszasag lesz beloluk!
+  -> vegyel fel esetleg keyword-oket
+x User manualba ird bele, hogy a Help/ menubol elerheto a user manual es
+  a tutorial is, de kell hozza Acrobat Reader a gepen.
+x User manualba ird bele, hogy az Open chart/Create charts gombok mindig
+  elerhetoek
+= keress ra a "doksi" es "leiras" szavakra Gulya leveleiben 2007.feb-apr
+  idoszakban es amiket kert azokat dokumentald le vagy ird be a Bugzillaba
+  hogy Marci v. vki megtegye majd.
+x database structure-nel dokumentald le az IDGEN sequence-t
+x user doksiba irjak bele hogy 
+  - bug 339: "A biztonsag kedveert irjuk azert bele, hogy 1Gb memoria 
+    sosem art (bar ld. kijelzest), masreszt hogy minel erosebb a proci, 
+    annal jobb. DualCore idealis."
+    "a troubleshooting fejezetbe keruljon bele annak leirasa, hogy hol
+    es hogyan lehet megnovelni" a maximalis heap meretet (javaw.exe-nek 
+    adott -Xmx256m opcio)
+  - a heap monitoron valo kattintas gc()-t csinal. Ujabb es ujabb 
+    view-letrehozasok utan a memoriafoglaltsag nem megy vissza a kezdeti
+    szintre. Ennek az oka a hsqldb-ben van. Ha mar nagyon magas szintrol
+    indulunk view letrehozas kezdeten, akkor elofordulhat, hogy keves
+    lesz a memoria. Elkerulesere modszerek: a) MEME ujrainditasa 
+    b) kapcsolodas masik adatbazishoz es vissza ehhez c) max.heap meret
+    megnovelese (ld. fentebb) d) hsqldb helyett mas adatbazismotor hasznalata
+  - recreate view-al lehet "duplikalni" a view-t. Ha a szabalyokat csak
+    kisse kell modositani, akkor ez hasznos.
+  - recreate view-nal maskepp mukodik a Sorting lap frissitese - rejtett
+    oszlop bennmaradhat
+  - progress ablakban a kijelzett ido csak becsles, es foleg az elejen
+    csalhat, meg akkor is ha nem egyenletes az elorehaladas (jellemzoen 
+    view letrehozas 1. fazis)
+  - splittelesnel mennyi az oszlopszam max. korlat
+    (ViewCreation.MAX_COLUMNS = 10000)

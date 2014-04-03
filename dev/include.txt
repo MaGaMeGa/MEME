@@ -1,0 +1,3 @@
+Plugins\BeanShell\*.jar
+3rdParty\hsqldb\lib\hsqldb.jar
+dev\launcher.exe

@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+Main-Class: ai.aitia.meme.paramsweep.PS_ModelWizard
+Class-Path: ParamSweep.jar  lib/javassist.jar lib/repast.jar lib/wizard.jar lib/expandededitor.jar lib/substance.jar lib/forms-1.0.7.jar  lib/MEME-FormsUtils.jar lib/jsch-0.1.33.jar lib/colt.jar lib/trove.jar lib/MaskedShellFolderManager.jar lib/kepletszerkeszto.jar lib/meme-progress.jar lib/fables.paramsweep.runtime.jar lib/violinstrings-1.0.2.jar lib/dps.jar lib/bal.jar lib/platforms.jar

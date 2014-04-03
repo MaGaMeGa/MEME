@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+
+<project name="Plugins" default="buildPlugins" basedir=".">
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+       Runs the buildOnePlugin target for every subdirectory
+       with a different ${basedir} but the same ${output}
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	 
+	<property name="root" location=".."/>
+	<property name="bin" location="${root}/bin"/>
+	<property name="libs" location="${root}/lib"/>
+	
+	<path id="javac-classpath">
+		<pathelement location="${bin}"/>
+		<fileset dir="." includes="**/*.jar"/>
+		<fileset dir="${libs}" includes="**/*.jar" excludes="javassist.jar mason.16.jar MasonPlugin-16.jar"/>
+	</path>
+	
+  <target name="buildPlugins" depends="compile">
+    <property name="output" location="." />
+    <property name="plspecbfname" value="build.xml" />
+    <subant genericantfile="${ant.file}" target="buildOnePlugin" inheritall="true">
+      <dirset dir="${basedir}" includes="*" excludes="CVS" />
+    </subant>
+    <delete>
+      <fileset dir="${basedir}" includes="Test*.jar Test*.pack*" />
+    </delete>
+  </target>
+  
+	<target name="compile">
+	<javac compiler="org.eclipse.jdt.core.JDTCompilerAdapter" includeantruntime="false" source="1.7" target="1.7" encoding="utf-8">
+	<compilerclasspath>
+		<pathelement location="${libs}/ecj.jar"/>
+	</compilerclasspath>
+		<src>
+			<pathelement location="BeanShell" />
+			<pathelement location="coltPlugin" />
+			<pathelement location="CSVExportPlugin" />
+			<pathelement location="CSVImportPlugin" />
+			<pathelement location="IntelliResultProcessPlugin" />
+			<pathelement location="intellisweepPlugin" />
+			<pathelement location="mathPlugin" />
+			<pathelement location="NetLogoImportPlugin" />
+			<pathelement location="operatorPlugin" />
+			<pathelement location="RepastImportPlugin" />
+			<pathelement location="TestExportPlugin" />
+			<pathelement location="TestImportPlugin" />
+			<pathelement location="VCPlugins" />
+		</src>
+	<compilerarg value="-time" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" /> 
+	<classpath refid="javac-classpath"/>
+	</javac>
+</target>
+
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+       Creates a .pack file to the ${output} directory. The name 
+       of the .pack file is the name of the plugin's subdirectory.
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <target name="buildOnePlugin">
+    <basename property="pluginName" file="${basedir}"/>
+    <!-- echo message="Looking for ${pluginName}/${plspecbfname}" -->
+    <condition property="taskToCall" value="plugin-specific-build"
+                                     else="generic-build" >
+      <available file="${plspecbfname}" type="file" />
+    </condition>
+    <antcall target="${taskToCall}" />
+  </target>
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+      The plugin-specific build file, if exists, is responsible
+      for creating "${output}/${pluginName}.jar"
+      All properties defined here are visible in that build file.
+      The default target of that build file will be executed.
+      It is recommended to use the name of the plugin as the name of
+      that target because it makes the build output easier to understand.
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <target name="plugin-specific-build">
+    <ant antfile="${plspecbfname}" inheritAll="true" />
+  </target>
+
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <target name="generic-build">
+    <jar jarfile="${output}/${pluginName}.jar" 
+         compress="yes" 
+         filesetmanifest="merge"
+         index="true"
+    >
+      <fileset dir="${basedir}" defaultexcludes="yes"
+         excludes="**/*.java* .**/ .* **/*.bak **/*.jar **/*.zip **/inf.___ **/*.bat build.xml" />
+      <zipgroupfileset dir="${basedir}" includes="**/*.jar" />
+<!--
+      <indexjars>
+        <fileset dir="${basedir}" includes="**/*.jar" />
+      </indexjars>
+-->
+    </jar>
+  </target>
+
+</project>

@@ -1,0 +1,628 @@
++ Beanshell forrasaban talalt dolgok amiken erdemes lenne javitani:
+  - bsh.Interpreter.showEvalString(): ez minden eval()-nal meghivodik.
+    Az 'if ( s.length() > 80 )' sort a folotte levo 2 replace ele lehetne
+    tenni mert ez a hosszabb scripteknel mindig gyorsitana.
+  - bsh.util.BeanShellBSFEngine.sourceInfo(): a sor vegen
+      ...+" column: columnNo";
+    helyett
+      ...+" column:"+ columnNo;
+    kellene (hibauzenetben szerepelne). Sot en meg atalakitanam hogy
+    ha lineNo,columnNo < 0 akkor ne is vegye bele a hibauzenetbe.
++ BSF forrasaban talalt dolgok amiken erdemes lenne javitani:
+   ...bsf.engines.jacl.JaclEngine.declareBean: ha bean.bean instanceof
+  String/Number/Boolean akkor interp.setVar()-t kellene hasznalni eval()
+  helyett. Gyorsabb is lenne, meg nem kellene mindenutt a scriptben 
+  '[$x toString]'-et mondani '$x' helyett.
+  setVar()-nak sok valtozata van, azt erdemes hasznalni ahol az ertek
+  nem string hanem object. Igy tudjuk letrehozni a Tcl objectet:
+  TclInteger.newInstance(int), TclDouble.newInstance(double), 
+  TclString.newInstance(String).
+  undeclareBean() is vagy hasznaljon setVar()-t vagy unset-eljen inkabb.
+
+x view creation-nel engedjuk meg results-ok mellett a letezo
+  view-kbol valo olvasast is. Azt gondolom, hogy lenyeges lehet a 
+  sorrend is (pl. oszlopbontas miatt).
+x New column dialog: column name-et itt ne kelljen megadni, hanem a 
+  JTable-ben lehessen editalni utolag. Parameter oszlopok megadasa
+  listabol tortenjen: egyszerre kivalaszthat tobbet, es Add all.
+  ld. alabb
+x NewColumnDialog: ne engedd hogy a nev # legyen. Ha a nev olyan ami mar
+  van, akkor erre figyelmeztess meg a dialog bezarasa elott (az OK 
+  megnyomasakor).
++ view creation-nel kellene lehetoseg arra, hogy az egyik oszlop az
+  egyik batch-bol jon, a masik oszlop a masikbol, egymas melle.
+  Pl. p1 = batch1.payoff1, p2 = batch2.payoff1 stb. Megoldhato ez?
+  Sztem nemigen... -> de igen, csak nem egy menetben: tobbszor kell
+  vegigmenni az inputon.
+  -> Gulyaval meg kell beszelni hogy hogy legyen a view letrehozasnal 
+  a szurofeltetel.
+  A megbeszeles eredmenye: 
+  - a wizard elso lapja a tablak megadasa, de ha kijeloltek vmit a 
+    wizard inditasa elott, akkor ezt a lapot atugorja.
+  - a Columns lapon van a nev, description es a 
+    Condition (WHERE feltetel) is.
+  - a Columns lapon uj oszlop felvetelenel modosul a dialog:
+    -> egyreszt ne legyen kulon a dialog. A tabla meretet csokkentve
+       epitsuk be alulra. Add... OK.. az egyiket meg lehet sporolni.
+       "Add" hatasara automatikusan urul a form, es letiltodik. 
+       Ha a tablaban kivalasztanak egy sort, akkor dupla-klikk vagy
+       Edit gomb hatasara toltodik be alulra a formba. Ilyenkor az
+       Add gomb helyen Modify van, ami szinten uriti es letiltja a 
+       formot. Van egy Cancel gomb is, ami letiltja a formot. Ha
+       masik sorra mond Edit-et vagy dupla-kattintast, az automatikusan
+       Cancelt jelent a jelenlegi adatokra.
+    a) single value: az alabbiak egyiket engedjuk meg:
+      i) egy listabol valaszt parametereket es mast nem (projekcio)
+         Annyi oszlop jon letre, ahany parametert kivalasztott,
+         a nevek automatikusan hozzarendelodnek. Ha a kivalasztott
+         nevek valamelyike utkozik a tablaban mar letezo nevvel,
+         akkor annak az oszlopnak automatikusan generalunk nevet 
+         (Column99)
+     ii) egy listabol valaszt parametereket, egy masik listabol pedig
+         beepitett aggregacios fgv.t (min,max,avg,sum,cnt,std,...)
+         Csak olyan aggregacios fgv.t valaszthat aminek az argumentumszama
+         es tipusa megfelel a kivalasztott parametereknek. Pl. string
+         es boolean parameterekre nem kerhet sum()-ot vagy avg()-t.
+         Az aggregator fgv. erteke lesz az erteke az uj oszlopnak.
+         Az oszlop nevet automatikusan generaljuk, utolag modosithatja.
+    iii) a parameterlistabol nem valaszt semmit, hanem alul egy szoveg 
+         mezobe beir egy kifejezest. Ez a kifejezes minden sorra 
+         kiertekelodik, a parametereket skalar ertekekkent latja,
+         es az eredmenye 1 uj oszlop erteket adja meg. Az oszlop nevet 
+         automatikusan generaljuk, utolag modosithatja.
+         Az ilyen oszlopot alapértelmezésben nem tekintjük vektoros 
+         számítást végzõnek, de a Felhasználó kérhesse, hogy tekintsük
+         annak.
+     iv) A beirt szoveg melle a beepitett aggregacios fgv.ek kozul is
+         valaszthat meg. Ekkor a kifejezes eredmenyeibol kepzett 
+         vektorra még alkalmazzuk a valasztott aggregacios fgv.t is.
+
+         A iii)-iv) esetekben a kifejezes tobbsoros is lehet (tobb 
+         ertekadast is tartalmazhat, vagy akar if-et, ciklust stb.) 
+         A pontos szabalyokat a doksiban irjuk le (hogy pontosan milyen 
+         az a fgv. aminek a torzsebe a beirt szoveg belekerul). 
+
+         Mivel a vektoros számítású oszlopok késõbb értékelõdnek ki, mint
+         mint a nem-vektorosak (indoklást ld. alább), ezért a nem-vektoros
+         számítású oszlopok kézzel beírt kifejezéseiben hibának számít,
+         ha a vektoros számítású oszlopokra hivatkoznak (az ilyen hibákat
+         beíráskor nem detektáljuk, hanem dokumentáljuk és kiértékeléskor 
+         dobunk hibát miatta).
+
+         Szolgaltassunk "akkumulator" jellegu valtozokat is. Ezek vektorok
+         legyenek:
+         - egy olyan, ami nem ürül automatikusan
+         - egyik másik olyan, ami csoportonkent urul, igy a csoportokon
+           belul lehet hasznalni osszesitesre
+         - továbbá egy olyan, ami tabla tagolaskor urul, igy csoportok 
+           kozott is lehet hasznalni osszesitesre
+         Szolgaltassunk tovabba fgv.eket:
+         - a legutóbbi sor értékeinek lekérdezése (a sorrend tick-szerinti,
+           ennek meghatározását ld. alább ->[*])
+         - a csoport elsõ/utolsó, ill. tagolas elso/utolso soranak 
+           megallapitasahoz (boolean)
+         Megj: a csoport- és tagolás-határtól függõ szolgáltatások a iii)
+         esetben csak akkor mûködnek, amikor a szóban forgó oszlopon 
+         bejelölték, hogy vektoros számoláskor használjuk
+         (ld. még késõbb GROUP BY-nál).
+         Indoklás: egyes oszlopok kifejezései a tagolás/csoportosítás elõtt 
+         értékelõdnek ki, mások pedig utána. (A tagolás és a csoportosítás a 
+         kifejezések szempontjából "egyszerre" történik, egyébiránt a 
+         csoportosítás van elõbb - indoklás: 
+         - a csoportosítás van elõbb: mert SQL-ben is így van; hogy ne
+           veszhessen össze a sorbarendezéssel, ami a tagolás elõfeltétele
+         - a tagolás és a csoportosítás között nincs kifejezés-kiértékelés:
+           mert a nem-vektoros számolásokat ki tudjuk értékelni a csoportosítás
+           elõtt is, a vektorosakat pedig befolyásolhatja a tagolás is (ld. 
+           késõbb a tagolás sajátos hatását a nem-bontandó oszlopokra).
+         ).
+         Ezek a szolgáltatások értelemszerûen csak a csoportosítás és a 
+         tagolás meghatározása után képesek mûködni. A GROUP BY-ban használt 
+         oszlopok kifejezéseit nyilván a csoportosítás meghatározása elõtt 
+         kell kiértékelni. Márpedig a GROUP BY-ba kötelezõen bele kell kerülnie
+         minden iii)-as típusú számolást tartalmazó oszlopnak, esetleg csak a 
+         segédoszlopok lehetnének kivételek (ehhez vektoros számolásúvá kell
+         minõsíteni õket).
+         Amikor egyáltalán nincs GROUP BY, de tagolást használnak, akkor meg
+         a sorrendiség meghatározása igényelheti _egyes oszlopok_ kifejezéseinek 
+         kiértékelését a tagolás elõtt. Hogy pontosan melyekét, azt bonyolult
+         lenne meghatározni, ezért az egyszerû megjegyezhetõség érdekében az a 
+         döntés született, hogy _minden_ nem-vektoros számítást végzõ kifejezés
+         a csoportosítás/tagolás elõtt értékelõdjék ki, kivétel azok a 
+         segédoszlopok melyeken bejelölték hogy vektoros számításkor használjuk.
+         
+         Megvalositas: getCurrentRowInfo() visszateresi erteke ne Object legyen,
+         hanem egy olyan tipus amiben van egy int erteku fgv. Ennek azt int-nek 
+         a bitjei mondjak meg hogy ez a sor most csoport elso/utolso ill. tagolas 
+         elso/utolso sor-e. Ezt figyelheti az interpreter plugin is es ennek 
+         fenyeben urithet bizonyos valtozokat.
+         - Csoport elso sor: AggregateManager.aggregateCalculations()-ban
+           a rewind() utani elso sor mindig ilyen. 
+         - Csoport utolso: ugyanitt a while (activateNextRow()) ciklus utolso
+           sora mindig ilyen.
+         - tagolas elso sora: flushViewRow() elso meghivasakor minden tagban
+           az elso sornal tartunk. 
+         - tagolas utolso sora: a csoport utolso soraval egyutt kovetkezik be
+           olyankor, amikor aggregatePass() while ciklusaban az aktualis 
+           BlockNr a kovetkezo RowNr-nel mar nem fog elofordulni. Honnan
+           lehet ezt tudni elore? splitterPass() elso while ciklusaban,
+           ahol a RowNr-eket kiosztjuk, jelenleg hasznalunk egy seen[]
+           HashSet-et. Ha ehelyett HashMap-et hasznalnak akkor meg tudnank
+           jegyezni hogy melyik BlockNr-nel melyik RowNr volt a legnagyobb
+           ami elofordult. Ezt az infot aztan figyelhetnenk
+           aggregateCalculations()-ban, es amikor az aktualis block-hoz
+           tartozo max RowNr eppen az aktualis RowNr, akkor az adott oszlop
+           tagolas szempontjabol az utolso soraban van.
+         Megj: ebben az int-ben lehetne akar egy olyan bit is ami azt jelzi
+         hogy Result-beli sor van-e vagy view-beli sor, azaz jelzi 
+         getCurrentRowInfo() eredmenyenek tipusat (IResultInfo/IViewInfo)
+         bar ez redundancia volna nem tudom erdemes-e bevezetni.
+    b) vector value:
+         A listakbol nem valaszt semmit, hanem bekattint egy 
+         "aggregator script" nevu checkboxot. Ekkor egy felirat jelzi,
+         hogy most csak a szovegmezobe irhat, megpedig olyan fgv.definiciot,
+         amiben vektorkent kell kezelnie az osszes parametert, es skalar 
+         erteket kell visszaadnia. Ez az ertek 1 uj oszlop erteke lesz,
+         melynek nevet automatikusan generaljuk, utolag modosithatja.
+    c) java plugin:
+         Egy listabol kivalaszthatja a rendelkezesre allo plugin-eket.
+         Lehessen választani:
+         i)  a plugin szamolo muvelete group-onkent 1x fog meghivodni, es 
+             vektorkent latja a parametereket (az osszeset). Ez gyakorlatilag
+             a b) eset Java-s megfeleloje.
+         ii) a plugin szamolo muvelete soronkent fog meghívódni, és
+             skalárként látja a parametereket (az osszeset). Ez gyakorlatilag
+             az a/iii) eset Java-s megfeleloje. Erre a lehetõségre azért van 
+             szükség, hogy tagolást ill. csoportosítást befolyásoló oszlopot 
+             is lehessen számoltatni java pluginnal (hiszen vektoros számolást 
+             GROUP BY oszlopban nem tudunk megengedni, az indokást ld. késõbb).
+          -> ezt az esetet hagyjuk ki. Vszleg ritkan kell, es ezert olyankor
+             kibirhato ha a/iii)-al lehet csak megoldani meg (beanshell script 
+             ami belehiv abba a java rutinba ami itt plugin lenne).
+          -> Ugyanez a helyzet a condition-el, ha java koddal akarjak szamoltatni.
+          Igy ugyanis a pluginokat ossze lehet vonni az aggregacios
+          fgv.ekkel (a/ii) s igy ez a c) eset teljesen megszunhet.
+          Annyi csupan a kulonbseg hogy az aggr.fuggvenyek nem mind
+          "beepitettek", hanem pluginbol is johetnek. Megkapjak az 
+          osszes parametert meg a kivalasztottakat is es szabadon eldontik
+          melyikbol akarnak dolgozni. A kikotes csak az hogy elore mondjak 
+          meg milyen tipusu lesz az eredmeny.
+    - oszlopbontas: a forras tablak egyesitesevel kapott teljes input tabla
+      kivalasztott oszlopa(i)nak tagolasa tobb, automatikusan generalt oszloppa
+      az uj view-ban.
+      Az eredeti elképzelés az volt, hogy a tagolast egy (vagy tobb) "tagolo" 
+      oszlop ertekei hatarozzak meg: amig ezekben az oszlopokban valtozatlan 
+      az ertek-kombinacio, addig ugyanabban a tagban vagyunk, amikor pedig 
+      megvaltozik, akkor tagolodnak a bontasra (tagolasra) kivalasztott oszlopok: 
+      ilyenkor mindig egy ujabb oszlopot nyitunk a view tablaban es 
+      folytatolagosan ebbe toltjuk fel az ertekeket. (Most tekintsünk el attól,
+      hogy mi van a tobbi oszloppal, amit nem bontunk, annak az ertekei hova mennek?)
+      Ehhez ertelemszeruen kell a soroknak valamilyen meghatározott sorrend.
+
+      Módosított elképzelés: a "tagok" ne egymásutáni sorok legyenek, hanem 
+      logikailag összetartozó sorok (melyek sorrendileg nem feltétlenül 
+      egymásutániak): a "tagoló" oszlopokban elõforduló különbözõ érték-kombinációk
+      mindegyike pontosan 1 "tagot" definiál (nem többet). Egy tagon belül a 
+      sorok a kimenetben egymás alá kerülnek (valamilyen sorrendben, plusz 
+      sorok beékelõdése megengedve), a különbözõ tagok pedig egymás mellé 
+      kerülnek, dinamikusan generált oszlopokba.
+      Alapvetõen kétfajta oszlop lehet: dinamikus és nem-dinamikus.
+      A dinamikus oszlopok azok, amikbõl minden taghoz új keletkezik, így csak 
+      1 tag adatait tartalmazzák. (Ha csak dinamikus oszlop van egy táblában,
+      akkor a tábla 1 sorossá válik.)
+      A nem-dinamikus oszlopokban több tag adatai kerülnek "egymásra", ami akár 
+      ütközést is okozhatna. Ennek elkerülésére ezeket az oszlopokat kötelezõen 
+      bevesszük a rendezésbe (kivéve ha rejtettek vagy aggregációsak), így az 
+      eltérõ értékek a kimenetben biztosan különbözõ sorokba kerülnek, és így 
+      nem lehet ütközés. Ezért nevezem õket "rendezõ" oszlopoknak 
+      (rendezõ = nem-rejtett és nem-dinamikus és nem-aggregációs).
+      A nem-dimamikus nem-aggregációs oszlopok közül kerülnek ki a tagoló oszlopok.
+
+      Ez a módosított elképzelés már igazából nem is "tagolásról", hanem inkább 
+      "válogatásról" szól (bár "tagolás" is, ha az eredeti input sorrendben az 
+      összetartozó sorok egymásutániak), hiszen a "tagoló" oszlopok 
+      érték-kombinációi tulajdonképpen összeválogatják azokat a sorokat, bárhol
+      legyenek is az inputban, amikben az érték-kombináció azonos.
+      Számunkra az a fontos, hogy a kimenetben jelenlévõ nem-aggregációs 
+      oszlopokban egy sorban csak egyféle érték legyen; az azonban nem "fáj", 
+      ha ugyanaz az érték több sorban is elõfordul (erre vonatkozott fentebb az
+      hogy plusz sorok beékelõdése megengedve). Hirtelen nem látom, hogy ennek 
+      mikor van értelme, de akár még lehet is. Ha valakit zavar, akkor könnyen 
+      elkerülheti oly módon, hogy a rendezésben csak rendezõ oszlopokat használ. 
+      Automatikusan csak ilyen oszlopokat teszünk a rendezésbe, továbbiakat 
+      (=rejtett oszlopokat) kézzel lehet esetleg bevenni.
+
+      A "sor" alatt itt végig már a csoportokat értem: a csoportosítás megelõzi 
+      a tagolást, 1 csoportból az eredmény view táblában legfeljebb 1 sor lesz
+      (igazából több csoport is összevonódhat 1 sorba a tagolás által, a dinamikus
+      oszlopok minden cellájához 1 csoport tartozik, így az egy sorban lévõ cellák
+      több csoportot hoznak össze 1 sorba).
+      (Megjegyzés: az nem lenne elég, ha csak részleges sorrendünk volna, azaz
+      ha 1 tagon belül nem tudnám elõre megmondani a csoportok sorrendjét. A 
+      módosított elképzelés esetén ez nyilvánvaló, hiszen ezt a sorrendet 
+      használjuk fel az ütközések elkerüléséhez. Az eredeti elképzelés szerint
+      pedig az alább tárgyalt "tagolás sajátos hatása a nem-bontandó oszlopokra" 
+      mutatja, hogy a tagon belüli sorrend határozza meg, hogy ezekben az 
+      oszlopokban milyen adatok kerülnek egy csoportba, vagy milyen érték marad 
+      utoljára a táblában. Tehát tagolás esetén szükség van rá, hogy a csoportok 
+      sorrendjét elõre, az aggregátum kifejezések kiértékelése nélkül meg tudjuk 
+      mondani. Ha nincs tagolás, akkor ez nem szükséges.)
+
+      Az alapertelmezett rendezes legyen ez: elsokent a tagolo oszlop(ok)
+      szerint, azon belul pedig [*]: tick-szerint rendezunk (ez run es tick
+      szerinti rendezest, ill. view tablak eseten id szerinti rendezest 
+      jelent). Ezt az ORDER BY lapon lehet módosítani.
+
+      Arra a kovetkeztetesre jutottam, hogy nincs ertelme tobbfele tagolast
+      alkalmazni egyszerre, viszont lehet ertelme tobb oszlopot tagolni.
+      Pl. tagolo=Alg, tagolt=X,Y, projektalt:E (Alg kimarad), csoportkepzes (Alg,E)
+         Alg E Rnd X   Y          E AvgX_Alg0 AvgY_Alg0 AvgX_Alg1 AvgY_Alg1 AvgX_Alg2 AvgY_Alg2
+          0  3  5  ..  ..         3    (1)       (1)       (2)       (2)       ..
+          0  3  6  ..  ..         4    (3)       (3)       ..
+          0  4  7  ..  ..
+          0  4  8  ..  ..     =>  (1): az Rnd=5,6  sorokbol kepzett atlag
+          1  3  9  ..  ..         (2): az Rnd=9,10 sorokbol kepzett atlag
+          1  3  10 ..  ..         (3): az Rnd=7,8  sorokbol kepzett atlag
+          1  4  11 ..  ..         stb.
+          1  4  12 ..  ..
+          2  3  13 ..  ..
+          ..
+      Ennek megfeleloen a GUI-n kulonvalasztom a tagolas megadasat a 
+      tagolando (=dinamikus) oszlopok megadasatol.
+      A tagolast csak 1 helyen lehet megadni. Mivel számított oszlop értéke
+      alapján is megengedünk tagolást, ezért a Columns lapon kell megadni:
+      minden oszlop neve mellett van egy pipa, amivel a Felhasználó 
+      beválaszthatja azt az oszlopot a tagoló oszlopok közé.
+      A sorrendjüket az ORDER BY lapon lehet beállítani (ld. még késõbb 
+      az ORDER BY tárgyalását is). Ha egy oszlopot csak tagolásra akar
+      használni, de az eredmény táblába nem akarja belevenni, akkor azt 
+      az oszlopot segédoszlopként (=rejtett) vegye fel a Columns lapra.
+      A fenti peldaban az Alg oszlophoz tesszük a pipát, miután 
+      segédoszlopként felvettük (1 tagolo oszlop).
+
+      Számított oszlop csak akkor használható tagolóként, ha nem igényel
+      vektoros számítást. (A "vektoros számítást igénylõ" definícióját
+      ld. késõbb, GROUP BY tárgyalásánál.)
+
+      Ha egy oszlop tagolando (dinamikus), azt pedig az oszlop erteket 
+      konfiguralo dialogban lehet jelolni egy checkboxszal. A checkboxhoz 
+      tartozik egy szovegmezo is, ide kell beirni a nevsablont a letrehozando 
+      oszlopoknak: egy % jelnek kell szerepelnie a nevben, ennek helyere fog 
+      beirodni a tagolo oszlopok egyuttes erteke. (Az ertekek kozotti 
+      delimiter stringet is a user adhassa meg - erre értelemszerûen csak
+      akkor van szükség, ha 1-nél több tagoló oszlop van.)
+      Ezt a nevet utolag a Columns lapon a tablazatban is modosithatjak,
+      de a % jelet ne engedjuk kitorolni belole.
+      A fenti peldaban 2 oszlop lesz tagolando: az egyik Avg(X)-et szamol,
+      a neve AvgX_Alg%, a masik Avg(Y)-t szamol, a neve AvgY_Alg%.
+
+      A megvalositasnal majd ugyelni kell arra, hogy a letrejövõ oszlopok 
+      szama ne haladhassa meg az adatbazismotor altal engedelyezettet.
+
+      Ha a tagoló oszlopok az ORDER BY-nak nem a legelején szerepelnek
+      (vagy valamelyik tagoló oszlop nem szerepel az ORDER BY-ban),
+      akkor a tagoló oszlopokban ugyanaz az érték-kombináció visszatérõen
+      is elõfordulhat. 
+      Az eredeti elképzelés szerint ilyenkor az új oszlop a fentiek alapján 
+      már használt oszlopnevet kapna. Ez nyilván nem megengedhetõ, ezért 
+      ilyenkor a visszatérõ érték-kombinációkat kiegészítjük egy 
+      sorszám-értékkel, amit a megadott delimiter karakterrel teszünk be 
+      az oszlopnévbe, pl. Alg0, Alg1, Alg0_2, Alg0_3, Alg3, Alg1_4 stb.
+      A módosított elképzelés szerint a tagok sorrendje, ill. az input sorok 
+      tagon belüli sorrendje nem számít, mert mindenkor a rendezõ oszlopok 
+      rendezése érvényesül, ami elrendez mindent. A visszatérõ 
+      érték-kombinációk nem hoznak létre új tagot, hanem a régihez tartoznak.
+
+      Most visszaternek a fent elhalasztott kerdeshez. 
+      Az eredeti elképzelés szerint a view tabla letrehozasa soran amikor 
+      tagolashoz erunk, akkor az aktualis sor visszaugrik a view tabla elejere. 
+      Ennek az a fontos hatasa van a nem-bontando oszlopokra, hogy ezeknel 
+      az oszlopoknal egy sajatos grouping alakul ki. Pl:
+                 Alg E
+        0.sor:    A  c
+        1.sor:    A  d
+        2.sor:    A  e
+        3.sor:    B  f
+        4.sor:    B  g
+      Ha Alg szerint van tagolas (tagolo, es van egy "Alg%" nevu 
+      tagolando is, ami (Alg,E)-bol szamol), az E oszlopot pedig 
+      egyszeruen projektaljuk, akkor ilyesmi eredmeny lesz:
+                  E                            AlgA                          AlgB
+        <c,f-bol szamitott ertek>  <0.sorbol szamitott ertek>  <3.sorbol szamitott ertek>
+        <d,g-bol szamitott ertek>  <1.sorbol szamitott ertek>  <4.sorbol szamitott ertek>
+        <e-bol   szamitott ertek>  <2.sorbol szamitott ertek>  null
+      Az E oszlop elso soraban c es f utkozik, a masodik soraban pedig
+      d es g utkoznek. Az utkozes feloldasara ket ertelmes megoldast tudok:
+      - aggregator fgv. alkalmazasa
+      - feluliras: ez tortenik akkor, ha nem adtak meg aggregator fgv.t
+      Ezen a peldan lathato az is, hogy ha a tagok eltero hosszusaguak,
+      akkor a kialakulo "csoportok" eltero elemszamuak lesznek.
+
+      A módosított elképzelés szerint ugyanez így alakul (mivel E kötelezõen benne
+      van a rendezésben):
+         E           AlgA                 AlgB
+         c   <0.sorbol szamitott ertek>   null
+         d   <1.sorbol szamitott ertek>   null
+         e   <2.sorbol szamitott ertek>   null
+         f   null                         <3.sorbol szamitott ertek>
+         g   null                         <4.sorbol szamitott ertek>
+
+  - A parametereket felajanlo listak minden esetben tartalmazzak a mar felvett
+    szamitott oszlopok neveit is (editalaskor csak a kerdeses parameter 
+    elottieket), kiveve az oszlopbontassal keletkezo oszlopokat, mert 
+    azokra nem lehet igy hivatkozni.
+    Tehat az oszlopok sorrendje lenyeges, ezert kell csinalni gombokat 
+    a sorrend beallitasara is. (Up/Down gombok a tabla sorai sorrendjenek
+    megvaltoztatasara.)
+    A "gyari oszlopok" (results tablak eseten modelnev, version-nev, batch,
+    run, tick, start time, end time; view tablak eseten: view nev, id) nem
+    szerepelnek a listaban, hanem scriptezve kerhetok le vmi fgvnyel.
+    Hasonlokeppen azok az input oszlopok, amikbol output is van, csak
+    igy erhetoek el (az output eltakarja az inputot).
+    -> kellene lehetoseget adni az oszlopok atnevezesere!
+  - Ha oszlopbontast utolag kezdemenyeznek olyan oszlopra, amire mar 
+    hivatkoznak valahol, azt nem szabad engedni, es szolni kell, hogy 
+    ezert es ezert nem lehet.
+  - a GROUP BY lapra nincs szükség, mert csak annyit lehet megadni, hogy
+    legyen-e GROUP BY (csoportosítás), vagy ne legyen.
+    Definíció:
+      Vektoros számolás: a fenti a/ii), a/iv), b) vagy c/ii) szabályok 
+        valamelyike szerinti számítás
+      Vektoros számítást igénylõ oszlop: amelyikben vektoros számolás
+        van; vagy olyan segédoszlop ill. a/i) projekció vagy a/iii) 
+        szerinti számolás, amin a Felhasználó bejelölte, hogy vektoros 
+        számításkor használjuk; vagy olyan a/i) projekció, ami vektoros 
+        számítást igénylõ oszlopot projektál.
+    Fontos kitételek:
+    - ha GROUP BY-t nem használnak, akkor az ismétlõdõ sorok ismétlõdõen
+      kerülnek át az eredmény view táblába. A vektoros számolások 1-elemû
+      vektorokat fognak kapni, kivéve tagolás használatakor, a fent leírt 
+      esetekben.
+    - ha GROUP BY-t használnak, akkor a GROUP BY-ban szerepelnie kell 
+      minden, az eredmény táblába belekerülõ nem számított (=projektált) 
+      oszlopnak és nem-vektoros számolású oszlopnak (a segédoszlopoknak is),
+      azért hogy egyértelmû legyen az érték, ami az eredménybe kerül.
+      A segédoszlopoknak azért kell szerepelniük, mert az értéküket
+      felhasználhatja egy késõbbi, nem-segéd oszlop (ha nincs késõbbi
+      nem-segéd oszlop ami használná, akkor elhagyható).
+      A vektoros számítást igénylõ oszlopok viszont nem választhatók 
+      GROUP BY-ba (hiszen a vektor-értékek elõállításához már ismerni 
+      kellene a csoportokat).
+      Tehát automatikusan minden benn van a group by-ban, ami csak benne
+      lehet (úgy lehet valamit kihagyni a GROUP BY-ból, hogy fel sem 
+      vesszük a Columns lapra egyáltalán).
+  - Segédoszlopok: elvi akadalya szerintem nincs annak, hogy egyes 
+    (szamitott vagy nem szamitott) oszlopok csupan "seged"-oszlopkent 
+    legyenek jelen. Ez azt jelenti, hogy az eredmény view táblába nem 
+    kerulnek bele, csupan a szamolasok soran vezetjuk az ertekuket. Ezt 
+    meg lehetne oldani ugy, hogy az oszlopot konfiguralo dialog-ba 
+    teszunk egy checkboxot. Az ilyen oszlopoknak mas szinnel kell 
+    megjelenniuk a Columns lapon a tablazatban (jol lathatoan 
+    elkulonuljenek), tovabba ezeket nem engedjuk bontani (nem lehetnek
+    tagolandók, de tagolók igen).
+    Lehet viszont projektalni oket: az mar nem "seged" oszlop lesz, 
+    ennelfogva azt mar lehet bontani (lehet tagolandó).
+    A segédoszlopok egyik értelme a rész-számítások elvégzésére. Ezért
+    megengedjük, hogy egy egyébként nem-vektoros rész-számítás eredményét
+    vektoros számításokban használja a Felhasználó. Az ilyen nem-vektoros 
+    számítást tartalmazó segédoszlopokat azonban másként kell kezelni: 
+    nem a csoportosítás/tagolás elõtt kell kiértékelni egyszer, hanem a 
+    csoportosítás után, a csoportokon belül minden sorra. Ezt az eltérõ
+    kezelést a Felhasználó kérheti egy checkbox bejelölésével, ami csak 
+    a nem-vektoros számolást tartalmazó segédoszlopoknál van jelen.
+  - az ORDER BY az utolso lap. Csak olyan oszlopokat engedjunk meg, amik vagy
+    belekerulnek a view tablaba, vagy segedoszlopok, vagy tagolo oszlopok.
+    (Tehát mi nem lehet: azok az input oszlopok ami segédoszlopként sem 
+    fordulnak elõ, valamint a bontással generált oszlopok.)
+    Kellene egy specialis oszlopnev a "természetes", tick-szerinti rendezes
+    jelolesere (ennek mukodeset fentebb irtam le, ld. -> [*]) -> fölösleges,
+    mert ez mindig az utolsó lenne az ORDER BY listában (ui. amit megelõz az
+    el is hagyható) -> csoportképzés esetén a tick-szerinti rendezés értelmetlen,
+    mert 1 csoportba mindenféle tick-értékek csoportosulhatnak össze.
+    Amikor van tagolás, akkor az ORDER BY-ban egyáltalán nem lehet vektoros 
+    számolást igénylõ oszlop.
+    (Vektoros számolást igénylõ oszlop definícióját ld. fentebb GROUP BY-nál.)
+    Ennek az az oka, hogy a vektoros számoláshoz szükséges a csoportok 
+    ismerete, a csoportok kialakulása pedig függ a tagolástól, a tagolás
+    pedig a rendezéstõl.
+    
+- Algoritmus a fenti specifikációra:
+  A) csoportképzés és tagolás is van
+  B) csoportképzés van, tagolás nincs
+  C) csoportképzés nincs, tagolás van
+  D) csoportképzés és tagolás sincs. 
+  E) "fakeBASIC": az a speciális eset, amikor minden oszlop aggregációs
+     (tehát 1 csoportnak kell tekinteni az egész inputot, az eredmény
+     tábla 1 soros lesz). Ilyenkor tagolás biztosan nincsen.
+
+  A,B,C esetek:
+  [1] elõször is meghatározzuk a "természetes" sorrendet. Ez a view inputjául
+    szolgáló model- és view táblák sorrendjét jelenti, aztán azokon belül
+    a sorok sorrendjét ("default tick-sorrend"). Ezt a továbbiakban 
+    "egyesített input táblának" nevezem.
+  [2] Létrehozunk egy átmeneti táblát a következõ oszlopokkal:
+
+    TMP2: (csoportosító adatok, TMP2_GROUPS)
+      InputRef BlockNr [projektált oszlopok] [számított oszlopok] 
+
+      InputRef: Ez egy BIGINT, ami <TableNr, RowNr> értékét tartalmazza:
+                InputRef = TableNr << 32 + RowNr. Az egyesített input 
+                táblán belül egy bizonyos sorra hivatkozik (hányadik tábla
+                melyik sora). TableNr a Model_id/View_id azonosítónak 
+                megfeleltetett 32 bites szám, RowNr pedig az ID oszlop 
+                értéke az adott táblán belül. Fontos, hogy InputRef növekvõ
+                sorrendje megegyezik az egyesített input táblán belüli
+                természetes sorrenddel.
+                A Model_id/View_id <-> TableNr megfeleltetést egy memóriabeli 
+                vektorral valósítjuk meg, arra számítva, hogy nincs olyan sok 
+                Model_id/View_id egyetlen view létrehozás alkalmával, hogy az
+                õket felsoroló vektor ne férne el a memóriában (PRIMARY KEY)
+      BlockNr:  blokk-azonosító szám (tagoláshoz, SHORT)
+      A "projektált oszlopok" a projektált, nem számított oszlopokat jelentik.
+      A "számított oszlopok" a nem-vektoros számolású számított oszlopokat 
+      jelentik.
+      Ebben a táblában BlockNr kivételével a többi oszlop UNIQUE.
+  [3] Megyünk végig az egyesített input tábla sorain. Minden sorra kiértékeljük
+    a WHERE feltételt (ez nem hivatkozhat számított oszlopokra). A továbbiakat
+    csak azokra a sorokra végezzük, amiket ez átenged
+  [4] Kiértékeljük a számított oszlopok kifejezéseit (csak nem-vektoros számítások).
+    Ezekhez az értékekhez hozzávesszük a projektált oszlopokat. Az így kapott 
+    érték-kombinációt kiírjuk a TMP2 táblába.
+    Ha tagolás nincs, akkor BlockNr = 0. Különben BlockNr értéket egy memória-beli 
+    hash tábla segítségével rendelünk hozzá. Ebben a hash-táblában az eddig 
+    elõfordult tagoló-oszlop-értékkombinációkat gyûjtjük. Azért elég a memória, 
+    mert ha túl sok kombináció van, akkor túl sok oszlop keletkezne a tagolással, 
+    amire úgyis hibát kell dobni. Itt kell tehát figyelni az adatbáziskezelõ 
+    oszlopszám-korlátját. Nem tudom a HSQLDB-ben van-e ilyen korlát, de ha nincs, 
+    akkor is tegyünk egy pl. 1024-es határt, nehogy túl nagyra nõjön a hash tábla 
+    memóriaigénye). Az így generált BlockNr értékek tehát "kicsik" lesznek, ezért 
+    elég nekik egy SHORT.
+  [5] semmi
+  [6] Amikor így végigértünk minden soron, akkor megvan, hogy mely sorok jöttek 
+    át a WHERE feltételen, megvan a nem-vektoros számítású oszlopok tartalma, 
+    továbbá elõkészítettük a csoportosítást és a tagolást is.
+  [7] Most jön a csoportosítás/tagolás.
+    A TMP2-ben lévõ értékeket egy SELECT..ORDER BY-al sorbarendezzük.
+    Ha nincs tagolás, akkor nem a rule-ban szereplõ ORDER BY-t használjuk,
+    hanem egy tetszõleges olyan oszlopsorrendet, amiben minden csoportosító
+    oszlop szerepel (pl. a Page_Columns lapon megadott oszlopsorrend). Így 
+    azok a sorok, amikben a csoportosító értékek megegyeznek, a sorrendben 
+    egymást követõek lesznek.
+    Ha van tagolás, akkor a rule-ban szereplõ ORDER BY kötelezõen tartalmaz 
+    minden nem-rejtett oszlopot TMP2-bõl. Így azok a sorok, amik a kimeneti
+    táblában egy cellába kerülnek majd, a sorrendben egymást követõek lesznek.
+    Mindkét esetben az ORDER BY végére odavesszük InputRef-t is, ez valósítja 
+    meg azt, hogy a user által beállított rendezés végére mindig odaértjük 
+    még a default tick-sorrendet is.
+    Létrehozunk egy TMP3 táblát:
+       InputRef PRIMARY KEY
+       RowNr    INT
+    Ahogy végigmegyünk a sorbarendezett TMP2 táblán, feltöltjük a TMP3 táblát.
+    TMP3.InputRef := TMP2.InputRef. 
+    TMP3.RowNr olyankor növekszik, amikor a rendezésben szereplõ oszlopok 
+    érték-kombinációja változik. Elõfordulhat, hogy ugyanazt a RowNr-t kapja 
+    ugyanazon BlockNr mellett több InputRef. Ez nem baj. aggregatePass() while 
+    ciklusában kell figyelni arra hogy agm.newBlock(block) csupán 
+    InputRef-változáskor ne legyen, hanem csak block-változáskor. 
+    Továbbá így elõfordulhat olyan blokk, ami nem RowNr=0-nál kezdõdik. 
+    Így a blokkokhoz tapasztalt kezdõ RowNr-t is gyûjteni kell 
+    splitterPass()-ban.
+    A PRIMARY KEY megszorítást nem érdemes TMP3 létrehozásakor megadni.
+    Inkább utólag készítsünk egy indexet TMP3-ra, amikor már teljesen
+    feltöltöttük.
+  [8] Ekkor már tudjuk, hogy pontosan hány oszlop keletkezik a tagolással, és
+    melyiknek mi lesz a neve. Tudjuk tehát az eredmény view tábla összes 
+    oszlopának a nevét, és a vektoros számítást igénylõ oszlopok kivételével
+    a többinek a típusát is. Talán nem túl megerõltetõ a Felhasználónak megadnia
+    ezt a típust elõre a GUI-n. Így létre tudjuk hozni a végsõ view táblát most.
+  [9] Ezután TMP2-t TMP3-al InputRef alapján összekapcsolva megyünk végig: 
+    ORDER BY RowNr, BlockNr, InputRef.
+    Annyi sort olvasunk be egyszerre, amennyiben RowNr még állandó.
+    - Ha vannak vektoros számolású oszlopok, akkor InputRef-ek segítségével
+      beolvassuk az összes vonatkozó input sorból az értékeket. Ezekbõl 
+      vektorokat állítunk elõ, és elvégezzük a vektoros számításokat olyan 
+      sorrendben, ahogy a Columns lapon megadták az oszlopokat.
+      A bontott oszlopoknál csak azokat az InputRef-eket kell figyelembe 
+      venni, ahol BlockNr a szóban forgó bontott oszlophoz tartozik.
+      A nem-bontott oszlopoknál az adott RowNr mellett elõforduló összes
+      InputRef-hez tartozó sorokból kell képezni a vektorokat.
+    - A nem vektoros számolású oszlopok adatait egyszerûen átmásolhatjuk
+      akár a TMP2 táblából, akár az InputRef-ekhez tartozó input sorok 
+      utolsójából való értékét másoljuk oda.
+  [10] Ha nincs tagolás: a létrehozott view táblát újrarendezzük a user
+    által kért ORDER BY szerint. Ehhez átnevezzük a view táblát TMP4-re,
+    majd újra létrehozzuk az eredeti nevén és a végleges ORDER BY-t 
+    használva visszamásoljuk
+       (INSERT INTO ViewNN SELECT * FROM TMP4 ORDER BY ...)
+    (Ha a user nem kért semmilyen rendezést akkor kihagyhatjuk ezt a
+     10-es lépést)
+
+  D: "BASIC"
+    Ilyenkor a vektoros számítású oszlopokat ugyanúgy kezeljük, mintha 
+    nem vektorosak lennének.
+    [2]: ez a lépés kimarad, helyette a [8]-as lépés szerint egybõl a 
+         view táblát hozzuk létre.
+    [4]: kiértékeljük a vektoros számítású oszlopokat is (minden vektor
+         1 soros). A kapott érték-kombinációt egybõl a view táblába írjuk.
+    [5]-[9]: ezek a lépések kimaradnak
+    [10]: újrarendezés, ha kérték.
+    
+  E: "fakeBASIC"
+    [2]: ez a lépés kimarad, helyette a [8]-as lépés szerint egybõl a 
+         view táblát hozzuk létre.
+    [4]: A kapott érték-kombinációt a memóriába gyûjtjük, egy olyan
+         csoportba, mint amibõl [9]-ben a vektoros számítást végezzük
+    [5]-[8]: ezek a lépések kimaradnak
+    [9]: Ebbõl a lépésbõl csak annyi kell, hogy a 4-es lépésben összegyûjtött
+         1 db csoportra kiértékeljük a kifejezéseket, és az eredményeket
+         kiírjuk a kimeneti táblába.
+    [10]: ez a lépés nem kell (bár nem zavar ha megcsináljuk, mert gyors is
+         és nincs hatása).
+
+- Tennivalók az implementáláshoz:
+  x ViewCreation kiiktatasa
+  x ViewCreationRule kibõvítése
+    - szerepelhessen benne több results tábla és views tábla, sorrend fontos
+    - legyen benne WHERE feltétel
+    - az oszlopok leírásánál fontos a sorrend
+    - az oszlopok leírását ki kell bõvíteni az új lehetõségekkel
+      tagoló:    igen / nem(normál/bontott)
+      számított: nem(projektált,melyik oszlop) / igen(vektoros/nem vektoros, 
+                                                      és hogyan)
+      segéd:     igen / nem
+    - GROUP BY-ról csak annyi kell, hogy használjuk-e vagy sem.
+      Ha igen, akkor az oszlopok beállításaiból következik, hogy mire 
+      csoportosítunk és mire nem (mindenre, amit használunk és nem vektoros 
+      számítású).
+  x GUI felfejlesztése az új ViewCreation-höz
+    -> 800x600-on a legmagasabb panel ami kifer = 545 pixel (ebben nincs benne 
+       a windows ablak cimsora az 'x' bezaro gombbal + az ablakkeret vastagsaga 
+       alul, hanem csak a panelmagassag,). Azert ennyi, mert az alul a taskbart 
+       nem mindenki szokta elrejteni (pl. alapbol nincs elrejtve), es az is 
+       levesz 20-25 pixelt. 
+       Ami erdekes az az, hogy a default swing l&f nem torodik a windowsban
+       beallitott DPI-vel es normal fonts (96DPI) meg large fonts (120DPI)
+       eseten is ugyanakkorak a betuk. Sot, Substance-szel is ugyanez a 
+       helyzet!
+  - ViewCreation-ba a fenti algoritmus lekódolása
+  - ViewCreation újrabekötése, tesztelése
+- A Views panelben lehessen atnevezni a view oszlopait.
+  Megvalositas: csak a column mapping-et kell frissiteni, az sql-oszlopnevek
+  hozzarendeleset nem kell ujragyartani, es az adatbazisban sem kell atnevezni
+  az oszlopokat. Az uj oszlopnev nem lehet #, es olyan sem ami mar van.
+- Az oszlopnevek ilyeten megfeleloseget az import pluginektol is meg kell
+  kovetelni.
+x ha skalar modu scriptre alkalmazunk plugint, akkor a rule-ba csak a plugin
+  eredmenyenek tipusa kerul mentesre. Ha ez kulonbozik a scriptnek beallitott
+  tipustol, akkor a script eredmeny tipusa "elveszik": recreate-nel rosszul
+  lesz beallitva a tipus a GUI-n (es emiatt hibat jelezhet).
+  Pl. ha van egy digest() plugin ami szamokbol stringet csinal de stringeken
+  nincs ertelmezve, es a scriptunk eredmeny-tipusa szam, akkor az oszlop
+  tipusa (initialDataType) string lesz. A rule-t visszatoltve, ha elkezdik
+  editalni a szoban forgo oszlopot, akkor a script tipusat initialDataType-bol 
+  allitjuk be stringre. Erre nem lesz ertelmezve a plugin, tehat a plugin
+  eltunik a combobox listabol. Vagyis Edit hatasara egybol valtozas tortenik:
+  nem latszik a plugin es nem is lehet beallitani amig a script eredmeny 
+  tipust kezzel vissza nem javitja a user.
+  Ezen ugy lehetne javitani, hogy rule-ba csinalunk getScriptDataType()
+  es setScriptDataType() muveleteket. Ezek altalaban initialDataType-ot
+  adjak es allitjak, kiveve ebben a plugin+script esetben. Ilyenkor egy
+  uj attributumot hasznalnak  <scalar_script datatype="..">. Megkoveteljuk,
+  hogy setScriptDataType()-t setSource() hasznaljak, kulonben setSource() 
+  megszunteti setScriptDataType() hatasat.
+x ha kivalasztom a "Custom script"-et akkor miert warning-ol hogy nincs parameter kivalasztva?
+x Page_Columns: Move up-ot többször nyomni egymás után nem jól mûködik
+- ld. StatementPool otlet notes_kozmetika.txt-ban.
+x tesztelni: 
+  - Where feltetel (lehetoleg tobbsoros es <,> karaktereket is tartalmazo, 
+    hogy az XML-ben a sorvegjel is megmarad-e?)
+  - Alg,E ugy hogy E nem sorrendben van
+  - Alg,E ugy hogy E nem mindig 1-tol kezdodik, ill. vannak benne kihagyasok
+    (pl. D,1 nincsen csak D,2)
+  - splitted par script + plugin (plugin=min(), a script felvaltva adjon szamot es stringet eredmenyul)
+  - splitted par vector script
+  - nem splitted par vector script
+  - splitted par projected column: normal parameter es 'nem splitted par vector script'es parametert projektalni
+  - tobbfele tablabol, koztuk view-bol is venni az adatokat
+x jelenleg még nem mutatja a táblázat hogy melyik oszlopok csoportosítóak és melyikek nem
+  

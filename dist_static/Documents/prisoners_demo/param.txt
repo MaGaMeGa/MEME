@@ -1,0 +1,39 @@
+runs: 1
+strat1 {
+   start: 0
+   end: 4
+   incr: 1
+   {
+   runs: 15
+   strat2 {
+      start: 0
+      end: 4
+      incr: 1   
+   }
+   }
+}
+
+runs: 1
+stopAt {
+   set: 10000
+}
+
+runs: 1
+winner {
+   set: 4
+}
+
+runs: 1
+looser {
+   set: -3
+}
+
+runs: 1
+both {
+   set: 1
+}
+
+runs: 1
+neither {
+   set: 0
+}

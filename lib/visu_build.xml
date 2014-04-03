@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+       This build.xml file creates visu.jar and visu-src.zip for MEME.
+       The Visu and JFreeChart sources must be checked out from the
+       CVS into ../visualization and ../jfreechart-1.0.1
+       Note: the 'makepack' target creates visu.pack.gz.
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+<project name="visu" default="makejarsrc" basedir=".">
+
+  <property name="output" value="." />
+  <property name="pack200" value="${java.home}/bin/pack200" />
+
+  <property name="chartingPackage" value="." />
+  <property name="libs" value="./lib" />
+
+  <!-- Source directories are needed for visu-src.zip  -->
+  <property name="visuSrc" value="../visualization/src" />
+  <property name="jfreechartSrc" value="../jfreechart-1.0.1/src" />
+
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+       Creates visu.jar including chartingPackage and visu
+       together with all necessary 3rd party packages (like jfreechart)
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <target name="makejar">
+    <jar jarfile="${output}/${ant.project.name}.jar"
+         compress="no"
+         filesetmanifest="merge"
+         index="true"
+    >
+         <fileset dir="${chartingPackage}" includes="ai/ icons/"
+                                   defaultexcludes="yes"
+                                   excludes="**/*.java* .**/ .* **/*.bak" />
+         <zipgroupfileset dir="${libs}">
+            <patternset id="usedLibs">
+               <include name="*.jar" />
+               <exclude name="colt.jar" />
+               <exclude name="substance.jar" />
+               <exclude name="forms-1.0.7.jar" />
+               <exclude name="MEME-FormsUtils.jar" />
+               <exclude name="jung-1.7*.jar" />
+            </patternset>
+         </zipgroupfileset>
+         <zipfileset src="${libs}/jung-1.7.6.jar" excludes="samples/" />
+         <indexjars>
+            <pathelement path="${chartingPackage}" />
+            <fileset dir="${libs}">
+               <patternset refid="usedLibs" />
+            </fileset>
+         </indexjars>
+    </jar>
+  </target>
+
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+       Creates visu-src.zip which can be used in Eclipse as
+       read-only source attachment to the above visu.jar 
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <target name="makesrc">
+    <zip destfile="${output}/${ant.project.name}-src.zip" compress="no">
+         <fileset dir="${chartingPackage}" includes="**/*.java" />
+         <fileset dir="${visuSrc}" includes="**/*.java" />
+         <fileset dir="${jfreechartSrc}" includes="**/*.java" />
+    </zip>
+  </target>
+
+  <target name="makejarsrc" depends="makejar,makesrc">
+  </target>
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+       The following target compresses visu.jar into visu.pack.gz,
+       which is a Pack200 archive. The Pack200 compression is approx.
+       5x better than compressed .jar files, therefore practical for
+       installers. Decompressing can be done by the following command:
+         unpack200 visu.pack.gz visu.jar
+       Notes:
+       - unpack200 is part of the JRE (since 1.5)
+       - after unpacking, the resulting visu.jar will be smaller than 
+         the original, because debugging information is excluded below
+         (see the -G option) 
+       - visu.pack.gz is actually a visu.pack file compressed with gzip.
+         unpack200 can operate on visu.pack as well as on visu.pack.gz.
+         If you use 7-Zip instead of gzip to compress the .pack file,
+         you can gain 15-20% compared to gzip. Thus it's worth to use
+         7-Zip compression in the installer instead of the default gzip.
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <target name="makepack" depends="makejar">
+    <exec dir="${java.home}/bin" 
+          executable="${pack200}" 
+          os="${os.name}" 
+          resolveexecutable="true" 
+          searchpath="true"
+    >  <!-- spawn="true" -->
+       <arg value="-G"  /> <!-- strip debugging info -->
+       <arg value="-E9" /> <!-- best compression     -->
+       <arg file="${output}/${ant.project.name}.pack.gz" />
+       <arg file="${output}/${ant.project.name}.jar" />
+    </exec>
+    <!--
+    <echo message="visu.pack.gz is being created in the background..." />
+    <echo message="Note that it may take one or two minutes." />
+    -->
+  </target>
+
+</project>

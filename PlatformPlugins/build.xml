@@ -1,0 +1,143 @@
+<?xml version="1.0"?>
+
+<project name="Plugins" default="buildPlugins" basedir=".">
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+       Runs the buildOnePlugin target for every subdirectory
+       with a different ${basedir} but the same ${output}
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	<property name="root" location=".."/>
+	<property name="bin" location="${root}/bin"/>
+	<property name="libs" location="${root}/lib"/>
+	<property name="plugins" location="${root}/Plugins"/>
+	 
+	<path id="javac-classpath">
+		<pathelement location="${bin}"/>
+		<pathelement location="${plugins}/operatorPlugin"/>
+		<fileset dir="." includes="**/*.jar" excludes="NetLogoPlugin-4.1/**"/>
+		<fileset dir="${libs}" includes="**/*.jar" excludes="javassist.jar mason.16.jar MasonPlugin-16.jar"/>
+	</path>
+	
+	<path id="javac-classpath-nlogo">
+		<pathelement location="${bin}"/>
+		<fileset dir="${libs}" includes="**/*.jar" excludes="javassist.jar mason.16.jar MasonPlugin-16.jar NetLogo.jar scala-library.jar"/>
+		<fileset dir="." includes="**/*.jar" excludes="NetLogoPlugin-5.0.3/**"/>
+	</path>
+	
+	 
+<target name="buildPlugins" depends="compile, compile-nlogo">
+    <property name="output" location="." />
+    <property name="plspecbfname" value="build.xml" />
+    <subant genericantfile="${ant.file}" target="buildOnePlugin" inheritall="true">
+      <dirset dir="${basedir}" includes="*" excludes="CVS" />
+    </subant>
+    <delete>
+      <fileset dir="${basedir}" includes="Test*.jar Test*.pack*" />
+    </delete>
+</target>
+
+<target name="x">
+    <property name="prop.files" refid="javac-classpath"/>
+    <echo>${prop.files}</echo>
+</target>
+
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+       Creates a .pack file to the ${output} directory. The name 
+       of the .pack file is the name of the plugin's subdirectory.
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <target name="buildOnePlugin">
+    <basename property="pluginName" file="${basedir}"/>
+    <!-- echo message="Looking for ${pluginName}/${plspecbfname}" -->
+    <condition property="taskToCall" value="plugin-specific-build"
+                                     else="generic-build" >
+      <available file="${plspecbfname}" type="file" />
+    </condition>
+    <antcall target="${taskToCall}" />
+  </target>
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+      The plugin-specific build file, if exists, is responsible
+      for creating "${output}/${pluginName}.jar"
+      All properties defined here are visible in that build file.
+      The default target of that build file will be executed.
+      It is recommended to use the name of the plugin as the name of
+      that target because it makes the build output easier to understand.
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <target name="plugin-specific-build">
+    <ant antfile="${plspecbfname}" inheritAll="true" />
+  </target>
+
+
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <target name="generic-build">
+    <jar jarfile="${output}/${pluginName}.jar" 
+         compress="yes" 
+         filesetmanifest="merge"
+         index="true"
+    >
+      <fileset dir="${basedir}" defaultexcludes="yes"
+         excludes="**/*.java* .**/ .* **/*.bak **/*.jar **/*.zip **/inf.___ **/*.bat build.xml" />
+      <zipgroupfileset dir="${basedir}" includes="**/*.jar" />
+<!--
+      <indexjars>
+        <fileset dir="${basedir}" includes="**/*.jar" />
+      </indexjars>
+-->
+    </jar>
+</target>
+	<target name="compile">
+	<javac compiler="org.eclipse.jdt.core.JDTCompilerAdapter" includeantruntime="false" source="1.7" target="1.7" encoding="utf-8">
+	<compilerclasspath>
+		<pathelement location="${libs}/ecj.jar"/>
+	</compilerclasspath>
+		<src>
+			<pathelement location="SimphonyPlugin-2" />
+			<pathelement location="SimphonyPlugin-1.1" />
+			<pathelement location="NetLogoPlugin-5.0.3" />
+			<pathelement location="MasonPlugin-16" />
+			<pathelement location="CustomJavaPlugin" />
+		</src>
+	<compilerarg value="-time" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" /> 
+	<classpath refid="javac-classpath"/>
+	</javac>
+</target>
+
+<target name="compile-nlogo">
+	<javac compiler="org.eclipse.jdt.core.JDTCompilerAdapter" includeantruntime="false" source="1.7" target="1.7" encoding="utf-8">
+	<compilerclasspath>
+		<pathelement location="${libs}/ecj.jar"/>
+	</compilerclasspath>
+		<src>
+			<pathelement location="NetLogoPlugin-4.1" />
+		</src>
+	<compilerarg value="-time" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" /> 
+	<classpath refid="javac-classpath-nlogo"/>
+	</javac>
+</target>
+
+<target name="compile-mason">
+	<javac includeantruntime="false" source="1.7" target="1.7" encoding="utf-8">
+		<src>
+			<pathelement location="MasonPlugin-16" />
+		</src>
+	<classpath refid="javac-classpath"/>
+	</javac>
+</target>
+	
+	<target name="singleSimphonyJar">
+		<property name="simphony-tmp-jar" value="s-all-tmp.jar" />
+		<property name="simphony-jar" value="s-all.jar" />
+		<jar jarfile="${simphony-tmp-jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
+			<zipgroupfileset dir="/Applications/Repast Simphony 2.1/eclipse/plugins" includes="**/*.jar">
+			</zipgroupfileset>
+		</jar>
+		
+		<jar jarfile="${simphony-jar}" excludes="META-INF/*.SF,META-INF/index.list" >
+			<zipfileset src="${simphony-tmp-jar}" />
+		</jar>
+		
+		<delete file="${simphony-tmp-jar}" />
+	</target>
+
+</project>

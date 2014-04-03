@@ -1,0 +1,1 @@
+@java -classpath 3rdParty\hsqldb\lib\hsqldb.jar org.hsqldb.util.ShutdownServer

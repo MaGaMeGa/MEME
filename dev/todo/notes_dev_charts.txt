@@ -1,0 +1,108 @@
+- ha chart creation folyamatban van es torlom azt a view-t amibol az
+  adatokat nyeri akkor erdemes lenne elobb megkerdezni hogy eldobhatom-e
+  a chart-ot es utana be is zarni a chart creation-t.
+  -> ha tobb view-bol is merithet a chart, akkor barmelyik erintett view
+  eseten szoljon, de mas esetekben ne
+= bug113 debugolni: start MEME, open db, select view "prew vs ALLD",
+  create chart, grid2d, switch to partial grid, 
+  X=ALLD, Y=#, Color=PRewiring, Display.
+  -> debugolom mar legalabb 1 oraja. Az adatok lekerese, DataSet letrehozasa,
+  initial event, JFreeChart es JFrame letrehozasa rendben. Utana szall el
+  OutOfMemoryException-nel, call stack nelkul. Probalom debugolni az AWT
+  esemenykezbesitest.
+  Odaig eljutottam, hogy legelso PaintEvent, Container.paint(Graphics g).
+  Eddig meg nincs gond. Innen hivodik 
+  org.jfree.chart.ChartPanel.paintComponent(Graphics), ebbol pedig
+  if (this.useBuffer) {..} else -> this.chart.draw() ->
+  org.jfree.chart.JFreeChart.draw(Graphics2D, Rectangle2D, Point2D, ChartRenderingInfo)
+  -> this.plot.draw() -> ai.aitia.visu.view.plot.Grid2DPlot.draw()
+  -> Grid2DPlot.render() -> drawGrid() -> es itt beragad egy 2500x700-as
+  ciklusba (1.75 millio grid racspont keletkezik, mindegyikhez keszit
+  tooltip-et, Grid2DEntity()-t (ezeket le kellene tiltani legalabb ilyenkor!
+  org.jfree.chart.ChartRenderingInfo.setEntityCollection(null)-lal lehetne
+  letiltani).
++ => ld. bug#53: Gulya otlete alapjan ezt chartingPackage-ben oldjuk meg
+  kellene majd olyan gomb is, hogy egy elmentett chart-ot alkalmazni
+  egy masik view-ra, mint amivel elmentettuk -> a Create chart gomb hatasara
+  ne egybol a chartingPackage-fele dialog jojjon be, hanem sablonkent sorolja 
+  fel azokat a mar elmentett chart-okat, amik alkalmazhatok lennenek "erre" a
+  view-ra (-> az "erre" tobb view-t is jelenthet?) 
+  "Create new" legyen a felsoroltak kozott az elso valasztas, a kovetkezo
+  pedig az, amit legutoljara valasztott a user es igy tovabb.
+  Ez azt is jelenti, hogy amikor egy uj chart-ot megcsinalt, akkor annak a 
+  Save gombja a sablonok koze mentse el a chart-ot. Onnan exportalni lehet
+  chart xml-t, ha akarja a user. Es persze importalhasson is sablonokat.
+  Tehat kell egy chart repository. Ez tarolja a chartconfigcollection-oket,
+  plusz mindegyikhez 
+  - egy nevet
+  - egy-egy preview kepet
+  A chartconfig-okba sose mentsuk bele a view azonosito(ka)t, hanem csak
+  a szukseges tipusokat. Igy barmely view(-halmaz)-val hasznalhatoak lesznek,
+  amelyiknek megfelelo tipusu oszlopai vannak. A tipus tul keves informacio,
+  mentsuk el az oszlopnevet is. Igy ha ugyanarra a view(-halmaz)-ra nyitja 
+  meg ismet, akkor ugyanugy fog kinezni, de konnyen alkalmazhatja egy masik 
+  view(-halmaz)-ra is, csupan megfelelo oszlopneveket kell hasznalnia.
+  Kellene azonban modszer arra is, hogy a kimentett chartconfig-ban modositsa
+  az oszlopneveket, amiket var, ilyen modon szabva at egy masik view-ra..
+  Lehet, hogy collection-re nincs is szukseg, eleg lenne a szimpla. 
+  Ennek a charts repository-nak a Charts lapon lehetne a kezelofelulete:
+  - uj chart letrehozasa a kivalasztott view-(k)hoz
+  - meglevo sablon alkalmazasa a kivalasztott view-(k)hoz
+  - sablonok kezelese: ez fuggetlen az aktualis view-(k)tol, de nem is
+    megjelenitesre/szerkesztesre valo, hanem az elmentett sablonokat
+    lehet bongeszni (preview es nev segitsegevel) + atnevezes, torles,
+    import, export.
+- Rajmund
+  x IDSPCollection.load() dobhasson Exception-t
+    -> sztem dobhat: az Exception atkerul DataSources.load()-ba, de ott
+       nem kapja el senki. Megy tovabb ChartConfigCollection.load()-ba,
+       ott sem kapja el senki. Igy tehat valtozatlanul kerul vissza a 
+       hivohoz.
+    -> Nem dobhat, mert nincs benne a deklaraciojaban hogy 'throws Exception'.
+       Igy most csak unchecked exception-t dobhatok belole.
+  x adhassak meg ikonokat az adatforrasokhoz a comboboxba (oszlop tipusa)
+  x bug: ha sok adatot akarok megjeleniteni, akkor sokaig szamol
+    aztan nem tortenik semmi. Nem lehet hogy valahol lenyel vmi exeption-t?
+    Ki kellene talalni a modjat annak, hogy az ilyen hibakat hogyan kezeljuk.
+    Olyankor is ezt csinalja, amikor kinagyitok egy grafikont teljes 
+    kepernyosre es aztan save png-t mondok.
+  - a chartingPackage dialog-ok aljara a gombokat a hivo sorolhassa fel.
+    De lehet hogy praktikusabb megoldas lenne ActionMap-et hasznalni.
+  x IDataSourceProducer-be kellene muvelet az aszinkronitas tamogatasara
++ chart creation: egyszerre tobb view-bol is lehessen venni az adatokat.
++ nagyon rossz h. mikozben keszitem a chart-ot nem latom hogy melyik
+  view-bol keszitem. -> ha tobbol keszitem, akkor hogyan lassam, hogy melyikek
+  azok? -> sztem az adatforrasok neveit kellene viewname.parametername-re
+  valtoztatni. Csak ez lehet h. tul hosszu a grafikon jelmagyarazataba.. 
+  Nezd meg h. lehet-e ezt mindenutt atirni? Ha nem megoldhato, akkor vagy
+  tooltip-et kellene legalabb csinalni a comboboxba, vagy megoldani hogy
+  mas nev menjen a jelmagyarazatba mint a comboboxba.
+- bug (Rajmund):
+  - a New chart "lapon" a Description reszben ha nem fer ki a szoveg,
+    akkor nem tordelodik.
+  x az xylinechart (es tobbi) grafikonrol szamuzni kellene a sarga szint,
+    amit a 4. adatforrasnak oszt ki a jfreechart
+  x Table color map eseten a szinek hozzarendelese lehetne kenyelmesebb,
+    ha a szinvalaszto dialog nem kulon ablakban jonne be mindig, hanem
+    fixen ott lenne a dialog aljan vagy oldalan, mint ahogy Shape-renderernel
+    is van. Igy tabla-elemenkent 2 kattintast meg lehetne sporolni (Assign 
+    a color...Ok)
+  - Table color map eseten a kimentett .cmf fajl formatuman javitani
+    kellene egy kicsit. Jelenleg ilyen:
+      67.0=-16776961
+      6.0=-52480
+    Jo lenne, ha az = utan HTML-es formatumu szineket is elfogadnank 
+    (#ffeedd) -> lehet hogy mar most is igy van? -> probald ki!
+  x eps-be valo mentesnel a kep ne legyen nagyobb mint a grafikon.
+  x Chart collection listaban ne kelljen dupla-klikk a valtashoz,
+    legyen eleg a szimpla.
+  x szerintem bena dolog, hogy a grafikonoknak programozos neveik vannak
+    (kisNagyBetuASzavakHataran). Rendes szokozos neveket kellene hasznalni.
+  x ai.aitia.chart.charttypes.dialogs.AbstractChartDialog.notifyForHide()
+    a fgv. elejen f.dispose()-t mond a cc_collection-hoz tartozo minden 
+    JFrame-re, de nem uriti ki magat a displays listat, igy a frame-ek
+    "memory leak"-szeruen bennmaradhatnak.
+  - Save gomb (chart coll. mentese) a fajl dialogus ablak nem kerdezi meg
+    hogy biztosan felul akarom-e irni ha letezot valasztok ki.
+
+

@@ -1,0 +1,11 @@
+ai.aitia.meme.paramsweep.mathPlugin.Math_Addition
+ai.aitia.meme.paramsweep.mathPlugin.Math_Subtraction
+ai.aitia.meme.paramsweep.mathPlugin.Math_Multiplication
+ai.aitia.meme.paramsweep.mathPlugin.Math_Division
+ai.aitia.meme.paramsweep.mathPlugin.Math_Abs
+ai.aitia.meme.paramsweep.mathPlugin.Math_Exp
+ai.aitia.meme.paramsweep.mathPlugin.Math_Log
+ai.aitia.meme.paramsweep.mathPlugin.Math_Pow
+ai.aitia.meme.paramsweep.mathPlugin.Math_Round
+ai.aitia.meme.paramsweep.mathPlugin.Math_Signum
+ai.aitia.meme.paramsweep.mathPlugin.Math_Sqrt

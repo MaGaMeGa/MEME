@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" output="Plugins/IntelliResultProcessPlugin" path="Plugins/IntelliResultProcessPlugin"/>
+	<classpathentry kind="src" output="Plugins/TestImportPlugin" path="Plugins/TestImportPlugin"/>
+	<classpathentry kind="src" output="Plugins/TestExportPlugin" path="Plugins/TestExportPlugin"/>
+	<classpathentry kind="src" output="PlatformPlugins/CustomJavaPlugin" path="PlatformPlugins/CustomJavaPlugin"/>
+	<classpathentry kind="src" output="Plugins/BeanShell" path="Plugins/BeanShell"/>
+	<classpathentry kind="src" output="Plugins/coltPlugin" path="Plugins/coltPlugin"/>
+	<classpathentry kind="src" output="Plugins/CSVExportPlugin" path="Plugins/CSVExportPlugin"/>
+	<classpathentry kind="src" output="Plugins/CSVImportPlugin" path="Plugins/CSVImportPlugin"/>
+	<classpathentry kind="src" output="Plugins/intellisweepPlugin" path="Plugins/intellisweepPlugin"/>
+	<classpathentry kind="src" output="Plugins/mathPlugin" path="Plugins/mathPlugin"/>
+	<classpathentry kind="src" output="Plugins/NetLogoImportPlugin" path="Plugins/NetLogoImportPlugin"/>
+	<classpathentry kind="src" output="Plugins/operatorPlugin" path="Plugins/operatorPlugin"/>
+	<classpathentry kind="src" output="Plugins/RepastImportPlugin" path="Plugins/RepastImportPlugin"/>
+	<classpathentry kind="src" output="Plugins/VCPlugins" path="Plugins/VCPlugins"/>
+	<classpathentry kind="src" path="test"/>
+	<classpathentry kind="lib" path="lib/colt.jar"/>
+	<classpathentry kind="lib" path="lib/dps_common.jar"/>
+	<classpathentry kind="lib" path="lib/fables.paramsweep.runtime.jar"/>
+	<classpathentry kind="lib" path="lib/forms-1.0.7.jar"/>
+	<classpathentry kind="lib" path="lib/Jama-1.0.2.jar"/>
+	<classpathentry kind="lib" path="lib/jdic.jar"/>
+	<classpathentry kind="lib" path="lib/jsch-0.1.33.jar" sourcepath="D:/users/ray/temp/jsch-0.1.33/src"/>
+	<classpathentry kind="lib" path="lib/jscience.jar"/>
+	<classpathentry kind="lib" path="lib/kepletszerkeszto.jar" sourcepath="/Kepletszerkeszto"/>
+	<classpathentry kind="lib" path="lib/MaskedShellFolderManager.jar"/>
+	<classpathentry kind="lib" path="lib/substance.jar"/>
+	<classpathentry kind="lib" path="lib/trove.jar"/>
+	<classpathentry kind="lib" path="lib/violinstrings-1.0.2.jar"/>
+	<classpathentry kind="lib" path="lib/bsf.jar"/>
+	<classpathentry kind="lib" path="Plugins/BeanShell/bsh-2.0b4.jar"/>
+	<classpathentry kind="lib" path="lib/hsqldb/lib/hsqldb.jar"/>
+	<classpathentry kind="lib" path="lib/j3dcore.jar"/>
+	<classpathentry kind="lib" path="lib/j3dutils.jar"/>
+	<classpathentry kind="lib" path="lib/vecmath.jar"/>
+	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.6-bin.jar"/>
+	<classpathentry kind="lib" path="lib/repast.jar" sourcepath="/Repast31/src"/>
+	<classpathentry kind="lib" path="lib/visu.jar"/>
+	<classpathentry kind="lib" path="lib/fest/fest-assert-1.2.jar"/>
+	<classpathentry kind="lib" path="lib/fest/fest-reflect-1.2.jar"/>
+	<classpathentry kind="lib" path="lib/fest/fest-swing-1.2.jar" sourcepath="lib/fest/fest-swing-1.2-sources.jar"/>
+	<classpathentry kind="lib" path="lib/fest/fest-util-1.1.2.jar"/>
+	<classpathentry kind="lib" path="lib/fest/jcip-annotations-1.0.jar"/>
+	<classpathentry kind="lib" path="lib/fest/fest-swing-junit-4.5-1.2.jar"/>
+	<classpathentry kind="lib" path="lib/fest/fest-swing-junit-1.2.jar"/>
+	<classpathentry kind="lib" path="lib/asm-all-3.3.1.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="testlibs/mockito-all-1.9.0.jar"/>
+	<classpathentry kind="lib" path="testlibs/powermock-mockito-1.4.12-full.jar"/>
+	<classpathentry kind="lib" path="for.annoying.eclipse.jar"/>
+	<classpathentry kind="lib" path="lib/aspectjrt.jar" sourcepath="/home/tamas/src/aspectj1.7/aspectjrt1.7.2-src.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/home/tamas/src/aspectj1.7/doc/runtime-api/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/aspectjweaver.jar" sourcepath="/home/tamas/src/aspectj1.7/aspectjweaver1.7.2-src.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/home/tamas/src/aspectj1.7/doc/weaver-api/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/commons-io-2.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/javassist-3.16.1-GA.jar" sourcepath="F:/Dokumentumok/javassist-3.16.1-GA-sources.jar"/>
+	<classpathentry kind="lib" path="lib/jgap.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/guava-11.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/reflections-0.9.9-RC1.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/eclipselink.jar" sourcepath="lib/eclipselink-src.zip"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

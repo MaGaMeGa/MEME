@@ -1,0 +1,6 @@
+bsh-2.0b4.jar
+bsh-2.0b4-src.zip
+  Beanshell 2.0 beta 4 but stable, release (2005-may-23)
+  This is the newest until 2007-feb
+  Included components: bsh-core, bsh-classgen, bsh-commands, bsh-util,
+                       bsh-classpath, bsh-reflect, bsh-bsf

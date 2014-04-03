@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<project name="Plugins" default="generic-build" basedir=".">
+  <target name="generic-build" depends="typechecker">
+    <jar jarfile="${output}/${pluginName}.jar" 
+         compress="yes" 
+         filesetmanifest="merge"
+         index="true"
+    >
+      <fileset dir="${basedir}" defaultexcludes="yes"
+         excludes="**/*.java* .**/ .* **/*.bak **/*.jar **/*.zip **/inf.___ **/*.bat build.xml" />
+      <zipgroupfileset dir="${basedir}" includes="**/*.jar" />
+<!--
+      <indexjars>
+        <fileset dir="${basedir}" includes="**/*.jar" />
+      </indexjars>
+-->
+    </jar>
+  	
+  </target>
+	
+	<target name="typechecker">
+		<jar destfile="${basedir}/../../resources/typechecker5.jar" basedir="${basedir}" includes="ai/aitia/meme/netlogo/typechecker/*.class">
+			<manifest>
+				<attribute name="Extension-Name" value="typechecker"/>
+				<attribute name="Class-Manager" value="ai.aitia.meme.netlogo.typechecker.TypeCheckerManager"/>
+				<attribute name="NetLogo-Extension-API-Version" value="5.0"/>
+			</manifest>
+		</jar>
+	</target>
+</project>

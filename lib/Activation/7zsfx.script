@@ -1,0 +1,4 @@
+;!@Install@!UTF-8!
+ExecuteFile="javaw"
+ExecuteParameters="-cp . ai.aitia.FileGen"
+;!@InstallEnd@!

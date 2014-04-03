@@ -1,0 +1,109 @@
+kozmetika:
+
++ valahogy meg kellene oldani, hogy a textarea-kban es a textfield-ekben
+  mukodjon a clipboard (copy/paste) (bocs, mukodik, de csak Ctrl+V-vel,
+  es Ctrl+Insert-el nem).
++ ird be a Substance-nek bugkent a HTML-kodos labeleket meg
+  a JTable cellrenderer problemajat (skin valtas utan).
++ vizsgald meg a DriverManager.setLoginTimeout() hatasat! Lehet, hogy
+  kivalthatna a mostani 20 mp-es ciklust! (bar ez a 20 mp-es ciklus
+  azert is jo, mert addig kitehetunk egy progress ablakot hogy
+  "Connecting to database...")
++ dev/make_dist.bat-ot ird at ant build.xml-le. A MEME_cvs konyvtarban
+  lehetne a helye, es MEME_setup.exe is oda keszuljon.
+x view creation dialog, name&description lap: a description legyen
+  nagyobb (JTextArea + JScrollPane)
++ View panel info reszeben a kivalasztott view-hoz tartozo result-okat
+  egy scrollable tree-ben lehetne mutatni.
++ teszteld a MEME-t azzal is h. lelovod az adatbazis szervert mikozben
+  megy a MEME. Jelenleg a hibauzeneteket csak az stdout-ra hanyja,
+  de a usernek nem szol rola! 
+  (code 08003) Connection is broken: Software caused connection abort: socket write error
++ Amikor tobb version van egy modelnev alatt, akkor a modelnev kivalasztasakor 
+  ki kellene irni, hogy "Model: ...  9 Versions" es a description nem jelenik meg
++ ResultsBrowser fajaban a jobb gomb lehetne a Ctrl+Click helyettesitoje.
+  Tehat ha jobb gombbal kattog a user, akkor egyesevel valtoztathatja a 
+  szelekciot. 
+  Bar lehet, hogy jobb lenne ha inkabb a bal gomb csinalna ugyanezt.
+  S amit eddig csinalt a bal gomb (vagyis hogy torolte az elozo szelekciot
+  es szelektalta azt amire kattint), azt hosszu (1.5mp) nyomvatartas
+  hatasara csinalna.
++ !BUG!: ResultsBrowser-ben ha 1 version node alatt kivalasztod az osszes batch-et
+  (es az tobb mint 1), majd a Ctrl-t nyomva tartva kattogsz a kivalasztott
+  csucsokon, akkor az Info reszen nem mindig jo node-hoz tartozo informacio 
+  jelenik meg. Ezt ugy lehetne javitani, hogy figyelem az eger kattintas esemenyt
+  is es magam nyilvantartom hogy hova kattintottak utoljara, mert sajnos ezt
+  a JTree-tol nem lehet megbizhatoan megtudni. getLastSelected... a selection
+  1. elemet adja vissza, ami csak akkor helyes, ha a selection 1 elemu.
+  getLead... pedig az utolso elemet adja vissza, aminek szinten nincs mindig
+  koze az egerkattintashoz...
+x Session.main() elerhetoseget alakitsd at: MEMEApp.main()-bol
+  lehessen elerni. MEMEApp-ot alakitsd at, hogy main() elott ne
+  tortenjen benne semmi.
+x L&F valtas programbol. Peldakod hozza: "Beginning Java 2, JDK 5", 772.o.
+x Wizard-ot tedd at a gui package-be, folosleges neki sajat
++ Wizard-ot atirni hogy CardLayout-ot hasznaljon.
+  ld. "Beginning Java 2, JDK 5", 813-815.o.
+= Views Panel-ben erdemes lenne implementalni ListModel-t, pl. 
+  AbstractListModel-bol leszarmazva hasonlokeppen mint ahogy JList is
+  csinalja. Ekkor nem kellene lecserelgetni a vektort, es tudnank 
+  fireContentsChanged()-et mondani, amikor a nevvaltozas miatt kell
+  ujrarajzolni a listat.
+- vilagositani kellene ezeken az ikonokon (Gamma 1.5):
+    datatype_boolean.png
+    datatype_int.png
+    datatype_real.png
+    datatype_string.png
+    model_batch.png
+    model_delete.png
+    model_name.png
+    model_rename.png
+    model_version.png
+    type_beanshell.png
+    type_parameter.png
+  Problemasak az atlatszo reszek. Elozoleg ki kellene festeni az atlatszo 
+  reszeket pirosra, es akkor jol tudna megcsinalni az IrfanView.
+- Repast import dialog-ban focusout nelkul nem lehet megnyomni az ok 
+  gombot. Tovabba a focus nem ugrik magatol a modelnev mezobe.
+- a recreate view ikonjara miert van az irva hogy edit?
+- Results panel-beli delete results-nak nincs menu megfeleloje.
+- a plugin-ek tooltip-je legyen a description fajlbol beolvasott szoveg.
+- menu & button shortcuts
+- tooltips a maradek gombokhoz is (dialogokban is, views listaban, results
+  browser-ben stb.)
+  Page_Columns lapon is a tipus-ikonokhoz, kulonosen a datatype_missing ikonhoz!
++ a menukben ne legyenek tooltip-ek, vagy legalabbis ne ugyanaz mint a menu neve...
+- MEME alkalmazas ablaka tul magasra nyilik 800x600as felbontas eseten. 
+  Repast Import dialog is tul magasra nyilik.
+x Watermark latsszon a ResultsBrowser fan es a Views listan is
+  Valoszinuleg setOpaque()-t kell false-ra atallitani, ami a sajat renderer 
+  miatt terhet el a L&F altal elvarttol.
+x A JScrollPane-be berakott JTextPane-eket egyreszt csereld le JEditorPane-re
+  (kevesebb memoriat foglal) masreszt szedd le a keretuket.
+x MDI nezetben a frame-ek becsukhatok (Substance eseten legalabbis)
+x GUIUtils.ToggleClickMultiSelection: Ctrl+A-ra jelolje ki mindet.
+  Legyen mod az invertalasra is. Talan lehetne context menu?
+  -> Context menu van, invertalas nincs. Ctrl+A sincs.
+- meg lehetne probalni csinalni egy StatementPool-t DatabaseConnection-be.
+  At kellene irni az adatbazisos fajlokat hogy createStatement()/preparedStatement()
+  ill. a vegen close() helyett ebbol a pool-bol kerjenek le es adjanak vissza
+  objektumokat. Igy lenyegesen csokkenhetne a Statement-ek letrehozasanak 
+  gyakorosiaga, ami lehet h. sokat gyorsithatna. PreparedStatement-ek 
+  ujrafelhasznalasat segitene. Ami elgondolkodtato, az a hibakezeles: honnan
+  tudjuk hogy mit kellene kiuriteni/lezarni es mikor? Nyilvan meg t.rollback()
+  elott meg kellene tortennie...
+x miert van az hogy ha kint van egy modal dialog es a foablakra akarok
+  kattintani akkor hangot ad ki a windows? Miert nem nema? Ki kellene probalni,
+  h. Substance nelkul is csinalja, vagy a Substance miatt van ez?
+  -> Substance nelkul is csinalja.
+- RepastImport dialog: a header felirat betutipusa csak akkor nem Times amikor
+  szines szoveg is van benne; maskulonben visszavalt arra. Ronda a kerete.
+  At kellene irni FormsLayout-osra. A tablazat miatt is.
+x Page_Sorting: ha csak 1 elem van a tablazatban es rakattintok, akkor is
+  hasznalhatova valik a Move down gomb, sot csinal is vmit ha megnyomom - rosszat
+- LOPDialog: SQL exception jelent meg benne, es nagyon szeles lett. 
+  Van rajta szelesseg-korlatozas? Mukodik is? Meg kellene nezni.
+- Page_Columns: a tab-ok cimkeit dolt betuvel amikor van benne kvalasztva vmi
+x Views lap: a Hidden oszlop ne latsszon, es a Splitternek se latom ertelmet.
+  Egy Splitted oszlop viszont annal jobb lenne.
+- Page_Columns: beiras kozbeni ellenorzes, mashol-hasznaljak-mar ellenorzes

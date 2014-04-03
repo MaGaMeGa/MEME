@@ -1,0 +1,336 @@
+Release Notes MEME v2.1.30410 (Previous version v2.1.21003)
+
+Features - MEME
+------------------------------------------------------------
+- Multi column recording of arrays and collections is possible in RepastJ, MASON and Custom Java platforms
+
+Fixed bugs
+------------------------------------------------------------
+- Fixed unwanted replacement of commas to dots when importing results.
+
+Release Notes MEME v2.1.21003 (Previous version v2.1.20413)
+
+Features - MEME
+------------------------------------------------------------
+- New simulation platform support: NetLogo 5.0.2
+- Still supports NetLogo 4.1.x
+
+Fixed bugs
+------------------------------------------------------------
+- Proper global run handling with in an all constant parameter tree
+
+Release Notes MEME v2.1.20413 (Previous version v2.1.10518)
+
+Features - MEME
+------------------------------------------------------------
+- Chart creation from results directly
+- New simulation platform support: Mason
+- Experimental Genetic Algorithm dynamic IntelliSweep plugin
+
+Fixed bugs
+------------------------------------------------------------
+- Default name delimiter at splitting in view creation
+
+Release Notes MEME v2.1.10518 (Previous version v2.1.01123)
+
+Features - MEME
+------------------------------------------------------------
+- Applying existing chart to another view
+- Arithmetic statistics in Data Source Editor
+- Model Exploration Service and MEME now use compressed files at results downloading
+- Results renaming 
+- Run and Tick columns in the list of input columns
+- Custom Java platform: Recording at the model's autonomous stop
+- Displaying resolution of fractional factorial designs
+- IntelliSweep result processing: Random Seed Statistics
+- IntelliSweep result processing: Quadratic Model Builder
+- Natural Variation processing: summaries of coefficient of variations
+
+Features - Charting Package
+------------------------------------------------------------
+- Grid visibility settings in templates
+- 3d grid: zoom withoud mouse wheel
+- 3d grid: exporting to png files
+- changing axis scale (linear or logarithmic) from the context menu at some chart types
+
+Fixed bugs
+------------------------------------------------------------
+- 'Switching on/off legends changes the color of curves' bug fixed
+- 'Show rows/Show columns may cause NullPointerException on Views tab' problem solved
+- Overwrite confirmation at chart saving
+- 'Maximizied MEME shrinks at certain cases' bug fixed
+- Selection problem when using context menus fixed
+- 'Chart loading never ends in certain cases' problem fixed
+- 'Using BeanShell script and aggregation operation on the the same source column causes exception' bug fixed
+- Problems at view naming (unnecessary confirmation dialogs) solved
+- 'Finishing view creation with pressing ENTER in name field causes error' bug fixed
+- 'Changing splitter column corrupts view' bug fixed 
+- 'Custom Java platform does not accept getter with >>is<< prefix at boolean parameters' problem solved (really this time)
+- Custom Java platform: 'Recorder contains dot in its name cause error'problem solved
+- NetLogo 4.1.1 platform: NetLogo extensions problem fixed
+- minor bugfixes
+
+Release Notes MEME v2.1.01123 (Previous version v2.1.00906)
+
+Features - MEME
+------------------------------------------------------------
+- New operator: count at ParameterSweep Scripting
+- Enhanced Metafile (EMF) support at chart image export
+- Chart image export from multiple chart configurations and in multiple formats
+- NetLogo 4.1.1 platform support (NetLogo 4.0.x platform is not supported any longer)
+- NetLogo System Dynamics Models support
+
+Fixed bugs
+------------------------------------------------------------
+- various bugfixes
+- 'Invalid chart image filenames' problem solved
+- MySQL support: sort problem fixed
+- 'Charts tab: Cancel button' bug fixed
+- 'NetLogo Test Data source feature cause exception' problem solved 
+
+Release Notes MEME v2.1.00906 (Previous version v2.1.00713)
+
+Features - MEME
+------------------------------------------------------------
+- Model Exploration Service support
+- supports netbook specific lower resolution displays
+- model version checking in NetLogo platform
+
+Fixed bugs
+------------------------------------------------------------
+- various bugfixes
+- 'unsupported breed definition bug in NetLogo platform' is fixed
+
+
+Release Notes MEME v2.1.00713 (Previous version v2.1.00122)
+
+Features - MEME
+------------------------------------------------------------
+- up-to-date documentation :)
+- Documents can be accessed from MEME on Macintosh too
+- improved exception handling at model launching
+
+Fixed bugs
+------------------------------------------------------------
+- various bugfixes in NetLogo platform
+- fixing piechart datasources problem
+- 'Custom Java platform does not accept getter with >>is<< prefix at boolean parameters' problem solved
+- importing results with Natural Variation settings bug fixed
+- center point settings bug in Factorial design fixed
+- minor bugfixes
+
+Release Notes MEME v2.1.00122 (Previous version v2.0.91013)
+
+Features - MEME
+------------------------------------------------------------
+- time series and filter operators at Parameter Sweep scripting
+- user variables at Parameter Sweep scripting
+- new data sources (turtles, links, patches, breeds) at Netlogo platform
+- more user-friendly statistics at Parameter Sweep scripting
+- new aggregative operations at View Creation Wizard
+
+Features - Charting Package 
+------------------------------------------------------------
+- 3D charts
+- constant color values at 2d grids
+
+Fixed bugs
+------------------------------------------------------------
+- 'MEME does not reconnect to the database server' bug fixed
+- minor bugfixes
+
+Release Notes MEME v2.0.91013 (Previous version v2.0.90921)
+
+Fixed bugs
+------------------------------------------------------------
+- 'Filechooser dialogue causes NullPointerException with JRE 1.6 update
+  14 or higher' problem solved
+- minor bugfixes
+
+
+Release Notes MEME v2.0.90921 (Previous version v2.0.90410) 
+
+Features - MEME
+------------------------------------------------------------
+- basic QosCosGrid support
+- System.out.println() prints to the log file at Beanshell scripting in View Creation Wizard
+- NetLogo scripting facilities in the Parameter Sweep Wizard
+- supports NetLogo models using __includes keyword
+- Redesigned interface for Custom Java platform: the getParams() method
+- Natural Variation Analysis for IntelliSweep methods
+- modifiable IntelliSweep processing options on automatic import
+
+
+Fixed bugs
+------------------------------------------------------------
+- 'slow run counting bug' fixed
+- 'invalid NetLogo stopping condition' bug fixed
+- 'missing scrollbar on IntelliSweep page' bug resolved
+- some other minor bugs 
+
+Release Notes MEME v2.0.90410 (Previous version v1.0.81016) (fully documented)
+
+Features - MEME
+------------------------------------------------------------
+- Redesigned Parameter Sweep Wizard that supports multiple simulation platforms (RepastJ, Custom Java, NetLogo)
+- New intelligent Parameter Sweep Method: Iterative Uniform Interpolation
+
+
+Fixed bugs
+------------------------------------------------------------
+- Several minor bug fixed in MEME User Tools
+- 'Importing CSV-file with an empty column causes error' problem resolved
+
+
+Release Notes MEME v1.0.81016 (Previous version v1.0.80929)
+
+Features - MEME
+------------------------------------------------------------
+- Environment variables in MEME User Tools
+- Support for installing predefined User Tools
+- Enhanced Monitor
+- Script Editor Assistant in View Creation Wizard
+
+Release Notes MEME v1.0.80929 (Previous version: v1.0.0917)
+
+Features - MEME
+------------------------------------------------------------
+- Parameter Sweep Wizard settings can be saved manually
+
+Features - Charting Package 
+------------------------------------------------------------
+- Chart data exporting to CSV file
+- Custiomizable marker size on Time Series, XY Line Chart etc.
+- Default category data source at Bar Chart, Pie Chart and RadViz
+
+Fixed bugs 
+------------------------------------------------------------
+- Settings file reloading bug fixed (appeared in previous version)
+- Histogram range axis bug resolved
+- Histogram Outliers bug fixed
+- Redesigned panel for Networks (layout and resize bug fixed)
+
+Release Notes MEME v1.0.80917 (Previous version: v1.0.80901)
+
+Features - MEME
+------------------------------------------------------------
+- Data source editing in Parameter Sweep Wizard
+- Support for user defined statistic plugins
+
+Features - Charting Package
+------------------------------------------------------------
+- Customizable node size on Network and Interactive subgraph charts
+
+Release Notes MEME v1.0.80901 (Previous version: v1.0.80819) (fully documented)
+
+Features - Charting Package
+------------------------------------------------------------
+- New Chart type: 1D Series
+
+Release Notes v1.0.80819 (Previous version: v1.0.80725)
+
+Fixed bugs
+------------------------------------------------------------
+- The Random Seed Settings saving bug is fixed. The settings.xml-s created with the
+  previous releases may not load properly, in this case you should recreate the Random
+  Seed Settings.
+- 'Boost Factor setting does not affect the Total runs number display' bug is fixed
+- 'IntelliSweep run checkbox is always checked at automatic Repast Result import' bug is fixed
+
+Release Notes MEME v1.0.80725 (Previous version: v1.0.80327)
+
+Features - MEME
+------------------------------------------------------------
+- MySQL support
+- Improved User Tool supporting (verbose mode, user input parameters etc.)
+- Intelligent Parameter Sweep Methods
+- Improved Scripting facilities in the Parameter Sweep Wizard
+
+Features - Charting Package
+------------------------------------------------------------
+- Redesigned composite grid chart type
+- New Chart types: Boxplot, Pie chart, RadViz
+- Improved histogram chart
+- Exporting graphs to Pajek file
+
+Fixed bugs 
+------------------------------------------------------------
+- 'Documentation doesn't accessible from the Help menu on Linux' bug resolved
+- size() fixed in the Parameter Sweep Wizard
+- 'User Tools doesn't work on Windows' bug fixed
+- 'Time left underflow error at Parameter Sweep Local Monitor' bug resolved
+- Decimal sign bug in MEME/Repast is fixed
+
+Release Notes MEME v1.0.80327 (Previous version: v1.0.71130)
+
+Features - MEME
+------------------------------------------------------------
+- Integrating MEME Parameter Sweep Tool & Monitor to the MEME
+- User Tool supporting (execute external programs from MEME)
+- Improving CSV importing facilities
+- Creating PNG images from chart descriptor XML files
+
+- Script Editor Assistant to support creating scripts to the batch version of a Repast model
+- Simulation waiting queue and progress time display on the monitor
+- Parameter Sweep Tool preferences (e.g. hostname, port etc.) saving/loading
+
+
+Features - Charting Package
+------------------------------------------------------------
+- Chart appearance user templates
+- Interval definition possibility in table colormaps & user defined shape maps
+
+Fixed bugs 
+------------------------------------------------------------
+- 'MEME Toolbar appears without titles under JRE1.6' bug resolved
+- 'Information panel of MEME doesn't refresh after deleting last result' bug resolved
+- View creation from hidden columns only bug fixed
+- 'Loading Wizard preferences is failed under Linux' bug fixed
+- 'The Parameter Sweep Tool always uses port 22 as SFTP port' bug fixed
+
+Release Notes MEME v1.0.71130 (Previous version: v1.0.70822)
+
+Features - MEME
+------------------------------------------------------------
+- MEME Parameter Sweep Tool 
+- MEME Monitor
+
+Fixed bugs 
+------------------------------------------------------------
+- View script saving bug resolved
+
+Release Notes MEME v1.0.70822 (Previous version: v1.0.70426)
+
+Features - MEME
+------------------------------------------------------------
+- Save/Load view table scripts
+- Modifiable column names in view tables
+- Context menus
+- Multiple selections in view lists
+- Copy view tables
+- View list filtering with regular expressions
+- Multiple Repast file import
+- Multiple CVS file import
+- Import settings memory, save and load
+- Multiple view/result CVS export
+- Multiple selections in View Creation Wizard Computations
+- DEL button for delete
+
+Features - Charting Package
+------------------------------------------------------------
+- Appearance settings for bar charts (grouped, cumulative, 100% cumulative)
+- Multiple data source select
+- Pajek file import (networks)
+- Neighboring matrix data source (networks)
+- Data source input for number of nodes (networks)
+- Context menus
+
+Fixed bugs
+------------------------------------------------------------
+- File dialogue slowness resolved
+- Maximum size of database used with the built-in in engine increased to 8GB
+- Repast import plug-in inconveniences resolved
+- Result and view columns automatically resize when program window is resized
+- VCW Computation page edit issues solved
+- Filtering exported chart xml files for non-used data
+- CP basic appearance became even plainer

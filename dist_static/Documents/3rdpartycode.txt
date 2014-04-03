@@ -1,0 +1,125 @@
+MEME 3rd Party Code
+
+1. javassist 3.4
+MPL and GPL dual license
+Shigeru Chiba
+http://www.csg.is.titech.ac.jp/~chiba/javassist/
+
+2. JSch
+BSD License
+JCraft
+http://www.jcraft.com/jsch/
+http://www.jcraft.com/jsch/LICENSE.txt
+
+3. Colt
+Copyright (c) 1999 CERN - European Organization for Nuclear Research.
+cern.colt, cern.jet, cern.clhep
+http://dsd.lbl.gov/~hoschek/colt/
+
+4. Repast 3
+BSD
+Copyright (c) 1999, Repast Organization for Architecture and Design (ROAD) All rights reserved.
+http://repast.sourceforge.net/
+
+5. Repast package uchicago.src
+Copyright (c) 1999, Trustees of the University of Chicago
+All rights reserved.
+http://repast.sourceforge.net/
+
+6. Repast package cern.jet.random
+Copyright (c) 1999 CERN - European Laboratory for Particle
+Physics.
+http://repast.sourceforge.net/
+
+7. Repast package Acme
+Copyright (C)1996,1998 by Jef Poskanzer <jef@acme.com>. All rights reserved.
+http://repast.sourceforge.net/
+
+8. Repast package ptolemy.plot
+Copyright (c) 1995-1999 The Regents of the University of California.
+All rights reserved.
+http://repast.sourceforge.net/
+
+9. Repast package com.go.trove
+The Tea Software License, Version 1.1
+Copyright (c) 2000 Walt Disney Internet Group. All rights reserved.
+http://repast.sourceforge.net/
+
+10. Repast package com.vividsolutions.jts
+LGPL
+Copyright (C) 2001 Vivid Solutions
+http://repast.sourceforge.net/
+
+11. JavaMail API 1.4
+Copyright (c) 2007 Sun Microsystems, Inc.
+http://72.5.124.55/products/javamail/
+
+12. ProActive 4.1.2
+LGPL
+INRIA
+http://proactive.inria.fr/
+
+13. JDesktop Integration Components (JDIC) 0.9.5
+LGPL
+https://jdic.dev.java.net/
+
+14. Java3d
+GPL with CLASSPATH exception
+http://java.sun.com/javase/technologies/desktop/java3d/
+
+15. FreeHEP
+LGPL
+http://www.freehep.org/
+http://www.gnu.org/licenses/lgpl.txt
+
+16. JFreeChart
+LGPL
+JFree software projects
+http://www.jfree.org/jfreechart/
+http://www.jfree.org/lgpl.php
+
+17. JCommon 
+LGPL
+JFree software projects
+http://www.jfree.org/jcommon/
+http://www.jfree.org/lgpl.php
+
+18. Substance 3.2
+kirillcool
+BSD License
+https://substance.dev.java.net/
+http://www.opensource.org/osi3.0/licenses/bsd-license.php
+
+19. HSQLDB
+Thomas Mueller and the Hypersonic SQL Group
+Copyright (c) 1995-2005 by the Hypersonic SQL Group.
+All rights reserved.
+http://www.hsqldb.org/web/hsqlLicense.html
+
+20. JGoodies Forms 1.0.7
+Karsten Lentzsch
+BSD License
+https://forms.dev.java.net/
+http://www.opensource.org/osi3.0/licenses/bsd-license.php
+
+21. BeanShell 2.0b4
+http://www.beanshell.org/
+LGPL and SPL
+http://www.beanshell.org/license.html
+
+22. Jakarta Commons Logging (JCL) 1.1
+The Apache Software Foundation
+Apache License
+http://jakarta.apache.org/commons/logging/
+http://jakarta.apache.org/commons/license.html
+
+23. Bean Scripting Framework (BSF) 2.4
+The Apache Software Foundation
+Apache License
+http://jakarta.apache.org/bsf/
+http://jakarta.apache.org/commons/license.html
+
+24. AspectJ 1.7
+Copyright © 2013 The Eclipse Foundation. All Rights Reserved
+Eclipse Public License 1.0
+http://eclipse.org/legal/epl-v10.html 

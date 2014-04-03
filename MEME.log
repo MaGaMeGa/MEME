@@ -1,0 +1,16 @@
+2014-04-03 11:54:13.771	Log file created
+11:54:14.383	Listening for application instances on socket 44331
+11:54:14.464	Error reading plugin file RepastImportPlugin.jar: class //ai.aitia.meme.repastimport.EMILImportPlugin is not found
+11:54:15.105	Warning: class //ai.aitia.meme.paramsweep.platform.simphony.SimphonyPlatform is not found
+11:54:15.148	user.dir=F:\Dokumentumok\REPOS\SVN\recfromcode
+11:54:15.148	user.dir=f:\Dokumentumok\REPOS\SVN\recfromcode
+11:54:15.149	vcloud-connection.cfg=f:\Dokumentumok\REPOS\SVN\recfromcode\vcloud-connection.cfg
+11:54:15.726	Connection succeeded: jdbc:hsqldb:file:db/meme
+11:54:15.741	Warning: the database server provides only limited support for transactions
+11:54:18.543	Error reading plugin file RepastImportPlugin.jar: class //ai.aitia.meme.repastimport.EMILImportPlugin is not found
+11:54:21.564	user.dir=F:\Dokumentumok\REPOS\SVN\recfromcode
+11:54:21.565	user.dir=f:\Dokumentumok\REPOS\SVN\recfromcode
+11:54:21.565	vcloud-connection.cfg=f:\Dokumentumok\REPOS\SVN\recfromcode\vcloud-connection.cfg
+11:54:34.265	Shutting down database engine..
+11:54:34.480	done
+11:54:34.480	Connection closed

@@ -1,0 +1,33 @@
+Requirements for supporting a simulation platform by MEME Parameter Sweep Tool
+
+* Model
+	- What corresponds to the RepastJ's model concept? (In RepastJ the model is a Java class that implements a well-defined interface. We can use 
+	  this interface to answer the most of the following questions). More specific what is (are) the file(s) which we can use to inspect the model.
+
+* Parameters
+	- How can we identify the parameters?
+	- How can we define new parameters (how can we change a non-parameter variable to a parameter?)
+	- How can we investigate the default value of the parameters?
+	- What is the format of the parameter file?
+
+* Data Collection
+	- How can we define data collectors?
+	- How can we time the data recording and data writing (to the output file)?
+	- Where and how can we define scripts (user defined statistics and methods)? Now, we use the simplest solution: we derived from the model
+	 class and define scripts as methods of the subclass.
+	- What is the format of the result file?
+
+* Stopping simulation
+	- How can we time the stopping event of the simulation?
+
+* Run/tick
+	- Currently the MEME uses these concepts inherited from the RepastJ. What abstractions correspond to these concepts in the examined simulation
+	  platform?
+
+* Running simulation (on localhost)
+	- How can we run a simulation in batch mode from an other program (from a launcher)?
+	- How will the launcher program know about the changing of run/tick values and/or the end of the simulation?
+	- How can we stop one particular run and/or the whole batch of the simulation runs from the launcher (by clicking a button)? (That second is more important.)
+
+* Running simulation (distributed)
+	- ???

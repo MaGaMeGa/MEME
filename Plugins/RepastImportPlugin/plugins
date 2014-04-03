@@ -1,0 +1,6 @@
+ai.aitia.meme.repastimport.RepastImportPlugin
+ai.aitia.meme.repastimport.SimphonyImportPlugin
+ai.aitia.meme.repastimport.Simphony2ImportPlugin
+ai.aitia.meme.repastimport.CustomJavaImportPlugin
+ai.aitia.meme.repastimport.MasonImportPlugin
+//ai.aitia.meme.repastimport.EMILImportPlugin

@@ -1,0 +1,22 @@
+<project name="ParamSweep" default="genjar" basedir=".">
+	
+	<property name="dist.home"  value="${basedir}"  />
+	<property name="src.home"   value="${basedir}/src"   />
+	<property name="build.home" value="${basedir}/bin" />
+	
+	<path id="compile.classpath">
+		<fileset dir="lib">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+	
+	<target name="genjar">
+		<jar destfile="${dist.home}/meme-paramsweep.jar" basedir="./src" excludes="**/*">
+			<fileset dir="${build.home}">
+				<include name="ai/aitia/meme/paramsweep/colt/*"/>
+				<include name="ai/aitia/meme/paramsweep/platform/repast/impl/IGeneratedModel.class"/>
+				<include name="uchicago/**/*"/>
+			</fileset>
+		</jar>
+	</target>
+</project>
