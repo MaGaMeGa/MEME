@@ -1,0 +1,15 @@
+/AveragingCrossover.class
+/BestSelection.class
+/Chromosome.class
+/DefaultCrossing.class
+/DefaultMutation.class
+/DefaultPairing.class
+/DefaultSelection.class
+/FitnessProportionateSelection.class
+/GAOperatorManager.class
+/Gene.class
+/GeneInfo.class
+/IGAOperator.class
+/OnePointCrossover.class
+/TournamentSelection.class
+/UniformCrossover.class
