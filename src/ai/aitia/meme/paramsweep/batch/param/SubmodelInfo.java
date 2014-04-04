@@ -16,6 +16,7 @@
  ******************************************************************************/
 package ai.aitia.meme.paramsweep.batch.param;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SubmodelInfo<T> extends ParameterInfo<T> implements ISubmodelParameterInfo {
@@ -25,8 +26,8 @@ public class SubmodelInfo<T> extends ParameterInfo<T> implements ISubmodelParame
 	
 	private static final long serialVersionUID = -6014247442037116214L;
 	
-	private List<Class<? extends T>> possibleTypes;
-	private Class<? extends T> actualType;
+	private List<Class<?>> possibleTypes;
+	private Class<?> actualType;
 	private SubmodelInfo<?> parent;
 
 	//====================================================================================================
@@ -34,7 +35,7 @@ public class SubmodelInfo<T> extends ParameterInfo<T> implements ISubmodelParame
 	
 	//----------------------------------------------------------------------------------------------------
 	/** Creates an instance of type constant. */
-	public SubmodelInfo(final String name, final String description, final T defaultValue, final List<Class<? extends T>> possibleTypes) {
+	public SubmodelInfo(final String name, final String description, final T defaultValue, final List<Class<?>> possibleTypes) {
 		super(name,description,defaultValue);
 		setValue(defaultValue);
 		this.possibleTypes = possibleTypes;
@@ -42,7 +43,7 @@ public class SubmodelInfo<T> extends ParameterInfo<T> implements ISubmodelParame
 	
 	//----------------------------------------------------------------------------------------------------
 	public SubmodelInfo(final String name, final String description, final T defaultValue, final boolean originalConstant,
-						final List<Class<? extends T>> possibleTypes) {
+						final List<Class<?>> possibleTypes) {
 		super(name,description,defaultValue,originalConstant);
 		this.possibleTypes = possibleTypes;
 	}
@@ -54,12 +55,20 @@ public class SubmodelInfo<T> extends ParameterInfo<T> implements ISubmodelParame
 	}
 
 	//----------------------------------------------------------------------------------------------------
-	public List<Class<? extends T>> getPossibleTypes() { return possibleTypes; }
-	public Class<? extends T> getActualType() { return actualType; }
+	public List<Class<?>> getPossibleTypes() { return possibleTypes; }
+	public Class<?> getActualType() { return actualType; }
 	public SubmodelInfo<?> getParentInfo() { return parent; }
 
 	//----------------------------------------------------------------------------------------------------
-	public void setPossibleTypes(final List<Class<? extends T>> possibleTypes) { this.possibleTypes = possibleTypes; }
+	public void setPossibleTypes(final List<Class<?>> possibleTypes) { this.possibleTypes = possibleTypes; }
 	public void setActualType(final Class<? extends T> actualType) { this.actualType = actualType; }
 	public void setParent(final SubmodelInfo<?> parent) { this.parent = parent; }
+	
+	//----------------------------------------------------------------------------------------------------
+	public void setValue(T o) {
+		valueType = ValueType.CONSTANT;
+		values = new ArrayList<T>();
+		values.add(o);
+		originalConstant = true;
+	}
 }

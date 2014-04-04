@@ -291,7 +291,8 @@
          ================================= -->
 	<target name="mason-recording-jar" depends="" description="creates a small jar to be included in Mason projects">
 		<property name="paramsweepdir" value="ai/aitia/meme/paramsweep"/>
-		<jar destfile="${output}/mason-recording.jar" >
+		<delete file="${output}/mason-recording.jar" />
+		<jar destfile="${output}/mason-recording.jar" duplicate="preserve">
 			<fileset dir="${bin}">
 				<or>
 					<filename name="${paramsweepdir}/**"/>
@@ -311,9 +312,10 @@
 					<filename name="ai/aitia/meme/paramsweep/platform/mason/recording/RecordingHelper*.class"/>
 				</or>
 			</fileset>
-			<zipfileset src="${plugins}/coltPlugin.jar" includes="ai/**"/>
+			<zipfileset src="${plugins}/coltPlugin.jar" includes="ai/**" />
 			<zipfileset src="${libs}/dps_common.jar" />
-			<zipfileset src="${libs}/jsch-0.1.33.jar"/>
+			<zipfileset src="${libs}/jsch-0.1.33.jar" />
+			<zipfileset src="${libs}/fables.paramsweep.runtime.jar" />
         </jar>
 	</target>
 

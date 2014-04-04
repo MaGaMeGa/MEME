@@ -25,26 +25,30 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javassist.CannotCompileException;
 import javassist.CtClass;
 import sim.engine.SimState;
 import sim.util.Interval;
 import ai.aitia.meme.MEMEApp;
-import ai.aitia.meme.paramsweep.batch.IModelInformation;
+import ai.aitia.meme.paramsweep.batch.IHierarchicalModelInformation;
 import ai.aitia.meme.paramsweep.batch.output.NonRecordableFunctionInfo;
 import ai.aitia.meme.paramsweep.batch.output.NonRecordableInfo;
 import ai.aitia.meme.paramsweep.batch.output.RecordableInfo;
 import ai.aitia.meme.paramsweep.batch.output.RecorderInfo;
+import ai.aitia.meme.paramsweep.batch.param.ISubmodelParameterInfo;
 import ai.aitia.meme.paramsweep.batch.param.ParameterInfo;
+import ai.aitia.meme.paramsweep.batch.param.SubmodelInfo;
 import ai.aitia.meme.paramsweep.platform.IPSWInformationProvider;
 import ai.aitia.meme.paramsweep.platform.mason.info.MasonChooserParameterInfo;
 import ai.aitia.meme.paramsweep.platform.mason.info.MasonIntervalParameterInfo;
+import ai.aitia.meme.paramsweep.platform.mason.recording.annotation.Submodel;
 import ai.aitia.meme.paramsweep.utils.Util;
-import ai.aitia.meme.viewmanager.Page_Sorting.UpdateMode;
 
-public class MasonModelInformation implements IModelInformation {
+public class MasonModelInformation implements IHierarchicalModelInformation {
 	//====================================================================================================
 	// members
 	
@@ -60,6 +64,8 @@ public class MasonModelInformation implements IModelInformation {
 	private List<RecordableInfo> recordables = null;
 	private List<NonRecordableInfo> nonRecordables = null;
 	private Object model;
+	
+	private Map<Class<?>,List<ISubmodelParameterInfo>> submodelCache = new HashMap<Class<?>,List<ISubmodelParameterInfo>>();
 	
 	//====================================================================================================
 	// methods
@@ -98,6 +104,20 @@ public class MasonModelInformation implements IModelInformation {
 		if (nonRecordables == null) 
 			initializeNonRecordableList();
 		return nonRecordables;
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	public List<ISubmodelParameterInfo> getSubmodelParameters(final SubmodelInfo<?> submodel) throws ModelInformationException {
+		if (submodel.getActualType() == null)
+			throw new ModelInformationException("No actual type is selected for parameter " + submodel.getName());
+		
+		List<ISubmodelParameterInfo> resultList = submodelCache.get(submodel.getActualType());
+		if (resultList == null) {
+			resultList = initializeSubmodelParameters(submodel.getActualType());
+			submodelCache.put(submodel.getActualType(),resultList);
+		}
+		
+		return resultList;
 	}
 	
 	//====================================================================================================
@@ -270,9 +290,9 @@ public class MasonModelInformation implements IModelInformation {
 					try {
 						String description = null;
 						// if there is a description method for the parameter, call it to retrieve the description of the parameter
-						Method descritpionMethod = searchDescritpion(allMethods, allMethods[i].getName().substring(3));
-						if (descritpionMethod != null){
-							description = (String) descritpionMethod.invoke(model);
+						Method descriptionMethod = searchDescription(allMethods, allMethods[i].getName().substring(3));
+						if (descriptionMethod != null){
+							description = (String) descriptionMethod.invoke(model);
 						}
 						
 						
@@ -301,7 +321,39 @@ public class MasonModelInformation implements IModelInformation {
 				}
 			}
 		}
-		Collections.sort(parameters);
+		
+		// find submodels
+		final Field[] fields = getFields(javaClass);
+		for (final Field field : fields) {
+			final Map<String,Object> submodelInformations = getSubmodelInformations(field);
+			if (submodelInformations != null) {
+				final String capitalizedFieldName = Util.capitalize(field.getName());
+				
+				final Method getter = searchGetter(allMethods,capitalizedFieldName,field.getType());
+				if (getter != null) {
+					final Method setter = searchSetter(allMethods,capitalizedFieldName,field.getType());
+					if (setter != null) {
+						
+						String description = null;
+						// if there is a description method for the parameter, call it to retrieve the description of the parameter
+						Method descriptionMethod = searchDescription(allMethods,capitalizedFieldName);
+						if (descriptionMethod != null){
+							try {
+								description = (String) descriptionMethod.invoke(model);
+								
+							} catch (IllegalAccessException e) {
+								return "The method " + Util.getLocalizedMessage(e) + " is not visible.";
+							} catch (InvocationTargetException e) {
+								return e.getClass().getSimpleName() + " occurs during the initialization: " + Util.getLocalizedMessage(e);
+							}
+						}
+						
+						parameters.add(createSubmodelParameterInfo(capitalizedFieldName,field.getType(),description,submodelInformations));
+					}
+				}
+			}
+		}
+		
 		//getting the 'seed' as parameter:
 		try {
 			Method seedGetter = javaClass.getMethod("seed", null);
@@ -319,6 +371,33 @@ public class MasonModelInformation implements IModelInformation {
 			MEMEApp.logException(e);
 			return e.getClass().getSimpleName() + " occurs during the initialization: " + Util.getLocalizedMessage(e);
 		}
+		Collections.sort(parameters);
+		
+		return null;
+	}
+	
+	private Map<String,Object> getSubmodelInformations(final Field field) {
+		final Submodel annotation = field.getAnnotation(Submodel.class);
+		if (annotation == null) return null;
+		
+		final Map<String,Object> result = new HashMap<String,Object>();
+		
+		final Class<?>[] types = annotation.value();
+		final List<Class<?>> validTypes = new ArrayList<Class<?>>(types.length);
+		for (final Class<?> type : types) {
+			if (field.getType().isAssignableFrom(type))
+				validTypes.add(type);
+		}
+		result.put("types",validTypes);
+		
+		//TODO: mining other informations
+		
+		return result;
+	}
+
+	//----------------------------------------------------------------------------------------------------
+	private List<ISubmodelParameterInfo> initializeSubmodelParameters(final Class<?> actualType) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 	
@@ -367,8 +446,18 @@ public class MasonModelInformation implements IModelInformation {
 		}
 		return null;
 	}
+	
+	private Method searchSetter(final Method[] methodList, final String setterNameEnding, final Class parameterType) {
+		for (final Method method : methodList) {
+			if (Void.TYPE.equals(method.getReturnType()) && ("set" + setterNameEnding).equals(method.getName()) &&
+				method.getParameterTypes().length == 1 && method.getParameterTypes()[0].equals(parameterType))
+				return method;
+		}
+		
+		return null;
+	}
 
-	private Method searchDescritpion(Method[] methodList, String getterNameEnding) {
+	private Method searchDescription(Method[] methodList, String getterNameEnding) {
 		for (int i = 0; i < methodList.length; i++) {
 			if (	(
 					methodList[i].getName().equals("des"+getterNameEnding)
@@ -452,6 +541,14 @@ public class MasonModelInformation implements IModelInformation {
 		}
 		throw new IllegalArgumentException("invalid parameter (" + name + ") type (" + c + ")");
 	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private SubmodelInfo<?> createSubmodelParameterInfo(final String name, final Class<?> type, final String description, 
+														final Map<String,Object> submodelInformations) {
+		
+		@SuppressWarnings("unchecked") final List<Class<?>> types = (List<Class<?>>) submodelInformations.get("types"); 
+		return new SubmodelInfo<Object>(name,description,null,types);
+	}
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -520,5 +617,29 @@ public class MasonModelInformation implements IModelInformation {
 		} catch (InvocationTargetException e) {
 			throw new ModelInformationException(e);
 		}
+	}
+	
+	//------------------------------------------------------------------------------
+	/**
+	 * Returns all fields of <code>clazz</code> that can be access from an
+	 * derived class.
+	 */
+	private Field[] getFields(Class<?> clazz) {
+		List<Field> result = new ArrayList<Field>();
+		getFieldsImpl(clazz,result);
+		return result.toArray(new Field[0]);
+	}
+
+	//----------------------------------------------------------------------------------------------------
+	private void getFieldsImpl(Class<?> clazz, List<Field> result) {
+		Field[] fields = clazz.getDeclaredFields();
+		for (Field f : fields) {
+			if (!f.isSynthetic()) {
+				result.add(f);
+			}
+		}
+		Class<?> parent = clazz.getSuperclass();
+		if (parent != null)
+			getFieldsImpl(parent,result);
 	}
 }

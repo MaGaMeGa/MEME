@@ -11,5 +11,5 @@ public interface IHierarchicalModelInformation extends IModelInformation {
 	// methods
 	
 	//----------------------------------------------------------------------------------------------------
-	public List<ISubmodelParameterInfo> getSubmodelParameters(final SubmodelInfo<?> submodel);
+	public List<ISubmodelParameterInfo> getSubmodelParameters(final SubmodelInfo<?> submodel) throws ModelInformationException;
 }
