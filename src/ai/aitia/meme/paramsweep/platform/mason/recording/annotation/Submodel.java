@@ -7,7 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * The {@link SubModel} annotation should decorate members of a Simulation class (a model class). 
+ * The {@link Submodel} annotation should decorate members of a Simulation class (a model class). 
  * 
  * @author Rajmund Bocsi
  *
@@ -15,9 +15,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
 @Inherited
-public @interface SubModel {
+public @interface Submodel {
 	/**
-	 * A list of classes that can be the dynamic type of the member. This list is the domain of the {@link SubModel} parameter. If the list is empty then
+	 * A list of classes that can be the dynamic type of the member. This list is the domain of the {@link Submodel} parameter. If the list is empty then
 	 * the framework will try to find all descendant classes (or implementors if the field static type is an interface).    
 	 */
 	Class<?>[] value() default {};
