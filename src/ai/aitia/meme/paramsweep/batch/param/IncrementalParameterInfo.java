@@ -31,7 +31,7 @@ import ai.aitia.meme.paramsweep.util.Primitive;
  *  - Float<br>
  *  - Double<br>
  */
-final public class IncrementalParameterInfo<T extends Number> extends AbstractParameterInfo<T> {
+public class IncrementalParameterInfo<T extends Number> extends AbstractParameterInfo<T> {
 	
 	//====================================================================================================
 	// members

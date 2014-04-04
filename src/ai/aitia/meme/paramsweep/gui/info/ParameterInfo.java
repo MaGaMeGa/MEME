@@ -16,13 +16,12 @@
  ******************************************************************************/
 package ai.aitia.meme.paramsweep.gui.info;
 
-import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-import ai.aitia.meme.paramsweep.internal.platform.PlatformSettings;
 import ai.aitia.meme.paramsweep.internal.platform.IGUIController.RunOption;
+import ai.aitia.meme.paramsweep.internal.platform.PlatformSettings;
 
 /** This class represents the parameters of the model. */
 public class ParameterInfo extends MemberInfo implements Cloneable {
