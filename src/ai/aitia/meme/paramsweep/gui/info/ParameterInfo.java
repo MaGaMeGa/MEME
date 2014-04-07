@@ -247,9 +247,13 @@ public class ParameterInfo extends MemberInfo implements Cloneable {
 		return -1;
 	}
 	
+	//----------------------------------------------------------------------------------------------------
 	public String getDescription(){
 		return description;
 	}
+	
+	//----------------------------------------------------------------------------------------------------
+	public boolean isSubmodelParameter() { return false; }
 	
 	//===============================================================================
 	// private methods

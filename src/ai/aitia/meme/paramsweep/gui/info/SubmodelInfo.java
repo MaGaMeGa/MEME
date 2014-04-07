@@ -3,7 +3,7 @@ package ai.aitia.meme.paramsweep.gui.info;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SubmodelInfo extends ParameterInfo {
+public class SubmodelInfo extends ParameterInfo implements ISubmodelGUIInfo {
 	
 	//====================================================================================================
 	// members
@@ -58,4 +58,7 @@ public class SubmodelInfo extends ParameterInfo {
 		
 		return clone;
 	}
+	
+	//----------------------------------------------------------------------------------------------------
+	@Override public boolean isSubmodelParameter() { return parent != null; }
 }

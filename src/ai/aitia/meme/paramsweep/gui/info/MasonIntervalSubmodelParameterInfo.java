@@ -1,6 +1,6 @@
 package ai.aitia.meme.paramsweep.gui.info;
 
-public class MasonIntervalSubmodelParameterInfo extends MasonIntervalParameterInfo {
+public class MasonIntervalSubmodelParameterInfo extends MasonIntervalParameterInfo implements ISubmodelGUIInfo {
 
 	//====================================================================================================
 	// members
@@ -34,4 +34,7 @@ public class MasonIntervalSubmodelParameterInfo extends MasonIntervalParameterIn
 		return new MasonIntervalSubmodelParameterInfo(this.name,this.description,this.type,this.javaType,this.intervalMin,this.intervalMax,this.isDoubleInterval,
 													  this.parent); 
 	}
+	
+	//----------------------------------------------------------------------------------------------------
+	@Override public boolean isSubmodelParameter() { return true; }
 }

@@ -48,6 +48,7 @@ import ai.aitia.meme.paramsweep.gui.info.ArgsFunctionMemberInfo;
 import ai.aitia.meme.paramsweep.gui.info.ChooserParameterInfo;
 import ai.aitia.meme.paramsweep.gui.info.ExtendedOperatorGeneratedMemberInfo;
 import ai.aitia.meme.paramsweep.gui.info.GeneratedMemberInfo;
+import ai.aitia.meme.paramsweep.gui.info.ISubmodelGUIInfo;
 import ai.aitia.meme.paramsweep.gui.info.MemberInfo;
 import ai.aitia.meme.paramsweep.gui.info.MultiColumnOperatorGeneratedMemberInfo;
 import ai.aitia.meme.paramsweep.gui.info.NLBreedMemberInfo;
@@ -125,12 +126,15 @@ public class InfoConverter {
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static AbstractParameterInfo<?> parameterInfo2ParameterInfo(ParameterInfo info) {
 		AbstractParameterInfo<?> convertedInfo = null;
 		switch (getTypeNo(info.getType())) {
 		case BOOLEAN_TYPE : // Boolean
-							convertedInfo =	new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Boolean>(info.getName(),"",false);
+							convertedInfo =	info.isSubmodelParameter() ?
+											  new SubmodelParameterInfo<Boolean>(info.getName(),"",false,
+													  							 submodelInfo2submodelInfo(((ISubmodelGUIInfo)info).getParent()))
+											: new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Boolean>(info.getName(),"",false);
 							if (info.getDefinitionType() == ParameterInfo.CONST_DEF) 
 								((ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Boolean>)convertedInfo).setValue((Boolean)info.getValue());
 							else if (info.getDefinitionType() == ParameterInfo.LIST_DEF) {
@@ -142,9 +146,17 @@ public class InfoConverter {
 							}
 							break;
 		case INTEGER_TYPE : // Integer
-							convertedInfo =	info.getDefinitionType() == ParameterInfo.INCR_DEF ? 
-											new IncrementalParameterInfo<Integer>(info.getName(),"",0) :
-											new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Integer>(info.getName(),"",0);
+							if (info.isSubmodelParameter()) {
+								convertedInfo = info.getDefinitionType() == ParameterInfo.INCR_DEF ?
+										new SubmodelIncrementalParameterInfo<Integer>(info.getName(),"",0,
+																					 submodelInfo2submodelInfo(((ISubmodelGUIInfo)info).getParent()))
+									 :  new SubmodelParameterInfo<Integer>(info.getName(),"",0,
+											 							   submodelInfo2submodelInfo(((ISubmodelGUIInfo)info).getParent()));
+							} else {
+								convertedInfo =	info.getDefinitionType() == ParameterInfo.INCR_DEF ? 
+										new IncrementalParameterInfo<Integer>(info.getName(),"",0) :
+										new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Integer>(info.getName(),"",0);
+							}
 							if (info.getDefinitionType() == ParameterInfo.CONST_DEF) 
 								((ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Integer>)convertedInfo).setValue((Integer)info.getValue());
 							else if (info.getDefinitionType() == ParameterInfo.LIST_DEF) {
@@ -158,9 +170,17 @@ public class InfoConverter {
 																							 (Integer)info.getEndValue(),(Integer)info.getStep());
 							break;
 		case DOUBLE_TYPE : // Double
-						   convertedInfo = info.getDefinitionType() == ParameterInfo.INCR_DEF ? 
-								   		   new IncrementalParameterInfo<Double>(info.getName(),"",0.0) :
-								   		   new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Double>(info.getName(),"",0.0);
+						   if (info.isSubmodelParameter()) {
+							   convertedInfo = info.getDefinitionType() == ParameterInfo.INCR_DEF ?
+									   new SubmodelIncrementalParameterInfo<Double>(info.getName(),"",0.0,
+											   										submodelInfo2submodelInfo(((ISubmodelGUIInfo)info).getParent())) 
+									 : new SubmodelParameterInfo<Double>(info.getName(),"",0.0,
+											 							 submodelInfo2submodelInfo(((ISubmodelGUIInfo)info).getParent()));
+						   } else {
+							   convertedInfo = info.getDefinitionType() == ParameterInfo.INCR_DEF ? 
+									   new IncrementalParameterInfo<Double>(info.getName(),"",0.0) :
+									   new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Double>(info.getName(),"",0.0);
+						   }
 						   if (info.getDefinitionType() == ParameterInfo.CONST_DEF) 
 							   ((ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Double>)convertedInfo).setValue((Double)info.getValue());
 						   else if (info.getDefinitionType() == ParameterInfo.LIST_DEF) {
@@ -174,9 +194,17 @@ public class InfoConverter {
 													  									   (Double)info.getStep());
 						   break;
 		case FLOAT_TYPE : // Float
-						  convertedInfo = info.getDefinitionType() == ParameterInfo.INCR_DEF ?
-								  		  new IncrementalParameterInfo<Float>(info.getName(),"",0f) :
-								  		  new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Float>(info.getName(),"",0f);
+						  if (info.isSubmodelParameter()) {
+							 convertedInfo = info.getDefinitionType() == ParameterInfo.INCR_DEF ?
+									 new SubmodelIncrementalParameterInfo<Float>(info.getName(),"",0f,
+											 									  submodelInfo2submodelInfo(((ISubmodelGUIInfo)info).getParent()))
+							       : new SubmodelParameterInfo<Float>(info.getName(),"",0f,
+							    		   							  submodelInfo2submodelInfo(((ISubmodelGUIInfo)info).getParent()));
+						  } else {
+							  convertedInfo = info.getDefinitionType() == ParameterInfo.INCR_DEF ?
+									  new IncrementalParameterInfo<Float>(info.getName(),"",0f) :
+									  new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Float>(info.getName(),"",0f);
+						  }
 						  if (info.getDefinitionType() == ParameterInfo.CONST_DEF) 
 							  ((ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Float>)convertedInfo).setValue((Float)info.getValue());
 						  else if (info.getDefinitionType() == ParameterInfo.LIST_DEF) {
@@ -190,9 +218,18 @@ public class InfoConverter {
 													  									 (Float)info.getStep());
 						  break;
 		case LONG_TYPE : // Long
-						 convertedInfo = info.getDefinitionType() == ParameterInfo.INCR_DEF ?
-								 		 new IncrementalParameterInfo<Long>(info.getName(),"",0l) :
-								 		 new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Long>(info.getName(),"",0l);
+						 if (info.isSubmodelParameter()) {
+							 convertedInfo = info.getDefinitionType() == ParameterInfo.INCR_DEF ?
+									 new SubmodelIncrementalParameterInfo<Long>(info.getName(),"",0L,
+											 									submodelInfo2submodelInfo(((ISubmodelGUIInfo)info).getParent()))
+								   : new SubmodelParameterInfo<Long>(info.getName(),"",0L,
+										   							 submodelInfo2submodelInfo(((ISubmodelGUIInfo)info).getParent()));
+						 } else {
+							 convertedInfo = info.getDefinitionType() == ParameterInfo.INCR_DEF ?
+									 new IncrementalParameterInfo<Long>(info.getName(),"",0L) :
+									 new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Long>(info.getName(),"",0L);
+							 
+						 }
 						 if (info.getDefinitionType() == ParameterInfo.CONST_DEF)
 							 ((ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Long>)convertedInfo).setValue((Long)info.getValue());
 						 else if (info.getDefinitionType() == ParameterInfo.LIST_DEF ){
@@ -206,9 +243,17 @@ public class InfoConverter {
 													  								   (Long)info.getStep());
 						 break;
 		case BYTE_TYPE : // Byte
-						 convertedInfo = info.getDefinitionType() == ParameterInfo.INCR_DEF ?
-								 		 new IncrementalParameterInfo<Byte>(info.getName(),"",new Byte("0")) :
-								 		 new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Byte>(info.getName(),"",new Byte("0"));
+						 if (info.isSubmodelParameter()) {
+							 convertedInfo = info.getDefinitionType() == ParameterInfo.INCR_DEF ?
+									 new SubmodelIncrementalParameterInfo<Byte>(info.getName(),"",new Byte("0"),
+											 									submodelInfo2submodelInfo(((ISubmodelGUIInfo)info).getParent()))
+								   : new SubmodelParameterInfo<Byte>(info.getName(),"",new Byte("0"),
+										   							 submodelInfo2submodelInfo(((ISubmodelGUIInfo)info).getParent()));
+						 } else {
+							 convertedInfo = info.getDefinitionType() == ParameterInfo.INCR_DEF ?
+									 new IncrementalParameterInfo<Byte>(info.getName(),"",new Byte("0")) :
+									 new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Byte>(info.getName(),"",new Byte("0"));
+						 }
 						 if (info.getDefinitionType() == ParameterInfo.CONST_DEF) 
 							 ((ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Byte>)convertedInfo).setValue((Byte)info.getValue());
 						 else if (info.getDefinitionType() == ParameterInfo.LIST_DEF) {
@@ -222,9 +267,17 @@ public class InfoConverter {
 													  								   (Byte)info.getStep());
 						 break;
 		case SHORT_TYPE : // Short
-						 convertedInfo = info.getDefinitionType() == ParameterInfo.INCR_DEF ?
-								 	   new IncrementalParameterInfo<Short>(info.getName(),"",(short)0) :
-								 	   new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Short>(info.getName(),"",(short)0);
+						 if (info.isSubmodelParameter()) {
+							 convertedInfo = info.getDefinitionType() == ParameterInfo.INCR_DEF ?
+									 new SubmodelIncrementalParameterInfo<Short>(info.getName(),"",(short)0,
+											 									 submodelInfo2submodelInfo(((ISubmodelGUIInfo)info).getParent()))
+								   : new SubmodelParameterInfo<Short>(info.getName(),"",(short)0,
+										   							  submodelInfo2submodelInfo(((ISubmodelGUIInfo)info).getParent()));
+						 } else {
+							 convertedInfo = info.getDefinitionType() == ParameterInfo.INCR_DEF ?
+									 new IncrementalParameterInfo<Short>(info.getName(),"",(short)0) :
+									 new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Short>(info.getName(),"",(short)0);
+						 }
 						 if (info.getDefinitionType() == ParameterInfo.CONST_DEF) 
 							 ((ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Short>)convertedInfo).setValue((Short)info.getValue());
 						 else if (info.getDefinitionType() == ParameterInfo.LIST_DEF) {
@@ -238,7 +291,9 @@ public class InfoConverter {
 													  									(Short)info.getStep());
 						 break;
 		case STRING_TYPE : // String
-						   convertedInfo =	new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<String>(info.getName(),"","");
+						  convertedInfo = info.isSubmodelParameter() ?
+								  	new SubmodelParameterInfo<String>(info.getName(),"","",submodelInfo2submodelInfo(((ISubmodelGUIInfo)info).getParent()))
+								  : new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<String>(info.getName(),"","");
 						   if (info.getDefinitionType() == ParameterInfo.CONST_DEF)
 							   ((ai.aitia.meme.paramsweep.batch.param.ParameterInfo<String>)convertedInfo).setValue((String)info.getValue());
 						   else if (info.getDefinitionType() == ParameterInfo.LIST_DEF) {
@@ -250,17 +305,19 @@ public class InfoConverter {
 						   }
 						   break;
 		case FILE_TYPE: // File
-			   convertedInfo =	new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<File>(info.getName(),"", new File(""));
-			   if (info.getDefinitionType() == ParameterInfo.CONST_DEF)
-				   ((ai.aitia.meme.paramsweep.batch.param.ParameterInfo<File>)convertedInfo).setValue((File)info.getValue());
-			   else if (info.getDefinitionType() == ParameterInfo.LIST_DEF) {
-				   ArrayList<File> values = new ArrayList<File>();
-				   List<Object> toConvert = info.getValues();
-				   for (int i = 0;i < toConvert.size();++i)
-					   values.add((File)toConvert.get(i));
-				   ((ai.aitia.meme.paramsweep.batch.param.ParameterInfo<File>)convertedInfo).setValues(values);
-			   }
-			   break;
+					    convertedInfo = info.isSubmodelParameter() ?
+					    		  new SubmodelParameterInfo<File>(info.getName(),"",new File(""),submodelInfo2submodelInfo(((ISubmodelGUIInfo)info).getParent()))
+					    		: new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<File>(info.getName(),"", new File(""));
+					   if (info.getDefinitionType() == ParameterInfo.CONST_DEF)
+						   ((ai.aitia.meme.paramsweep.batch.param.ParameterInfo<File>)convertedInfo).setValue((File)info.getValue());
+					   else if (info.getDefinitionType() == ParameterInfo.LIST_DEF) {
+						   ArrayList<File> values = new ArrayList<File>();
+						   List<Object> toConvert = info.getValues();
+						   for (int i = 0;i < toConvert.size();++i)
+							   values.add((File)toConvert.get(i));
+						   ((ai.aitia.meme.paramsweep.batch.param.ParameterInfo<File>)convertedInfo).setValues(values);
+					   }
+					   break;
 		default: 
 			if (Enum.class.isAssignableFrom(info.getJavaType())){ // Enum type
 				 convertedInfo = new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Enum<?>>(info.getName(),"",(Enum<?>)info.getValue());
@@ -271,6 +328,8 @@ public class InfoConverter {
 						 values.add((Enum<?>)toConvert.get(i));
 					 ((ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Enum<?>>)convertedInfo).setValues(values);
 				 }
+			} else if (info instanceof ai.aitia.meme.paramsweep.gui.info.SubmodelInfo) {
+				convertedInfo = submodelInfo2submodelInfo((ai.aitia.meme.paramsweep.gui.info.SubmodelInfo)info); 
 			} else {
 				convertedInfo = info.getDefinitionType() == ParameterInfo.INCR_DEF ? new IncrementalParameterInfo(info.getName(), "", 0)
 				: new ai.aitia.meme.paramsweep.batch.param.ParameterInfo(info.getName(), "", 0);
@@ -279,10 +338,9 @@ public class InfoConverter {
 		convertedInfo.setRunNumber(info.getRuns());
 		return convertedInfo;
 	}
-	
+
 	//----------------------------------------------------------------------------------------------------
-	@SuppressWarnings("unchecked")
-	public static ParameterInfo parameterInfo2ParameterInfo(final ai.aitia.meme.paramsweep.batch.param.AbstractParameterInfo info, 
+	public static ParameterInfo parameterInfo2ParameterInfo(@SuppressWarnings("rawtypes") final ai.aitia.meme.paramsweep.batch.param.AbstractParameterInfo info, 
 															final PlatformType platformType) {
 		switch (platformType) {
 		case REPAST		:
@@ -299,8 +357,7 @@ public class InfoConverter {
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	@SuppressWarnings("unchecked")
-	public static ParameterInfo parameterInfo2ParameterInfo(final ai.aitia.meme.paramsweep.batch.param.AbstractParameterInfo info) {
+	public static ParameterInfo parameterInfo2ParameterInfo(@SuppressWarnings("rawtypes") final ai.aitia.meme.paramsweep.batch.param.AbstractParameterInfo info) {
 		return parameterInfo2ParameterInfo(info,PlatformSettings.getPlatformType());
 	}
 	
@@ -517,8 +574,7 @@ public class InfoConverter {
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	@SuppressWarnings("unchecked")
-	public static ParameterInfo defaultParameterInfo2ParameterInfo(ai.aitia.meme.paramsweep.batch.param.AbstractParameterInfo info) {
+	public static ParameterInfo defaultParameterInfo2ParameterInfo(@SuppressWarnings("rawtypes") ai.aitia.meme.paramsweep.batch.param.AbstractParameterInfo info) {
 		ParameterInfo convertedInfo = new ParameterInfo(info.getName(), info.getDescription(),Utilities.toTypeString1(info.getDefaultValue().getClass()),
 														info.getDefaultValue().getClass());
 		copySettingsFromAbstractParameterInfo2ParameterInfo(convertedInfo, info);
@@ -526,6 +582,7 @@ public class InfoConverter {
 	}
 
 	//----------------------------------------------------------------------------------------------------
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static void copySettingsFromAbstractParameterInfo2ParameterInfo(ParameterInfo to, ai.aitia.meme.paramsweep.batch.param.AbstractParameterInfo from) {
 		to.setRuns(from.getRunNumber());
 		if (from.getValueType() == ValueType.INCREMENT) {
@@ -540,6 +597,17 @@ public class InfoConverter {
 			to.setDefinitionType(ai.aitia.meme.paramsweep.gui.info.ParameterInfo.LIST_DEF);
 			to.setValues(((ai.aitia.meme.paramsweep.batch.param.ParameterInfo)from).getValues());
 		}
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private static SubmodelInfo<?> submodelInfo2submodelInfo(final ai.aitia.meme.paramsweep.gui.info.SubmodelInfo info) {
+		if (info == null) return null;
+		
+		final SubmodelInfo<Object> result = new SubmodelInfo<Object>(info.getName(),info.getDescription(),null,info.getPossibleTypes(),info.getJavaType());
+		result.setActualType(info.getActualType());
+		result.setParent(submodelInfo2submodelInfo(info.getParent()));
+		
+		return result;
 	}
 	
 	//====================================================================================================
@@ -751,6 +819,7 @@ public class InfoConverter {
 	// Simphony section
 	
 	//----------------------------------------------------------------------------------------------------
+	@SuppressWarnings("incomplete-switch")
 	private static void _RepastSSetTimeInfo(RecorderInfo recorder, TimeInfo time) {
 		String recorderType = null;
 		switch (time.getType()) {
@@ -991,8 +1060,9 @@ public class InfoConverter {
 	
 	//----------------------------------------------------------------------------------------------------
 	@SuppressWarnings("unchecked")
-	private static ParameterInfo _NetLogoParameterInfo2ParameterInfo(ai.aitia.meme.paramsweep.batch.param.AbstractParameterInfo info) {
+	private static ParameterInfo _NetLogoParameterInfo2ParameterInfo(@SuppressWarnings("rawtypes") ai.aitia.meme.paramsweep.batch.param.AbstractParameterInfo info) {
 		if (info instanceof NetLogoChooserParameterInfo) {
+			@SuppressWarnings("rawtypes")
 			NetLogoChooserParameterInfo cpi = (NetLogoChooserParameterInfo) info;
 			ChooserParameterInfo convertedInfo = new ChooserParameterInfo(cpi.getName(),Utilities.toTypeString1(cpi.getDefaultValue().getClass()),
 																		  cpi.getDefaultValue().getClass(),cpi.getPossibleValues());

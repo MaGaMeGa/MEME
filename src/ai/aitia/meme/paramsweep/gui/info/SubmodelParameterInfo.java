@@ -1,6 +1,6 @@
 package ai.aitia.meme.paramsweep.gui.info;
 
-public class SubmodelParameterInfo extends ParameterInfo {
+public class SubmodelParameterInfo extends ParameterInfo implements ISubmodelGUIInfo {
 
 	//====================================================================================================
 	// members
@@ -34,4 +34,7 @@ public class SubmodelParameterInfo extends ParameterInfo {
 		
 		return clone;
 	}
+	
+	//----------------------------------------------------------------------------------------------------
+	@Override public boolean isSubmodelParameter() { return true; }
 }

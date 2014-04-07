@@ -3,7 +3,7 @@ package ai.aitia.meme.paramsweep.gui.info;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MasonChooserSubmodelParameterInfo extends MasonChooserParameterInfo {
+public class MasonChooserSubmodelParameterInfo extends MasonChooserParameterInfo implements ISubmodelGUIInfo {
 
 	//====================================================================================================
 	// members
@@ -41,4 +41,7 @@ public class MasonChooserSubmodelParameterInfo extends MasonChooserParameterInfo
 		
 		return clone; 
 	}
+	
+	//----------------------------------------------------------------------------------------------------
+	@Override public boolean isSubmodelParameter() { return true; }
 }
