@@ -2,7 +2,7 @@ package ai.aitia.meme.paramsweep.batch;
 
 import java.util.List;
 
-import ai.aitia.meme.paramsweep.batch.param.ISubmodelParameterInfo;
+import ai.aitia.meme.paramsweep.batch.param.ParameterInfo;
 import ai.aitia.meme.paramsweep.batch.param.SubmodelInfo;
 
 public interface IHierarchicalModelInformation extends IModelInformation {
@@ -11,5 +11,5 @@ public interface IHierarchicalModelInformation extends IModelInformation {
 	// methods
 	
 	//----------------------------------------------------------------------------------------------------
-	public List<ISubmodelParameterInfo> getSubmodelParameters(final SubmodelInfo<?> submodel) throws ModelInformationException;
+	public List<ParameterInfo<?>> getSubmodelParameters(final SubmodelInfo<?> submodel) throws ModelInformationException;
 }

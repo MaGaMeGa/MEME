@@ -1,5 +1,8 @@
 package ai.aitia.meme.paramsweep.batch.param;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SubmodelParameterInfo<T> extends ParameterInfo<T> implements ISubmodelParameterInfo {
 	
 	//====================================================================================================
@@ -32,4 +35,12 @@ public class SubmodelParameterInfo<T> extends ParameterInfo<T> implements ISubmo
 
 	//----------------------------------------------------------------------------------------------------
 	public SubmodelInfo<?> getParentInfo() { return parent; }
+	
+	//----------------------------------------------------------------------------------------------------
+	@Override
+	public SubmodelParameterInfo<T> clone() {
+		final SubmodelParameterInfo<T> clone = new SubmodelParameterInfo<T>(this.name,this.description,this.defaultValue,this.originalConstant,this.parent);
+		
+		return clone;
+	}
 }

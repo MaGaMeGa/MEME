@@ -7,7 +7,7 @@ public class SubmodelIncrementalParameterInfo<T extends Number> extends Incremen
 	
 	private static final long serialVersionUID = -264054169911149696L;
 	
-	private SubmodelInfo<?> parent;
+	protected SubmodelInfo<?> parent;
 	
 	//====================================================================================================
 	// methods
@@ -26,4 +26,12 @@ public class SubmodelIncrementalParameterInfo<T extends Number> extends Incremen
 
 	//----------------------------------------------------------------------------------------------------
 	public SubmodelInfo<?> getParentInfo() { return parent; }
+	
+	//----------------------------------------------------------------------------------------------------
+	@Override
+	public SubmodelIncrementalParameterInfo<T> clone() {
+		final SubmodelIncrementalParameterInfo<T> clone = new SubmodelIncrementalParameterInfo<T>(this.name,this.description,this.defaultValue,this.parent);
+		
+		return clone;
+	}
 }
