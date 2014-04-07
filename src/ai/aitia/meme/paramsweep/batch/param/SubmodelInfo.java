@@ -27,6 +27,7 @@ public class SubmodelInfo<T> extends ParameterInfo<T> implements ISubmodelParame
 	private static final long serialVersionUID = -6014247442037116214L;
 	
 	protected List<Class<?>> possibleTypes;
+	protected Class<?> referenceType;
 	protected Class<?> actualType;
 	protected SubmodelInfo<?> parent;
 
@@ -35,32 +36,37 @@ public class SubmodelInfo<T> extends ParameterInfo<T> implements ISubmodelParame
 	
 	//----------------------------------------------------------------------------------------------------
 	/** Creates an instance of type constant. */
-	public SubmodelInfo(final String name, final String description, final T defaultValue, final List<Class<?>> possibleTypes) {
+	public SubmodelInfo(final String name, final String description, final T defaultValue, final List<Class<?>> possibleTypes, final Class<?> referenceType) {
 		super(name,description,defaultValue);
 		setValue(defaultValue);
 		this.possibleTypes = possibleTypes;
+		this.referenceType = referenceType;
 	}
 	
 	//----------------------------------------------------------------------------------------------------
 	public SubmodelInfo(final String name, final String description, final T defaultValue, final boolean originalConstant,
-						final List<Class<?>> possibleTypes) {
+						final List<Class<?>> possibleTypes, final Class<?> referenceType) {
 		super(name,description,defaultValue,originalConstant);
 		this.possibleTypes = possibleTypes;
+		this.referenceType = referenceType;
 	}
 	
 	//----------------------------------------------------------------------------------------------------
 	public SubmodelInfo(final SubmodelInfo<T> p) {
 		super(p);
 		this.possibleTypes = p.possibleTypes;
+		this.referenceType = p.referenceType;
 	}
 
 	//----------------------------------------------------------------------------------------------------
 	public List<Class<?>> getPossibleTypes() { return possibleTypes; }
+	public Class<?> getReferenceType() { return referenceType; }
 	public Class<?> getActualType() { return actualType; }
 	public SubmodelInfo<?> getParentInfo() { return parent; }
 
 	//----------------------------------------------------------------------------------------------------
 	public void setPossibleTypes(final List<Class<?>> possibleTypes) { this.possibleTypes = possibleTypes; }
+	public void setReferenceType(final Class<?> referenceType) { this.referenceType = referenceType; }
 	public void setActualType(final Class<?> actualType) { this.actualType = actualType; }
 	public void setParent(final SubmodelInfo<?> parent) { this.parent = parent; }
 	
@@ -77,7 +83,7 @@ public class SubmodelInfo<T> extends ParameterInfo<T> implements ISubmodelParame
 	@Override
 	public SubmodelInfo<T> clone() {
 		final List<Class<?>> possibleTypesClone = new ArrayList<Class<?>>(this.possibleTypes);
-		final SubmodelInfo<T> clone = new SubmodelInfo<T>(this.name,this.description,this.defaultValue,this.originalConstant,possibleTypesClone);
+		final SubmodelInfo<T> clone = new SubmodelInfo<T>(this.name,this.description,this.defaultValue,this.originalConstant,possibleTypesClone,this.referenceType);
 		clone.actualType = this.actualType;
 		clone.parent = this.parent;
 		

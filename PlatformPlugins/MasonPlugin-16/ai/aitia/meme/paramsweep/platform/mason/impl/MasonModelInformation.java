@@ -625,7 +625,7 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 														final Map<String,Object> submodelInformations, final SubmodelInfo<?> parent) {
 		
 		@SuppressWarnings("unchecked") final List<Class<?>> types = (List<Class<?>>) submodelInformations.get("types"); 
-		SubmodelInfo<Object> result = new SubmodelInfo<Object>(name,description,null,types);
+		SubmodelInfo<Object> result = new SubmodelInfo<Object>(name,description,null,types,type);
 		result.setParent(parent);
 		return result;
 	}
