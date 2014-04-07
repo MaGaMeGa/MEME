@@ -36,9 +36,13 @@ import ai.aitia.meme.paramsweep.batch.output.RecordableInfo;
 import ai.aitia.meme.paramsweep.batch.output.RecorderInfo;
 import ai.aitia.meme.paramsweep.batch.param.AbstractParameterInfo;
 import ai.aitia.meme.paramsweep.batch.param.AbstractParameterInfo.ValueType;
+import ai.aitia.meme.paramsweep.batch.param.ISubmodelParameterInfo;
 import ai.aitia.meme.paramsweep.batch.param.IncrementalParameterInfo;
 import ai.aitia.meme.paramsweep.batch.param.ParameterNode;
 import ai.aitia.meme.paramsweep.batch.param.ParameterTree;
+import ai.aitia.meme.paramsweep.batch.param.SubmodelIncrementalParameterInfo;
+import ai.aitia.meme.paramsweep.batch.param.SubmodelInfo;
+import ai.aitia.meme.paramsweep.batch.param.SubmodelParameterInfo;
 import ai.aitia.meme.paramsweep.generator.WizardSettingsManager;
 import ai.aitia.meme.paramsweep.gui.info.ArgsFunctionMemberInfo;
 import ai.aitia.meme.paramsweep.gui.info.ChooserParameterInfo;
@@ -62,7 +66,9 @@ import ai.aitia.meme.paramsweep.gui.info.TimeInfo.WriteMode;
 import ai.aitia.meme.paramsweep.internal.platform.PlatformSettings.UnsupportedPlatformException;
 import ai.aitia.meme.paramsweep.platform.PlatformManager.PlatformType;
 import ai.aitia.meme.paramsweep.platform.mason.info.MasonChooserParameterInfo;
+import ai.aitia.meme.paramsweep.platform.mason.info.MasonChooserSubmodelParameterInfo;
 import ai.aitia.meme.paramsweep.platform.mason.info.MasonIntervalParameterInfo;
+import ai.aitia.meme.paramsweep.platform.mason.info.MasonIntervalSubmodelParameterInfo;
 import ai.aitia.meme.paramsweep.platform.netlogo.impl.NetLogoChooserParameterInfo;
 import ai.aitia.meme.paramsweep.platform.netlogo.info.NLStatisticGeneratedRecordableInfo;
 import ai.aitia.meme.paramsweep.platform.repast.impl.ModelGenerator;
@@ -1150,9 +1156,52 @@ public class InfoConverter {
 	// MASON section
 	
 	//----------------------------------------------------------------------------------------------------
+	@SuppressWarnings("rawtypes")
 	private static ParameterInfo _MasonParameterInfo2ParameterInfo(AbstractParameterInfo info) {
-		if (info instanceof MasonChooserParameterInfo) {
+		if (info instanceof SubmodelInfo) {
+			final SubmodelInfo castedParameter = (SubmodelInfo) info;
+			@SuppressWarnings("unchecked")
+			final ai.aitia.meme.paramsweep.gui.info.SubmodelInfo convertedInfo = 
+					new ai.aitia.meme.paramsweep.gui.info.SubmodelInfo(info.getName(),info.getDescription(),
+																	   Utilities.toTypeString1(castedParameter.getReferenceType()),
+																	   castedParameter.getReferenceType(),castedParameter.getPossibleTypes(),
+																	   _MasonGetSubmodelParent(castedParameter));
+			convertedInfo.setActualType(castedParameter.getActualType());
+			convertedInfo.setRuns(castedParameter.getRunNumber());
+			convertedInfo.setDefinitionType(ParameterInfo.CONST_DEF); //TODO: fix this, if list submodels are supported
+			return convertedInfo;
+		} else if ((info instanceof SubmodelParameterInfo) || (info instanceof SubmodelIncrementalParameterInfo)) {
+			final ISubmodelParameterInfo smpi = (ISubmodelParameterInfo) info;
+			final ai.aitia.meme.paramsweep.gui.info.SubmodelParameterInfo convertedInfo =
+					new ai.aitia.meme.paramsweep.gui.info.SubmodelParameterInfo(info.getName(),info.getDescription(),
+																				Utilities.toTypeString1(info.getDefaultValue().getClass()),
+																				info.getDefaultValue().getClass(),_MasonGetSubmodelParent(smpi));
+			copySettingsFromAbstractParameterInfo2ParameterInfo(convertedInfo,info);
+			return convertedInfo;
+		} else if (info instanceof MasonChooserSubmodelParameterInfo) {
+			final MasonChooserSubmodelParameterInfo castedParameter = (MasonChooserSubmodelParameterInfo) info;
+			@SuppressWarnings("unchecked")
+			final ai.aitia.meme.paramsweep.gui.info.MasonChooserSubmodelParameterInfo convertedInfo = 
+				new	ai.aitia.meme.paramsweep.gui.info.MasonChooserSubmodelParameterInfo(info.getName(),info.getDescription(),
+																						Utilities.toTypeString1(info.getDefaultValue().getClass()), 
+																						info.getDefaultValue().getClass(),castedParameter.getPossibleValues(), 
+																						castedParameter.getPossibleNamedValues(),
+																						_MasonGetSubmodelParent(castedParameter));
+			copySettingsFromAbstractParameterInfo2ParameterInfo(convertedInfo, info);
+			return convertedInfo;
+		} else if (info instanceof MasonIntervalSubmodelParameterInfo) {
+			final MasonIntervalSubmodelParameterInfo castedParameter = (MasonIntervalSubmodelParameterInfo) info;
+			final ai.aitia.meme.paramsweep.gui.info.MasonIntervalSubmodelParameterInfo convertedInfo = 
+					new ai.aitia.meme.paramsweep.gui.info.MasonIntervalSubmodelParameterInfo(info.getName(),info.getDescription(),
+																							 Utilities.toTypeString1(info.getDefaultValue().getClass()),
+																							 info.getDefaultValue().getClass(),castedParameter.getIntervalMin(),
+																							 castedParameter.getIntervalMax(),castedParameter.isIntervalDouble(),
+																							 _MasonGetSubmodelParent(castedParameter));
+				copySettingsFromAbstractParameterInfo2ParameterInfo(convertedInfo, info);
+				return convertedInfo;
+		} else if (info instanceof MasonChooserParameterInfo) {
 			MasonChooserParameterInfo castedParameter = (MasonChooserParameterInfo) info;
+			@SuppressWarnings("unchecked")
 			ai.aitia.meme.paramsweep.gui.info.MasonChooserParameterInfo convertedInfo = 
 				new	ai.aitia.meme.paramsweep.gui.info.MasonChooserParameterInfo(
 						info.getName(), 
@@ -1181,8 +1230,10 @@ public class InfoConverter {
 		}
 	}
 
+	private static ai.aitia.meme.paramsweep.gui.info.SubmodelInfo _MasonGetSubmodelParent(final ISubmodelParameterInfo info) {
+		return info.getParentInfo() == null ? null : (ai.aitia.meme.paramsweep.gui.info.SubmodelInfo) _MasonParameterInfo2ParameterInfo(info.getParentInfo());
+	}
+
 	//====================================================================================================
 	// End of MASON section
-	
-	
 }
