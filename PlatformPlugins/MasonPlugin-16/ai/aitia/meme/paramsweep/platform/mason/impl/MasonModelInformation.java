@@ -402,7 +402,7 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 		final Class<?>[] types = annotation.value();
 		final List<Class<?>> validTypes = new ArrayList<Class<?>>(types.length);
 		for (final Class<?> type : types) {
-			if (field.getType().isAssignableFrom(type))
+			if (field.getType().isAssignableFrom(type) && !Modifier.isInterface(type.getModifiers()) && !Modifier.isAbstract(type.getModifiers()))
 				validTypes.add(type);
 		}
 		result.put("types",validTypes);
