@@ -37,4 +37,19 @@ public class MasonIntervalSubmodelParameterInfo extends MasonIntervalParameterIn
 	
 	//----------------------------------------------------------------------------------------------------
 	@Override public boolean isSubmodelParameter() { return true; }
+	
+	//----------------------------------------------------------------------------------------------------
+	@Override
+	public boolean equals(final Object o) {
+		if (o instanceof MasonIntervalSubmodelParameterInfo) {
+			final MasonIntervalSubmodelParameterInfo that = (MasonIntervalSubmodelParameterInfo) o;
+			
+			if (this.parent == null)
+				return that.parent == null && this.name.equals(that.name);
+			
+			return this.name.equals(that.name) && this.parent.equals(that.parent);
+		}
+		
+		return false;
+	}
 }

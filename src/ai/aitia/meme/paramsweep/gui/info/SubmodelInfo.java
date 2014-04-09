@@ -61,4 +61,19 @@ public class SubmodelInfo extends ParameterInfo implements ISubmodelGUIInfo {
 	
 	//----------------------------------------------------------------------------------------------------
 	@Override public boolean isSubmodelParameter() { return parent != null; }
+	
+	//----------------------------------------------------------------------------------------------------
+	@Override
+	public boolean equals(final	Object o) {
+		if (o instanceof SubmodelInfo) {
+			final SubmodelInfo that = (SubmodelInfo) o;
+			
+			if (this.parent == null)
+				return that.parent == null && this.name.equals(that.name);
+			
+			return this.name.equals(that.name) && this.parent.equals(that.parent);
+		}
+		
+		return false;
+	}
 }

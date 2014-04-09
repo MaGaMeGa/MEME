@@ -44,4 +44,19 @@ public class MasonChooserSubmodelParameterInfo extends MasonChooserParameterInfo
 	
 	//----------------------------------------------------------------------------------------------------
 	@Override public boolean isSubmodelParameter() { return true; }
+	
+	//----------------------------------------------------------------------------------------------------
+	@Override
+	public boolean equals(final Object o) {
+		if (o instanceof MasonChooserSubmodelParameterInfo) {
+			final MasonChooserSubmodelParameterInfo that = (MasonChooserSubmodelParameterInfo) o;
+			
+			if (this.parent == null)
+				return that.parent == null && this.name.equals(that.name);
+			
+			return this.name.equals(that.name) && this.parent.equals(that.parent);
+		}
+		
+		return false;
+	}
 }
