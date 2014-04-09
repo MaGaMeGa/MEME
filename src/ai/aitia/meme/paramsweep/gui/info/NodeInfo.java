@@ -27,6 +27,8 @@ public abstract class NodeInfo implements Serializable,
 	//==============================================================================
 	// members
 	
+	private static final long serialVersionUID = 3318198352528589733L;
+	
 	/** Name. */
 	protected String name = null;
 	
@@ -48,5 +50,9 @@ public abstract class NodeInfo implements Serializable,
 			return compareTo(that) == 0;
 		}
 		return false;
+	}
+	@Override
+	public int hashCode() {
+		return name.hashCode();
 	}
 }

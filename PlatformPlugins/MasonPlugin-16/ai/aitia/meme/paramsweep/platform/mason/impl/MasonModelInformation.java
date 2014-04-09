@@ -67,7 +67,7 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 	private List<NonRecordableInfo> nonRecordables = null;
 	private Object model;
 	
-	private final Map<Class<?>,List<ParameterInfo<?>>> submodelCache = new HashMap<Class<?>,List<ParameterInfo<?>>>();
+	private final Map<SubmodelInfo<?>,Map<Class<?>,List<ParameterInfo<?>>>> submodelCache = new HashMap<SubmodelInfo<?>,Map<Class<?>,List<ParameterInfo<?>>>>();
 	
 	//====================================================================================================
 	// methods
@@ -113,10 +113,18 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 		if (submodel.getActualType() == null)
 			throw new ModelInformationException("No actual type is selected for parameter " + submodel.getName());
 		
-		List<ParameterInfo<?>> resultList = submodelCache.get(submodel.getActualType());
+		List<ParameterInfo<?>> resultList = null; 
+		Map<Class<?>,List<ParameterInfo<?>>> innerCache = submodelCache.get(submodel);
+		if (innerCache != null) 
+			resultList = innerCache.get(submodel.getActualType());
+		
 		if (resultList == null) {
 			resultList = initializeSubmodelParameters(submodel);
-			submodelCache.put(submodel.getActualType(),resultList);
+			if (innerCache == null)
+				innerCache = new HashMap<Class<?>,List<ParameterInfo<?>>>();
+			
+			innerCache.put(submodel.getActualType(),resultList);
+			submodelCache.put(submodel,innerCache);
 		}
 		
 		return resultList;
@@ -275,7 +283,7 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 		}
 		
 		parameters = new ArrayList<ParameterInfo<?>>();
-		error = collectParameters(javaClass,parameters,unusedParameters,null);
+		error = collectParameters(javaClass,parameters,unusedParameters,model,null);
 	
 		if (error != null) {
 			parameters = null;
@@ -286,7 +294,7 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	private String collectParameters (final Class<?> javaClass, final List<ParameterInfo<?>> parameters, final List<String> unusedParameters, 
+	private String collectParameters (final Class<?> javaClass, final List<ParameterInfo<?>> parameters, final List<String> unusedParameters, final Object instance,
 									  final SubmodelInfo<?> parent) {
 		final Method[] allMethods = javaClass.getMethods();
 		for (int i = 0; i < allMethods.length; i++) {
@@ -306,7 +314,7 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 						// if there is a description method for the parameter, call it to retrieve the description of the parameter
 						final Method descriptionMethod = searchDescription(allMethods, allMethods[i].getName().substring(3));
 						if (descriptionMethod != null){
-							description = (String) descriptionMethod.invoke(model);
+							description = (String) descriptionMethod.invoke(instance);
 						}
 						
 						
@@ -314,18 +322,18 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 						boolean inserted = false;
 						if (domain != null) {
 							//we have domain restrictions on this parameter
-							final Object domResult = domain.invoke(model);
+							final Object domResult = domain.invoke(instance);
 //							if (domResult.getClass().getCanonicalName().equals("sim.util.Interval") && !getter.getReturnType().equals(String.class) && !getter.getReturnType().equals(Boolean.class) && !getter.getReturnType().equals(Boolean.TYPE)) {
 							if (domResult instanceof sim.util.Interval && !getter.getReturnType().equals(String.class) && !getter.getReturnType().equals(Boolean.class) && !getter.getReturnType().equals(Boolean.TYPE)) {
-								parameters.add(createIntervalParameterInfo(model, allMethods[i].getName().substring(3), getter, (Interval) domResult, description, parent));
+								parameters.add(createIntervalParameterInfo(instance, allMethods[i].getName().substring(3), getter, (Interval) domResult, description, parent));
 								inserted = true;
 							} else if (domResult instanceof String[] && (getter.getReturnType().equals(Integer.class) || getter.getReturnType().equals(Integer.TYPE))) {
-								parameters.add(createChooserParameterInfo(model, allMethods[i].getName().substring(3), getter, (String[]) domResult, description, parent));
+								parameters.add(createChooserParameterInfo(instance, allMethods[i].getName().substring(3), getter, (String[]) domResult, description, parent));
 								inserted = true;
 							}
 						}
 						if (!inserted) {
-							parameters.add(createParameterInfo(model, allMethods[i].getName().substring(3), getter, description, parent));
+							parameters.add(createParameterInfo(instance, allMethods[i].getName().substring(3), getter, description, parent));
 						}
 					} catch (final IllegalAccessException e) {
 						return "The method " + Util.getLocalizedMessage(e) + " is not visible.";
@@ -353,7 +361,7 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 						final Method descriptionMethod = searchDescription(allMethods,capitalizedFieldName);
 						if (descriptionMethod != null){
 							try {
-								description = (String) descriptionMethod.invoke(model);
+								description = (String) descriptionMethod.invoke(instance);
 								
 							} catch (final IllegalAccessException e) {
 								return "The method " + Util.getLocalizedMessage(e) + " is not visible.";
@@ -373,7 +381,7 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 			try {
 				final Method seedGetter = javaClass.getMethod("seed");
 				if (seedGetter != null)
-					parameters.add(createParameterInfo(model, "Seed", seedGetter, parent));
+					parameters.add(createParameterInfo(instance, "Seed", seedGetter, parent));
 			} catch (final SecurityException e) {
 				MEMEApp.logException(e);
 				return "The method " + Util.getLocalizedMessage(e) + " is not visible.";
@@ -416,8 +424,9 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 	private List<ParameterInfo<?>> initializeSubmodelParameters(final SubmodelInfo<?> submodel) throws ModelInformationException {
 		String error = null;
 		List<String> unusedParameters = null;
+		Object submodelObj = null;
 		try {
-			final Object submodelObj = submodel.getActualType().newInstance(); 
+			submodelObj = submodel.getActualType().newInstance(); 
 
 			// try find the unused parameters
 			try {
@@ -447,7 +456,7 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 			throw new ModelInformationException(error);
 		
 		final List<ParameterInfo<?>> result = new ArrayList<ParameterInfo<?>>();
-		error = collectParameters(submodel.getActualType(),result,unusedParameters,submodel);
+		error = collectParameters(submodel.getActualType(),result,unusedParameters,submodelObj,submodel);
 		
 		if (error != null)
 			throw new ModelInformationException(error);

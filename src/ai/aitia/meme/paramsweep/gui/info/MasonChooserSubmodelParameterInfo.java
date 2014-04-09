@@ -59,4 +59,15 @@ public class MasonChooserSubmodelParameterInfo extends MasonChooserParameterInfo
 		
 		return false;
 	}
+	
+	//----------------------------------------------------------------------------------------------------
+	@Override
+	public int hashCode() {
+		int result = 17;
+		result = 31 * result + name.hashCode();
+		if (parent != null)
+			result = 31 * result + parent.hashCode();
+		
+		return result;
+	}
 }
