@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import ai.aitia.meme.paramsweep.batch.BatchEvent;
 import ai.aitia.meme.paramsweep.batch.BatchEvent.EventType;
@@ -31,10 +32,13 @@ import ai.aitia.meme.paramsweep.batch.IBatchListener;
 import ai.aitia.meme.paramsweep.batch.InvalidEntryPointException;
 import ai.aitia.meme.paramsweep.batch.output.RecorderInfo;
 import ai.aitia.meme.paramsweep.batch.param.AbstractParameterInfo;
+import ai.aitia.meme.paramsweep.batch.param.ISubmodelParameterInfo;
 import ai.aitia.meme.paramsweep.batch.param.ParameterTree;
+import ai.aitia.meme.paramsweep.batch.param.SubmodelInfo;
 import ai.aitia.meme.paramsweep.util.DefaultParameterPartitioner;
 import ai.aitia.meme.paramsweep.utils.SimulationException;
 import ai.aitia.meme.paramsweep.utils.Util;
+import ai.aitia.meme.utils.Utils.Pair;
 
 public class MasonBatchController implements IBatchController, IRecorderListenerAware {
 
@@ -52,8 +56,8 @@ public class MasonBatchController implements IBatchController, IRecorderListener
 	private boolean first = true;
 	private Class<?> modelClass = null;
 	
-	private HashMap<String,Method> methods = new HashMap<String,Method>();
-	private Method setParameterMethod = null;
+	private Map<String,Pair<Object,Method>> methods = new HashMap<String,Pair<Object,Method>>();
+	private Map<String,Object> parentParameters = new HashMap<String,Object>();
 	private ArrayList<String> constantParameterNames = new ArrayList<String>();
 	private ArrayList<String> mutableParameterNames = new ArrayList<String>();
 	private boolean stopped = false;
@@ -131,6 +135,7 @@ public class MasonBatchController implements IBatchController, IRecorderListener
 	}
 
 	//----------------------------------------------------------------------------------------------------
+	@SuppressWarnings("rawtypes")
 	public void startBatch() throws BatchException {
 		for (IBatchListener l : listeners)
 			model.aitiaGenerated_addBatchListener(l);
@@ -140,6 +145,7 @@ public class MasonBatchController implements IBatchController, IRecorderListener
 			batchCount++;
 			List<AbstractParameterInfo> combination = it.next();
 			if (first) {
+				fillParentParametersTable(combination);
 				fillMethodTable(combination);
 				first = false;
 			}
@@ -180,41 +186,95 @@ public class MasonBatchController implements IBatchController, IRecorderListener
 	// assistant methods
 	
 	//----------------------------------------------------------------------------------------------------
-	private void fillMethodTable(List<AbstractParameterInfo> combination) { 
-		setParameterMethod = null;
-		Method[] methods = modelClass.getMethods();
-		for (AbstractParameterInfo p : combination) {
-			String name = Util.capitalize(p.getName());
-			(p.isOriginalConstant() ? constantParameterNames : mutableParameterNames).add(name);
-			for (Method m : methods) {
-				if (m.getName().equals("set" + name) && m.getParameterTypes().length == 1) {
-					this.methods.put(p.getName(),m);
-					break;
+	@SuppressWarnings("rawtypes")
+	private void fillParentParametersTable(List<AbstractParameterInfo> combination) throws BatchException {
+		for (final AbstractParameterInfo p : combination) {
+			if (p instanceof ISubmodelParameterInfo) {
+				final SubmodelInfo<?> parentInfo = ((ISubmodelParameterInfo)p).getParentInfo();
+				fillParentParametersTable(parentInfo);
+			}
+		}
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private void fillParentParametersTable(final SubmodelInfo<?> info) throws BatchException {
+		if (info != null) {
+			fillParentParametersTable(info.getParentInfo());
+			
+			final String name = getSubmodelInfoFullName(info);
+			if (parentParameters.get(name) == null) {
+				try {
+					final Object instance = info.getActualType().newInstance();
+					parentParameters.put(name,instance);
+					if (info.getParentInfo() == null) {
+						final Method setter = modelClass.getMethod("set" + name,info.getReferenceType());
+						setter.invoke(model,instance);
+					} else {
+						final Method setter = info.getParentInfo().getActualType().getMethod("set" + name,info.getReferenceType());
+						final int idx = name.lastIndexOf('#'); 
+						final String parentName = name.substring(0,idx);
+						setter.invoke(parentParameters.get(parentName),instance);
+					}
+				} catch (final Exception e) {
+					throw new BatchException(e);
 				}
 			}
 		}
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	private void setParameters(List<AbstractParameterInfo> combination) throws BatchException {
+	private String getSubmodelInfoFullName(final SubmodelInfo<?> info) {
+		if (info == null) 
+			return "";
+		
+		return getSubmodelInfoFullName(info.getParentInfo()) + "#" + info.getName();
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	@SuppressWarnings("rawtypes")
+	private void fillMethodTable(List<AbstractParameterInfo> combination) throws BatchException { 
+		final Method[] methods = modelClass.getMethods();
+		for (AbstractParameterInfo p : combination) {
+			final String name = Util.capitalize(p.getName());
+			(p.isOriginalConstant() ? constantParameterNames : mutableParameterNames).add(name);
+			if (p instanceof ISubmodelParameterInfo) {
+				final ISubmodelParameterInfo spi = (ISubmodelParameterInfo) p;
+				final String instanceId = getSubmodelInfoFullName(spi.getParentInfo());
+				final Object instance = parentParameters.get(instanceId);
+				if (instance == null)
+					throw new BatchException("Instance not found for " + p.getName());
+				for (final Method m : spi.getParentInfo().getActualType().getMethods()) {
+					if (m.getName().equals("set" + name) && m.getParameterTypes().length == 1) {
+						this.methods.put(instanceId,new Pair<Object,Method>(instance,m));
+					}
+				}
+			} else {
+				for (final Method m : methods) {
+					if (m.getName().equals("set" + name) && m.getParameterTypes().length == 1) {
+						this.methods.put(p.getName(),new Pair<Object,Method>(model,m));
+						break;
+					}
+				}
+			}
+		}
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	@SuppressWarnings("rawtypes")
+	private void setParameters(final List<AbstractParameterInfo> combination) throws BatchException {
 		model.aitiaGenerated_setRun(batchCount);
 		model.aitiaGenerated_setConstantParameterNames(constantParameterNames);
 		model.aitiaGenerated_setMutableParameterNames(mutableParameterNames);
 		for (AbstractParameterInfo p : combination) {
-			Method m = methods.get(p.getName());
-			Object value = p.iterator().next();
-			if (m != null) {
+			String name = p.getName();
+			if (p instanceof ISubmodelParameterInfo) 
+				name = getSubmodelInfoFullName(((ISubmodelParameterInfo)p).getParentInfo());
+			
+			final Pair<Object,Method> setterPair  = methods.get(name);
+			final Object value = p.iterator().next();
+			if (setterPair != null) {
 				try {
-					m.invoke(model,value);
-				} catch (IllegalAccessException e) {
-					throw new BatchException(e);
-				} catch (InvocationTargetException e) {
-					throw new BatchException(e);
-				}
-			} else if (setParameterMethod != null) {
-				try {
-					setParameterMethod.invoke(model,Util.capitalize(p.getName()),value);
-					setParameterMethod.invoke(model,Util.uncapitalize(p.getName()),value);
+					setterPair.getSecond().invoke(setterPair.getFirst(),value);
 				} catch (IllegalAccessException e) {
 					throw new BatchException(e);
 				} catch (InvocationTargetException e) {
@@ -223,7 +283,6 @@ public class MasonBatchController implements IBatchController, IRecorderListener
 			} else 
 				// never happens
 				throw new IllegalStateException();
-			
 		}
 	}
 	
