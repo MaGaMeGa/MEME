@@ -7,4 +7,5 @@ public interface ISubmodelGUIInfo {
 	
 	//----------------------------------------------------------------------------------------------------
 	public SubmodelInfo getParent();
+	public String getName();
 }
