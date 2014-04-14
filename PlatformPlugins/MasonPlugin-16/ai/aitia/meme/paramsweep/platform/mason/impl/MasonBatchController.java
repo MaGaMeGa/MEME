@@ -58,8 +58,8 @@ public class MasonBatchController implements IBatchController, IRecorderListener
 	
 	private Map<String,Pair<Object,Method>> methods = new HashMap<String,Pair<Object,Method>>();
 	private Map<String,Object> parentParameters = new HashMap<String,Object>();
-	private ArrayList<String> constantParameterNames = new ArrayList<String>();
-	private ArrayList<String> mutableParameterNames = new ArrayList<String>();
+	private HashMap<String,Object> constantParameterNames = new HashMap<String,Object>();
+	private HashMap<String,Object> mutableParameterNames = new HashMap<String,Object>();
 	private boolean stopped = false;
 
 	//====================================================================================================
@@ -236,7 +236,6 @@ public class MasonBatchController implements IBatchController, IRecorderListener
 		final Method[] methods = modelClass.getMethods();
 		for (AbstractParameterInfo p : combination) {
 			final String name = Util.capitalize(p.getName());
-			(p.isOriginalConstant() ? constantParameterNames : mutableParameterNames).add(name);
 			if (p instanceof ISubmodelParameterInfo) {
 				final ISubmodelParameterInfo spi = (ISubmodelParameterInfo) p;
 				final String parentInstanceId = getSubmodelInfoFullName(spi.getParentInfo());
@@ -247,6 +246,7 @@ public class MasonBatchController implements IBatchController, IRecorderListener
 					if (m.getName().equals("set" + name) && m.getParameterTypes().length == 1) {
 						final String instanceId = parentInstanceId + "#" + p.getName();
 						this.methods.put(instanceId,new Pair<Object,Method>(instance,m));
+						(p.isOriginalConstant() ? constantParameterNames : mutableParameterNames).put(instanceId,instance);
 						break;
 					}
 				}
@@ -254,6 +254,7 @@ public class MasonBatchController implements IBatchController, IRecorderListener
 				for (final Method m : methods) {
 					if (m.getName().equals("set" + name) && m.getParameterTypes().length == 1) {
 						this.methods.put(p.getName(),new Pair<Object,Method>(model,m));
+						(p.isOriginalConstant() ? constantParameterNames : mutableParameterNames).put(name,model);
 						break;
 					}
 				}

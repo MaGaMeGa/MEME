@@ -20,12 +20,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import javassist.CannotCompileException;
@@ -52,7 +49,6 @@ import ai.aitia.meme.paramsweep.utils.AssistantMethod.ScheduleTime;
 import ai.aitia.meme.paramsweep.utils.PlatformConstants;
 import ai.aitia.meme.paramsweep.utils.UserDefinedVariable;
 import ai.aitia.meme.paramsweep.utils.Util;
-import ai.aitia.meme.utils.Utils;
 import ai.aitia.meme.utils.Utils.Pair;
 
 public class MasonModelGenerator {
@@ -1371,12 +1367,12 @@ public class MasonModelGenerator {
 	
 	//----------------------------------------------------------------------------------------------------
 	private void generateGetConstantParameterNamesMethod(final CtClass model) throws CannotCompileException {
-		final String src = "private ArrayList " + memberPrefix + "_constantParameterNames = new ArrayList();";
+		final String src = "private HashMap " + memberPrefix + "_constantParameterNames = new HashMap();";
 		constantParameterNamesField = CtField.make(src,model);
 		newFields.add(src + "\n");
 		model.addField(constantParameterNamesField);
 		
-		final StringBuilder b = new StringBuilder("public ArrayList " + memberPrefix + "_getConstantParameterNames() {\n");
+		final StringBuilder b = new StringBuilder("public HashMap " + memberPrefix + "_getConstantParameterNames() {\n");
 		b.append("return this.").append(constantParameterNamesField.getName()).append(";\n");
 		b.append("}\n");
 		
@@ -1387,7 +1383,7 @@ public class MasonModelGenerator {
 	
 	//----------------------------------------------------------------------------------------------------
 	private void generateSetConstantParameterNamesMethod(final CtClass model) throws CannotCompileException {
-		final StringBuilder b = new StringBuilder("public void " + memberPrefix + "_setConstantParameterNames(ArrayList constants) {\n");
+		final StringBuilder b = new StringBuilder("public void " + memberPrefix + "_setConstantParameterNames(HashMap constants) {\n");
 		b.append("this.").append(constantParameterNamesField.getName()).append(" = constants;\n");
 		b.append("}\n");
 		
@@ -1398,12 +1394,12 @@ public class MasonModelGenerator {
 	
 	//----------------------------------------------------------------------------------------------------
 	private void generateGetMutableParameterNamesMethod(final CtClass model) throws CannotCompileException {
-		final String src = "private ArrayList " + memberPrefix + "_mutableParameterNames = new ArrayList();";
+		final String src = "private HashMap " + memberPrefix + "_mutableParameterNames = new HashMap();";
 		mutableParameterNamesField  = CtField.make(src,model);
 		newFields.add(src + "\n");
 		model.addField(mutableParameterNamesField);
 		
-		final StringBuilder b = new StringBuilder("public ArrayList " + memberPrefix + "_getMutableParameterNames() {\n");
+		final StringBuilder b = new StringBuilder("public HashMap " + memberPrefix + "_getMutableParameterNames() {\n");
 		b.append("return this.").append(mutableParameterNamesField.getName()).append(";\n");
 		b.append("}\n");
 		
@@ -1414,7 +1410,7 @@ public class MasonModelGenerator {
 	
 	//----------------------------------------------------------------------------------------------------
 	private void generateSetMutableParameterNamesMethod(final CtClass model) throws CannotCompileException {
-		final StringBuilder b = new StringBuilder("public void " + memberPrefix + "_setMutableParameterNames(ArrayList mutables) {\n");
+		final StringBuilder b = new StringBuilder("public void " + memberPrefix + "_setMutableParameterNames(HashMap mutables) {\n");
 		b.append("this.").append(mutableParameterNamesField.getName()).append(" = mutables;\n");
 		b.append("}\n");
 		

@@ -17,6 +17,7 @@
 package ai.aitia.meme.paramsweep.platform.mason.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import ai.aitia.meme.paramsweep.batch.IBatchListener;
 
@@ -34,11 +35,11 @@ public interface IMasonGeneratedModel {
 	public void aitiaGenerated_setRun(long run);
 	public long aitiaGenerated_getRun();
 	
-	public void aitiaGenerated_setConstantParameterNames(ArrayList constants); // ArrayList<String>
-	public ArrayList aitiaGenerated_getConstantParameterNames(); // ArrayList<String>
+	public void aitiaGenerated_setConstantParameterNames(HashMap constants); // HashMap<String,Object>
+	public HashMap aitiaGenerated_getConstantParameterNames(); // HashMap<String,Object>
 	
-	public void aitiaGenerated_setMutableParameterNames(ArrayList mutables); // ArrayList<String>
-	public ArrayList aitiaGenerated_getMutableParameterNames(); // ArrayList<String>
+	public void aitiaGenerated_setMutableParameterNames(HashMap mutables); // HashMap<String,Object>
+	public HashMap aitiaGenerated_getMutableParameterNames(); // HashMap<String,Object>
 	
 	public void aitiaGenerated_writeEnd();
 	

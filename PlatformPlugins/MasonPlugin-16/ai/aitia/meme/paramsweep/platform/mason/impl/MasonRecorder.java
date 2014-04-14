@@ -55,7 +55,6 @@ public class MasonRecorder {
 	protected Vector<Pair<String,Method>> sources = new Vector<Pair<String,Method>>();
 	protected Map<String, Integer> collectionLength = new HashMap<String, Integer>();
 	protected Map<String, Method> collectionLengthMember = new HashMap<String, Method>();
-	protected Method getParameterMethod = null;
 	
 	protected long runNumber;
 	protected String header;
@@ -78,11 +77,6 @@ public class MasonRecorder {
 		this.fileNameSuffix = fileName.substring(index);
 		this.model = model;
 		this.delimiter = delimiter;
-		try {
-			getParameterMethod = model.getClass().getMethod("getParameter",String.class);
-		} catch (Exception e) {
-			getParameterMethod = null;
-		}
 	}
 	
 	//----------------------------------------------------------------------------------------------------
@@ -345,35 +339,54 @@ public class MasonRecorder {
 	    b.append("Timestamp: ").append(DateFormat.getDateTimeInstance().format(new Date())).append("\n");
 	    
 	    constantParameters.clear();
-	    List<String> constants = model.aitiaGenerated_getConstantParameterNames();
-	    for (String p : constants) {
+	    Map<String,Object> constants = model.aitiaGenerated_getConstantParameterNames();
+	    for (Map.Entry<String,Object> entry : constants.entrySet()) {
 	    	Method get = null;
 	    	Object o = null;
+	    	
+	    	String p = entry.getKey();
+	    	Object instance = entry.getValue();
+	    	String paramName = calculateParameterName(p);
 			try {
 				try {
-					get = model.getClass().getMethod("get" + p);
-					o = get.invoke(model);
+					get = instance.getClass().getMethod("get" + paramName);
+					o = get.invoke(instance);
 				} catch (final NoSuchMethodException e) {
-					try {
-						get = model.getClass().getMethod("is" + p);
-						o = get.invoke(model);
-					} catch (final NoSuchMethodException e1) {
-						if (getParameterMethod == null)
-							throw new IllegalStateException();
-						o = getParameterMethod.invoke(model,Util.capitalize(p));
-						if (o == null)
-							o = getParameterMethod.invoke(model,Util.uncapitalize(p));
-					}
+					get = instance.getClass().getMethod("is" + paramName);
+					o = get.invoke(instance);
 				}
 			} catch (IllegalStateException e) {
 				throw e;
 			} catch (Exception e) {}
 //	    	b.append(p).append(": ").append(toStringWithoutScientificNotation(o,o.getClass())).append("\n");
-	    	b.append(p).append(": ").append(o.toString()).append("\n");
+	    	b.append(prettyPrint(p)).append(": ").append(o.toString()).append("\n");
 	    	
-	    	constantParameters.put(p, o);
+	    	constantParameters.put(prettyPrint(p), o);
 	    }
 	    return b.toString();
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private String calculateParameterName(final String id) {
+		if (id == null) return null;
+		
+		int idx = id.lastIndexOf('#');
+		if (idx > 0)
+			return Util.capitalize(id.substring(idx + 1));
+		
+		return id;
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private String prettyPrint(final String id) {
+		if (id == null) return null;
+		
+		String result = id;
+		if (result.startsWith("#"))
+			result = result.substring(1);
+		result = Util.capitalize(result);
+		
+		return result;
 	}
 	
 	//----------------------------------------------------------------------------------------------------
@@ -381,9 +394,9 @@ public class MasonRecorder {
 	private String getHeader() {
 		StringBuffer b = new StringBuffer();
 		b.append("\"run\"").append(delimiter).append("\"" + TICK_HEADER_LABEL + "\"").append(delimiter);
-		List<String> parameters = model.aitiaGenerated_getMutableParameterNames();
-		for (String p : parameters)
-			b.append("\"").append(p).append("\"").append(delimiter);
+		Map<String,Object> parameters = model.aitiaGenerated_getMutableParameterNames();
+		for (String p : parameters.keySet())
+			b.append("\"").append(prettyPrint(p)).append("\"").append(delimiter);
 		
 		for (Pair<String,Method> p : sources){
 			String name = p.getFirst();
@@ -422,25 +435,21 @@ public class MasonRecorder {
 		}
 		
 		parameterList = new HashMap<String, Object>(constantParameters);
-	    List<String> parameters = model.aitiaGenerated_getMutableParameterNames();
-	    for (String p : parameters) {
+	    Map<String,Object> parameters = model.aitiaGenerated_getMutableParameterNames();
+	    for (Map.Entry<String,Object> entry : parameters.entrySet()) {
 	    	Method get = null;
 	    	Object o = null;
+	    	
+	    	String p = entry.getKey();
+	    	Object instance = entry.getValue();
+	    	String paramName = calculateParameterName(p);
 			try {
 				try {
-					get = model.getClass().getMethod("get" + p);
-					o = get.invoke(model);
+					get = instance.getClass().getMethod("get" + paramName);
+					o = get.invoke(instance);
 				} catch (NoSuchMethodException e) {
-					try {
-						get = model.getClass().getMethod("is" + p);
-						o = get.invoke(model);
-					} catch (final NoSuchMethodException e1) {
-						if (getParameterMethod == null)
-							throw new IllegalStateException(e);
-						o = getParameterMethod.invoke(model,Util.capitalize(p));
-						if (o == null)
-							o = getParameterMethod.invoke(model,Util.uncapitalize(p));
-					}
+					get = instance.getClass().getMethod("is" + paramName);
+					o = get.invoke(instance);
 				}
 //			} catch (IllegalStateException e) {
 //				throw e;
@@ -452,7 +461,7 @@ public class MasonRecorder {
 			}
 //	    	b.append(toStringWithoutScientificNotation(o,o.getClass())).append(delimiter);
 	    	b.append(o.toString()).append(delimiter);
-	    	parameterList.put(p, o);
+	    	parameterList.put(prettyPrint(p), o);
 	    }
 	    parameterValues = b.toString();
 	    parameterList = Collections.unmodifiableMap(parameterList);
