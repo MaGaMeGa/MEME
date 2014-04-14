@@ -207,10 +207,10 @@ public class MasonBatchController implements IBatchController, IRecorderListener
 					final Object instance = info.getActualType().newInstance();
 					parentParameters.put(name,instance);
 					if (info.getParentInfo() == null) {
-						final Method setter = modelClass.getMethod("set" + name,info.getReferenceType());
+						final Method setter = modelClass.getMethod("set" + Util.capitalize(info.getName()),info.getReferenceType());
 						setter.invoke(model,instance);
 					} else {
-						final Method setter = info.getParentInfo().getActualType().getMethod("set" + name,info.getReferenceType());
+						final Method setter = info.getParentInfo().getActualType().getMethod("set" + Util.capitalize(info.getName()),info.getReferenceType());
 						final int idx = name.lastIndexOf('#'); 
 						final String parentName = name.substring(0,idx);
 						setter.invoke(parentParameters.get(parentName),instance);
@@ -239,13 +239,15 @@ public class MasonBatchController implements IBatchController, IRecorderListener
 			(p.isOriginalConstant() ? constantParameterNames : mutableParameterNames).add(name);
 			if (p instanceof ISubmodelParameterInfo) {
 				final ISubmodelParameterInfo spi = (ISubmodelParameterInfo) p;
-				final String instanceId = getSubmodelInfoFullName(spi.getParentInfo());
-				final Object instance = parentParameters.get(instanceId);
+				final String parentInstanceId = getSubmodelInfoFullName(spi.getParentInfo());
+				final Object instance = parentParameters.get(parentInstanceId);
 				if (instance == null)
 					throw new BatchException("Instance not found for " + p.getName());
 				for (final Method m : spi.getParentInfo().getActualType().getMethods()) {
 					if (m.getName().equals("set" + name) && m.getParameterTypes().length == 1) {
+						final String instanceId = parentInstanceId + "#" + p.getName();
 						this.methods.put(instanceId,new Pair<Object,Method>(instance,m));
+						break;
 					}
 				}
 			} else {
@@ -268,7 +270,7 @@ public class MasonBatchController implements IBatchController, IRecorderListener
 		for (AbstractParameterInfo p : combination) {
 			String name = p.getName();
 			if (p instanceof ISubmodelParameterInfo) 
-				name = getSubmodelInfoFullName(((ISubmodelParameterInfo)p).getParentInfo());
+				name = getSubmodelInfoFullName(((ISubmodelParameterInfo)p).getParentInfo()) + "#" + name;
 			
 			final Pair<Object,Method> setterPair  = methods.get(name);
 			final Object value = p.iterator().next();
