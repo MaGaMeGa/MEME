@@ -11,6 +11,7 @@ public class MasonChooserSubmodelParameterInfo extends MasonChooserParameterInfo
 	private static final long serialVersionUID = 6494379199798639435L;
 	
 	protected SubmodelInfo parent;
+	protected Class<?> parentValue;
 	
 	//====================================================================================================
 	// methods
@@ -30,6 +31,10 @@ public class MasonChooserSubmodelParameterInfo extends MasonChooserParameterInfo
 	
 	//----------------------------------------------------------------------------------------------------
 	public SubmodelInfo getParent() { return parent; }
+	
+	//----------------------------------------------------------------------------------------------------
+	public Class<?> getParentValue() { return parentValue; }
+	public void setParentValue(final Class<?> parentValue) { this.parentValue = parentValue; }
 	
 	//----------------------------------------------------------------------------------------------------
 	@Override

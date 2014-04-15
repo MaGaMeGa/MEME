@@ -8,6 +8,7 @@ public class MasonIntervalSubmodelParameterInfo extends MasonIntervalParameterIn
 	private static final long serialVersionUID = 6870852296005661875L;
 	
 	protected SubmodelInfo parent;
+	protected Class<?> parentValue;
 	
 	//====================================================================================================
 	// methods
@@ -27,6 +28,10 @@ public class MasonIntervalSubmodelParameterInfo extends MasonIntervalParameterIn
 
 	//----------------------------------------------------------------------------------------------------
 	public SubmodelInfo getParent() { return parent; }
+	
+	//----------------------------------------------------------------------------------------------------
+	public Class<?> getParentValue() { return parentValue; }
+	public void setParentValue(final Class<?> parentValue) { this.parentValue = parentValue; }
 	
 	//----------------------------------------------------------------------------------------------------
 	@Override

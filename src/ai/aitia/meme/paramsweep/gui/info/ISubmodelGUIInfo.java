@@ -8,4 +8,6 @@ public interface ISubmodelGUIInfo {
 	//----------------------------------------------------------------------------------------------------
 	public SubmodelInfo getParent();
 	public String getName();
+	public Class<?> getParentValue();
+	public void setParentValue(final Class<?> parentValue);
 }

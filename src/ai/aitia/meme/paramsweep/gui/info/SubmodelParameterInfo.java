@@ -8,6 +8,7 @@ public class SubmodelParameterInfo extends ParameterInfo implements ISubmodelGUI
 	private static final long serialVersionUID = 6991443589897247037L;
 	
 	protected SubmodelInfo parent;
+	protected Class<?> parentValue;
 
 	//====================================================================================================
 	// methods
@@ -26,6 +27,10 @@ public class SubmodelParameterInfo extends ParameterInfo implements ISubmodelGUI
 	//----------------------------------------------------------------------------------------------------
 	public SubmodelInfo getParent() { return parent; }
 	public void setParent(final SubmodelInfo parent) { this.parent = parent; }
+	
+	//----------------------------------------------------------------------------------------------------
+	public Class<?> getParentValue() { return parentValue; }
+	public void setParentValue(final Class<?> parentValue) { this.parentValue = parentValue; }
 
 	//----------------------------------------------------------------------------------------------------
 	@Override

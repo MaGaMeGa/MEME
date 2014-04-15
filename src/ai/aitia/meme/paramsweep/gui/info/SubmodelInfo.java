@@ -13,6 +13,7 @@ public class SubmodelInfo extends ParameterInfo implements ISubmodelGUIInfo {
 	private List<Class<?>> possibleTypes;
 	private Class<?> actualType;
 	private SubmodelInfo parent;
+	private Class<?> parentValue;
 	
 	//====================================================================================================
 	// methods
@@ -34,11 +35,13 @@ public class SubmodelInfo extends ParameterInfo implements ISubmodelGUIInfo {
 	public List<Class<?>> getPossibleTypes() { return possibleTypes; }
 	public Class<?> getActualType() { return actualType; }
 	public SubmodelInfo getParent() { return parent; }
+	public Class<?> getParentValue() { return parentValue; }
 
 	//----------------------------------------------------------------------------------------------------
 	public void setPossibleTypes(final List<Class<?>> possibleTypes) { this.possibleTypes = possibleTypes; }
 	public void setActualType(final Class<?> actualType) { this.actualType = actualType; }
 	public void setParent(final SubmodelInfo parent) { this.parent = parent; }
+	public void setParentValue(final Class<?> parentValue) { this.parentValue = parentValue; }
 	
 	//----------------------------------------------------------------------------------------------------
 	@Override
