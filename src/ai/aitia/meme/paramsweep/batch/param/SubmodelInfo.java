@@ -89,4 +89,32 @@ public class SubmodelInfo<T> extends ParameterInfo<T> implements ISubmodelParame
 		
 		return clone;
 	}
+	
+	//----------------------------------------------------------------------------------------------------
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof SubmodelInfo<?>) {
+			final SubmodelInfo<?> that = (SubmodelInfo<?>) o;
+			
+			if (this.parent == null)
+				return that.parent == null && this.name.equals(that.name);
+			
+			return this.name.equals(that.name) && this.parent.equals(that.parent);
+
+		}
+		
+		return false;
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	@Override
+	public int hashCode() {
+		int result = 17;
+		result = 31 * result + name.hashCode();
+		if (parent != null)
+			result = 31 * result + parent.hashCode();
+		
+		return result;
+		
+	}
 }
