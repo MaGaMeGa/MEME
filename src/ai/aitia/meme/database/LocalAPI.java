@@ -33,6 +33,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.TreeMap;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.database.ColumnType.ValueNotSupportedException;
 import ai.aitia.meme.database.SQLDialect.SQLState;
@@ -68,7 +69,7 @@ public class LocalAPI extends AbstractResultsDb implements IConnChangedListener
 	    	rs.close();
 	    	ps.close(); ps = null;
 		} catch (SQLException e) {
-			MEMEApp.logException("LocalAPI.findModel()", e);
+			Logger.logException("LocalAPI.findModel()", e);
 			dialect().checkOutOfMemory(e);
 		} finally {
 			release(ps);
@@ -88,7 +89,7 @@ public class LocalAPI extends AbstractResultsDb implements IConnChangedListener
 			rs.close();
 			st.close(); st = null;
 		} catch (SQLException e) {
-			MEMEApp.logException("LocalAPI.findModel()", e);
+			Logger.logException("LocalAPI.findModel()", e);
 			dialect().checkOutOfMemory(e);
 		} finally {
 			release(st);
@@ -143,14 +144,14 @@ public class LocalAPI extends AbstractResultsDb implements IConnChangedListener
 	   		resultsDbChanged.fire(new ResultsDbChangeEvent(this,m,true));
 		} catch (final Exception e) {
 			result = false;
-			MEMEApp.logException("LocalAPI.renameModel()",e);
+			Logger.logException("LocalAPI.renameModel()",e);
 			if (e instanceof SQLException)
 				MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory((SQLException)e);
 			if (t != null) {
 				try {
 					t.rollback();
 				} catch (SQLException e1) {
-					MEMEApp.logException("LocalAPI.renameModel()", e1);
+					Logger.logException("LocalAPI.renameModel()", e1);
 					MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e1);
 				}
 			}
@@ -199,7 +200,7 @@ public class LocalAPI extends AbstractResultsDb implements IConnChangedListener
 			t.commit();
 			throw e;
 		} catch (Exception e) {
-			MEMEApp.logException("LocalAPI.addResult()", e);
+			Logger.logException("LocalAPI.addResult()", e);
 			throw e;
 		} finally {
 			t.rollback();
@@ -227,7 +228,7 @@ public class LocalAPI extends AbstractResultsDb implements IConnChangedListener
 	    	}
 	    	rs.close();
 		} catch (SQLException e) {
-			MEMEApp.logException("LocalAPI.getModelsAndVersions()", e);
+			Logger.logException("LocalAPI.getModelsAndVersions()", e);
 			dialect().checkOutOfMemory(e);
 		} finally {
 			release(st);
@@ -245,7 +246,7 @@ public class LocalAPI extends AbstractResultsDb implements IConnChangedListener
 			ans = (rs == null) ? null : rs.getString("Description");
 			st.close(); st = null;
 		} catch (SQLException e) {
-			MEMEApp.logException("LocalAPI.getDescription()", e);
+			Logger.logException("LocalAPI.getDescription()", e);
 			dialect().checkOutOfMemory(e);
 		} finally {
 			release(st);
@@ -259,7 +260,7 @@ public class LocalAPI extends AbstractResultsDb implements IConnChangedListener
 			writeDescription(m, m.getModel_id());
 			resultsDbChanged.fire(new ResultsDbChangeEvent(this, m, m.getDescription()));
 		} catch (SQLException e) {
-			MEMEApp.logException("LocalAPI.writeDescription()", e);
+			Logger.logException("LocalAPI.writeDescription()", e);
 			dialect().checkOutOfMemory(e);
 		}
 	}
@@ -277,7 +278,7 @@ public class LocalAPI extends AbstractResultsDb implements IConnChangedListener
 	    		ans = rs.getString(1);
 	    	st.close(); st = null;
 		} catch (SQLException e) {
-			MEMEApp.logException("LocalAPI.getDescription(model,batch)", e);
+			Logger.logException("LocalAPI.getDescription(model,batch)", e);
 			dialect().checkOutOfMemory(e);
 		} finally {
 			release(st);
@@ -331,7 +332,7 @@ public class LocalAPI extends AbstractResultsDb implements IConnChangedListener
 		} catch (IllegalArgumentException e) {
 			throw e;
 		} catch (SQLException e) {
-			MEMEApp.logException("LocalAPI.setBatchDescription()", e);
+			Logger.logException("LocalAPI.setBatchDescription()", e);
 			dialect().checkOutOfMemory(e);
 		} finally {
 			release(st);
@@ -379,7 +380,7 @@ public class LocalAPI extends AbstractResultsDb implements IConnChangedListener
 	    	}
 
 		} catch (SQLException e) {
-			MEMEApp.logException("LocalAPI.getDescription(model,batch)", e);
+			Logger.logException("LocalAPI.getDescription(model,batch)", e);
 			dialect().checkOutOfMemory(e);
 		} finally {
 			release(st);
@@ -451,7 +452,7 @@ public class LocalAPI extends AbstractResultsDb implements IConnChangedListener
 	    	rs.close();
 	    	st.close(); st = null;
 		} catch (SQLException e) {
-			MEMEApp.logExceptionCallStack("LocalAPI.getResults()", e);
+			Logger.logExceptionCallStack("LocalAPI.getResults()", e);
 			dialect().checkOutOfMemory(e);
 		} finally {
 			release(st);
@@ -475,7 +476,7 @@ public class LocalAPI extends AbstractResultsDb implements IConnChangedListener
 	    	rs.close();
 	    	st.close(); st = null;
 		} catch (SQLException e) {
-			MEMEApp.logException("LocalAPI.getNumberOfRows()", e);
+			Logger.logException("LocalAPI.getNumberOfRows()", e);
 			dialect().checkOutOfMemory(e);
 		} finally {
 			release(st);
@@ -692,7 +693,7 @@ public class LocalAPI extends AbstractResultsDb implements IConnChangedListener
 		}
 		/** This method handles the exception 'e' (log entry, dispose, etc.) */ 
 		private void handleSQLException(SQLException e) {
-			MEMEApp.logExceptionCallStack("LocalAPI.RowIterator", e);
+			Logger.logExceptionCallStack("LocalAPI.RowIterator", e);
 			dispose();
 			dialect().checkOutOfMemory(e);
 		}
@@ -773,7 +774,7 @@ public class LocalAPI extends AbstractResultsDb implements IConnChangedListener
 		try {
 			runCreateCommands(getConnection(), cmds);
 		} catch (SQLException sqle) {
-			MEMEApp.logException("LocalAPI.createTables()", sqle);    			
+			Logger.logException("LocalAPI.createTables()", sqle);    			
 			dialect().checkOutOfMemory(sqle);
 		}
 	}
@@ -851,7 +852,7 @@ public class LocalAPI extends AbstractResultsDb implements IConnChangedListener
 					st.executeUpdate("ALTER TABLE " + tmpTable + " RENAME TO " + tableName);
 
 				} catch (SQLException e) {
-					MEMEApp.logException("LocalAPI.migrateTables()", e);
+					Logger.logException("LocalAPI.migrateTables()", e);
 					dialect().checkOutOfMemory(e);
 				} catch (UserBreakException e) {
 					break;
@@ -862,13 +863,13 @@ public class LocalAPI extends AbstractResultsDb implements IConnChangedListener
 			if (tmpTable != null) try {
 				dialect.deleteTableIfExists(tmpTable);
 			} catch (SQLException e) {
-				MEMEApp.logException("LocalAPI.migrateTables()", e);
+				Logger.logException("LocalAPI.migrateTables()", e);
 				dialect().checkOutOfMemory(e);
 			}
 			if (seq != null) try {
 				dialect.deleteSeqIfExists(seq);
 			} catch (SQLException e) {
-				MEMEApp.logException("LocalAPI.migrateTables()", e);
+				Logger.logException("LocalAPI.migrateTables()", e);
 				dialect().checkOutOfMemory(e);
 			}
 			if (savedTaskName != null)
@@ -907,7 +908,7 @@ public class LocalAPI extends AbstractResultsDb implements IConnChangedListener
 		} catch (SQLException e) {
 			// Base table not found = no such model_id
 			if (!dialect().isError(e, SQLState.BaseTableNotFound_Select)) {
-				MEMEApp.logException("LocalAPI.getNewBatch()", e);
+				Logger.logException("LocalAPI.getNewBatch()", e);
 				dialect().checkOutOfMemory(e);
 			}
 		} finally {

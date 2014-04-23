@@ -47,7 +47,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
-import ai.aitia.meme.MEMEApp;
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.events.LastDirectoryChanger;
 import ai.aitia.meme.gui.Wizard;
 import ai.aitia.meme.paramsweep.batch.IModelInformation;
@@ -472,7 +472,7 @@ public class ParameterSweepWizard extends Wizard implements IPSWInformationProvi
 			registry.put(PlatformManager.idStringForPlatform(PlatformSettings.getPlatformType()) + "_CLASSPATH",
 					classPath.substring(0,classPath.length() - 1));
 		} catch (IllegalArgumentException e){
-			MEMEApp.logException(e);
+			Logger.logException(e);
 		}
 	}
 	

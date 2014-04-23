@@ -23,6 +23,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.pluginmanager.Parameter;
 import ai.aitia.meme.utils.Utils;
@@ -141,7 +142,7 @@ public class Columns extends ArrayList<Parameter>
 				t = new ColumnType(rs.getInt(c_Type), rs.getInt(c_A), rs.getInt(c_B));
 			} catch (IllegalArgumentException e) {
 				t = ColumnType.STRING;
-				MEMEApp.logError("Invalid ColumnType in table %s at row {ID=%d,Name=%s,Column=%s}: %d" +
+				Logger.logError("Invalid ColumnType in table %s at row {ID=%d,Name=%s,Column=%s}: %d" +
 						" It will be treated as %s",
 						table, id, name, column, rs.getInt(c_Type), t.getSQLTypeStr());
 			}

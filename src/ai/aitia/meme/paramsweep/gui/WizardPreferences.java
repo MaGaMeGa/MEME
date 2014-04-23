@@ -34,7 +34,8 @@ import javax.swing.JFileChooser;
 
 //import com.apple.eio.FileManager;
 
-import ai.aitia.meme.MEMEApp;
+
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.gui.Preferences;
 import ai.aitia.meme.gui.PreferencesPage;
 import ai.aitia.meme.gui.SimpleFileFilter;
@@ -481,7 +482,7 @@ public class WizardPreferences extends Preferences {
 				fileWriter = new FileWriter(newFile);
 				vCloudConnectionProperties.store(fileWriter,"");
 				final File file = new File(vCloudFileName);
-				MEMEApp.logError("vcloud-connection.cfg path: %s", file.getAbsolutePath());
+				Logger.logError("vcloud-connection.cfg path: %s", file.getAbsolutePath());
 				if (file.exists())
 					file.delete();
 				fileWriter.flush();
@@ -594,9 +595,9 @@ public class WizardPreferences extends Preferences {
 	private Properties setVCloudConnectionSettings() {
 		File file = new File(vCloudFileName);
 		try {
-			MEMEApp.logError("user.dir=%s", new File(".").getCanonicalPath());
-			MEMEApp.logError("user.dir=%s", System.getProperty("user.dir"));
-			MEMEApp.logError(vCloudFileName + "=%s", file.getAbsolutePath());
+			Logger.logError("user.dir=%s", new File(".").getCanonicalPath());
+			Logger.logError("user.dir=%s", System.getProperty("user.dir"));
+			Logger.logError(vCloudFileName + "=%s", file.getAbsolutePath());
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -616,7 +617,7 @@ public class WizardPreferences extends Preferences {
 			}
 		} else {
 			Utilities.userAlert(this,"Missing cloud connection settings (" + vCloudFileName + ").");
-			MEMEApp.logError("File not found: %s", file.getAbsolutePath());
+			Logger.logError("File not found: %s", file.getAbsolutePath());
 			tempProp = createDefaultVCloudConnectionSettings();
 		}
 		return tempProp;

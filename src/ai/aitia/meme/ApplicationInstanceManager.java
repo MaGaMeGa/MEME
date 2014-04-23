@@ -59,7 +59,7 @@ public class ApplicationInstanceManager {
     	// if unable to open, connect to existing and send new instance message, return false
     	try {
     		final ServerSocket socket = new ServerSocket(SINGLE_INSTANCE_NETWORK_SOCKET,10,InetAddress.getLocalHost());
-    		MEMEApp.logError("Listening for application instances on socket " + SINGLE_INSTANCE_NETWORK_SOCKET);
+    		Logger.logError("Listening for application instances on socket " + SINGLE_INSTANCE_NETWORK_SOCKET);
     		final Thread instanceListenerThread = new Thread(new Runnable() {
     
     			//====================================================================================================
@@ -77,7 +77,7 @@ public class ApplicationInstanceManager {
     							final BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
     							final String message = in.readLine();
     							if (SINGLE_INSTANCE_SHARED_KEY.trim().equals(message.trim())) {
-    								MEMEApp.logError("Shared key matched - new application instance found");
+    								Logger.logError("Shared key matched - new application instance found");
     								fireNewInstance();
     							}
     							in.close();
@@ -93,7 +93,7 @@ public class ApplicationInstanceManager {
     		instanceListenerThread.start();
     		// listen
     	} catch (final UnknownHostException e) {
-    		MEMEApp.logException(e);
+    		Logger.logException(e);
     		return returnValueOnError;
     	} catch (final IOException e) {
     		try {

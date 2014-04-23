@@ -30,7 +30,7 @@ import javassist.ClassPath;
 import javassist.CtClass;
 import javassist.Modifier;
 import javassist.NotFoundException;
-import ai.aitia.meme.MEMEApp;
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.paramsweep.batch.IBatchController;
 import ai.aitia.meme.paramsweep.batch.IModelInformation;
 import ai.aitia.meme.paramsweep.batch.IParameterPartitioner;
@@ -217,7 +217,7 @@ public class Simphony2JavaPlatform extends DefaultPluginPlatform {
 					c.getConstructor();
 				} catch (NoSuchMethodException e) {
 					error[0] = "The model has not nullary constructor.";
-					MEMEApp.logException(e);
+					Logger.logException(e);
 					return null;
 				}
 				return clazz;
@@ -225,16 +225,16 @@ public class Simphony2JavaPlatform extends DefaultPluginPlatform {
 			error[0] = "This model is not supported.";
 		} catch (FileNotFoundException e) {
 			error[0] = "Not found.";
-			MEMEApp.logException(e);
+			Logger.logException(e);
 		} catch (IOException e) {
 			error[0] = "Loading error.";
-			MEMEApp.logException(e);
+			Logger.logException(e);
 		} catch (NotFoundException e) {
 			// never happens
 			throw new IllegalStateException(e);
 		} catch (CannotCompileException e) {
 			error[0] = "Required classes not found.";
-			MEMEApp.logException(e);
+			Logger.logException(e);
 		}
 		return null;
 	}

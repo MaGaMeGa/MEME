@@ -39,6 +39,7 @@ import javax.swing.tree.TreePath;
 
 import org.w3c.dom.Element;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.database.Model;
 import ai.aitia.meme.events.HybridAction;
@@ -235,7 +236,7 @@ public class ResultsPanel extends javax.swing.JPanel implements IHybridActionLis
 				if (!success)
 					MEMEApp.userErrors(null,"The renaming operation is failed.",MEMEApp.seeTheErrorLog("%s"));
 			} catch (Exception e) {
-				MEMEApp.logException("ResultsPanel.renameResult()",e,true);
+				Logger.logException("ResultsPanel.renameResult()",e,true);
 				MEMEApp.userErrors(null,String.format("Exception occured during the operation: %s",Utils.getLocalizedMessage(e)),
 								   MEMEApp.seeTheErrorLog("%s"));
 			} finally {
@@ -279,7 +280,7 @@ public class ResultsPanel extends javax.swing.JPanel implements IHybridActionLis
 								try {
 									root = XMLUtils.load(f.toURI());
 								} catch (Exception e) {
-									MEMEApp.logException(e);
+									Logger.logException(e);
 									errorNumber += 1;
 									continue;
 								}
@@ -289,7 +290,7 @@ public class ResultsPanel extends javax.swing.JPanel implements IHybridActionLis
 									if (model_version != null && model_version.length() != 0) { // reference to result table
 										String model_name = table.getAttribute(ViewCreationRule.INPUT_MODELNAME_ATTR);
 										if (model_name == null || model_name.length() == 0) {
-											MEMEApp.logError("Missing model name attribute in file %s",f.getName());
+											Logger.logError("Missing model name attribute in file %s",f.getName());
 											errorNumber += 1;
 											processed += 1;
 											if (delayed.contains(f)) delayed.remove(f);
@@ -297,7 +298,7 @@ public class ResultsPanel extends javax.swing.JPanel implements IHybridActionLis
 										}
 										Model model = MEMEApp.getResultsDb().findModel(model_name,model_version);
 										if (model == null) {
-											MEMEApp.logError("Invalid reference to model %s in file %s",model_name + "/" + model_version,f.getName());
+											Logger.logError("Invalid reference to model %s in file %s",model_name + "/" + model_version,f.getName());
 											errorNumber += 1;
 											processed += 1;
 											if (delayed.contains(f)) delayed.remove(f);
@@ -326,7 +327,7 @@ public class ResultsPanel extends javax.swing.JPanel implements IHybridActionLis
 									System.gc();
 									vc.trun();
 								} catch (Exception e) {
-									MEMEApp.logException("ResultsPanel.loadViews() - " + rule.getName(),e);
+									Logger.logException("ResultsPanel.loadViews() - " + rule.getName(),e);
 									errorNumber += 1;
 								}
 								processed += 1;
@@ -339,7 +340,7 @@ public class ResultsPanel extends javax.swing.JPanel implements IHybridActionLis
 							errorNumber += files.size();
 							processed += files.size();
 							for (File f : files)
-								MEMEApp.logError("Invalid view reference in file %s",f.getName());
+								Logger.logError("Invalid view reference in file %s",f.getName());
 						}
 						MEMEApp.LONG_OPERATION.setTaskName(String.format("Processing scripts... (Completed %d out of %d)",processed,finalSize));
 						MEMEApp.LONG_OPERATION.progress(processed,finalSize);

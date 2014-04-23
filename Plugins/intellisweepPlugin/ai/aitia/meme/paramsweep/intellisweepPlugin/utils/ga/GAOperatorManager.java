@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import ai.aitia.meme.MEMEApp;
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.utils.ga.jgap.GAOperationException;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.utils.ga.jgap.JGAPOperatorWrapper;
 
@@ -168,14 +168,14 @@ public class GAOperatorManager implements Serializable {
 		String err = null;
 		
 		if (!jarFile.exists()) {
-			MEMEApp.logError( "Cannot locate the jar file '%s'", jarPath );
+			Logger.logError( "Cannot locate the jar file '%s'", jarPath );
 			throw new Exception("Cannot locate the jar file");
 		}
 		try{
 			zf = new ZipFile( jarFile );
 		}
 		catch (IOException ex) {
-			MEMEApp.logError( "'%s' is not a jar file", jarPath );
+			Logger.logError( "'%s' is not a jar file", jarPath );
 			throw new Exception("The specified file is not a jar file");
 		}
 		try {
@@ -200,14 +200,14 @@ public class GAOperatorManager implements Serializable {
 				            }
 			            }catch( ClassNotFoundException ex ){
 			    			//couldn't load class
-			            	MEMEApp.logError("(GAOperatorManager) Error while loading " +
+			            	Logger.logError("(GAOperatorManager) Error while loading " +
 			            						"class %s", clsName);
 			    		}catch( NoSuchMethodException ex ){
 			    			//there's no nullary constructor
 			    		}catch( SecurityException ex ){
 			    			//there's public no nullary constructor
 			    		}catch( NoClassDefFoundError ex ){
-			    			MEMEApp.logError("(GAOperatorManager) Error while loading class %s: " +
+			    			Logger.logError("(GAOperatorManager) Error while loading class %s: " +
 			    								"cannot find %s", clsName, ex.getMessage());
 			    		}
 		            }
@@ -220,7 +220,7 @@ public class GAOperatorManager implements Serializable {
 			err = getLocalizedMessage(ex);
 		}
 		if (err != null) {
-			MEMEApp.logError("Error reading file %s: %s", jarFile, err);
+			Logger.logError("Error reading file %s: %s", jarFile, err);
 		}
 	}
 	

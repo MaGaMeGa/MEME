@@ -28,6 +28,7 @@ import java.util.concurrent.Callable;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.database.Columns;
 import ai.aitia.meme.database.Model;
@@ -163,14 +164,14 @@ public class UserToolParser {
 							parts = fillWithUserInputs(parts);
 							argument = Utils.join(" ",(Object[])parts);
 							if (verboseMode) 
-								MEMEApp.logError("[Verbose] " + command + " " + argument);
+								Logger.logError("[Verbose] " + command + " " + argument);
 							Process p = Runtime.getRuntime().exec(command + " " + argument);
 							BufferedReader br = null;
 							String line = null;
 							br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 							while ((line = br.readLine()) != null) { 
 								if (!"".equals(line))
-									MEMEApp.logError("[Output] " + line);
+									Logger.logError("[Output] " + line);
 							}
 							br.close();
 							br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
@@ -178,27 +179,27 @@ public class UserToolParser {
 							boolean first = true;
 							while ((line = br.readLine()) != null) {
 								if (first) {
-									MEMEApp.logError("User tool error: " + userTool.getMenuText());
-									MEMEApp.logError("Command: " + userTool.getCommand() + "(" + command + ")");
-									MEMEApp.logError("Argument: " + userTool.getArguments() + " (" + argument + ")");
+									Logger.logError("User tool error: " + userTool.getMenuText());
+									Logger.logError("Command: " + userTool.getCommand() + "(" + command + ")");
+									Logger.logError("Argument: " + userTool.getArguments() + " (" + argument + ")");
 									first = false;
 								}
-								MEMEApp.logError("[Error] " + line);
+								Logger.logError("[Error] " + line);
 							}
 							br.close();
 							int exitCode = p.waitFor();
 							if (verboseMode || !first)
-								MEMEApp.logError("Exit code: %d",exitCode);
+								Logger.logError("Exit code: %d",exitCode);
 						} catch (InterruptedException e) { 
 							continue;
 						} catch (IOException e) {
 							MEMEApp.WAITING_USER_TOOL = false;
-							MEMEApp.logException(e);
+							Logger.logException(e);
 							clean();
 							return;
 						} catch (UserToolParserException e) {
 							MEMEApp.WAITING_USER_TOOL = false;
-							MEMEApp.logException(e);
+							Logger.logException(e);
 							clean();
 							return;
 						} 

@@ -22,6 +22,7 @@ import java.util.EventObject;
 
 import javax.swing.JDialog;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.database.ViewRec;
 import ai.aitia.meme.gui.Wizard;
@@ -162,7 +163,7 @@ public class ViewCreationDialog implements Utils.IUnary<ArrayList<Object>>
 			}
 
 			// Enter data to the database - long operation
-			MEMEApp.logError("ViewCreationRule:\n%s", rule);
+			Logger.logError("ViewCreationRule:\n%s", rule);
 			viewCreationFinished = null;
 			warning = false;
 			String savedTitle[] = { null };

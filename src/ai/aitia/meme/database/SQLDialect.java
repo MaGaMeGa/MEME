@@ -22,6 +22,7 @@ import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.List;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 
 /**
@@ -211,7 +212,7 @@ public abstract class SQLDialect {
 		if (st != null) 
 			try { st.close(); } 
 			catch (SQLException e) {
-				MEMEApp.logException("SQLDialect.release()", e);
+				Logger.logException("SQLDialect.release()", e);
 				MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e);
 			}
 	}

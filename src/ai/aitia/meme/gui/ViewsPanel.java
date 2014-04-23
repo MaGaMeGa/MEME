@@ -36,6 +36,7 @@ import javax.swing.JToolBar;
 import org.w3c.dom.Element;
 
 import ai.aitia.chart.util.Utilities;
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.database.Columns;
 import ai.aitia.meme.database.ViewRec;
@@ -207,7 +208,7 @@ public class ViewsPanel extends JPanel implements java.awt.event.ActionListener,
 					}
 				});
 			} catch (Exception e1) {
-				MEMEApp.logExceptionCallStack("Saving view script", e1);
+				Logger.logExceptionCallStack("Saving view script", e1);
 				throw new IllegalStateException(e1);
 			} finally {
 				GUIUtils.setBusy(MEMEApp.getAppWnd(),false);
@@ -337,7 +338,7 @@ public class ViewsPanel extends JPanel implements java.awt.event.ActionListener,
 			if (!success)
 				MEMEApp.userErrors(null,"The renaming operation is failed.",MEMEApp.seeTheErrorLog("%s"));
 		} catch (Exception e) {
-			MEMEApp.logException("ViewsPanel.renameView()",e,true);
+			Logger.logException("ViewsPanel.renameView()",e,true);
 			MEMEApp.userErrors(null,String.format("Exception occured during the operation: %s",Utils.getLocalizedMessage(e)),
 							   MEMEApp.seeTheErrorLog("%s"));
 		} finally {

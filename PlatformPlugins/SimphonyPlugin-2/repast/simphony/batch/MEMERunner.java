@@ -24,7 +24,7 @@ import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.engine.watcher.WatcheeInstrumentor;
 import repast.simphony.parameter.DefaultParameters;
 import repast.simphony.scenario.ScenarioLoadException;
-import ai.aitia.meme.MEMEApp;
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.paramsweep.platform.simphony2.ISimphony2Model;
 import ai.aitia.meme.paramsweep.utils.SimulationException;
 
@@ -60,7 +60,7 @@ public abstract class MEMERunner extends AbstractRunner implements ISimphony2Mod
 				BatchScenarioLoader loader = new BatchScenarioLoader(scenarioDir);
 				registry = loader.load(runEnvironmentBuilder);
 			} else {
-				MEMEApp.logError("Scenario not found", new IllegalArgumentException(
+				Logger.logError("Scenario not found", new IllegalArgumentException(
 						"Invalid scenario " + scenarioDir.getAbsolutePath()));
 				return false;
 			}

@@ -20,6 +20,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.database.AbstractResultsDb.InvalidRowException;
 
@@ -104,7 +105,7 @@ public class ResultInDb extends Result
 			rs.close();
 			st.close(); st = null;
 		} catch (SQLException e) {
-			MEMEApp.logException("ResultInDb.getFirstRowID()", e);
+			Logger.logException("ResultInDb.getFirstRowID()", e);
 			MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e);
 		} finally {
 			SQLDialect.release(st);
@@ -118,7 +119,7 @@ public class ResultInDb extends Result
 		try { 
 			if (db != null) db.close();
 		} catch (SQLException e) {
-			MEMEApp.logException("ResultInDb.close()", e);
+			Logger.logException("ResultInDb.close()", e);
 			MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e);
 		} finally {
 			db = null;
@@ -145,10 +146,10 @@ public class ResultInDb extends Result
 		try {
 			return ensureData().read(this);
 		} catch (SQLException e) {
-			MEMEApp.logException("ResultInDb.getNextRow()", e);
+			Logger.logException("ResultInDb.getNextRow()", e);
 			MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e);
 		} catch (InvalidRowException e) {
-			MEMEApp.logException("ResultInDb.getNextRow()", e);
+			Logger.logException("ResultInDb.getNextRow()", e);
 		}
 		return null;
 	}

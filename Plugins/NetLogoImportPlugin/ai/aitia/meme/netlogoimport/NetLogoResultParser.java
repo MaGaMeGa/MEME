@@ -23,6 +23,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.database.ColumnType;
 import ai.aitia.meme.database.Columns;
@@ -304,9 +305,9 @@ public class NetLogoResultParser {
 			for (int i = 0;i < warn.size();++i) {
 				try {
 					MEMEApp.LONG_OPERATION.progress(i);
-					MEMEApp.logError(warn.get(i));
+					Logger.logError(warn.get(i));
 				} catch (UserBreakException e) {
-					MEMEApp.logError("%d warning(s) more.",warn.size() - i - 1);
+					Logger.logError("%d warning(s) more.",warn.size() - i - 1);
 					break;
 				}
 			}

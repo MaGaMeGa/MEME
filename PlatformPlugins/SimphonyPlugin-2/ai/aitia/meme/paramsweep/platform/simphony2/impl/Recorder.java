@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Vector;
 
-import ai.aitia.meme.MEMEApp;
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.paramsweep.utils.Util;
 import ai.aitia.meme.utils.Utils.Pair;
 
@@ -290,7 +290,7 @@ public class Recorder {
 			} catch (IllegalStateException e) {
 				throw e;
 			} catch (Exception e) {
-				MEMEApp.logException(e);
+				Logger.logException(e);
 			}
 	    	b.append(toStringWithoutScientificNotation(o,o.getClass())).append(delimiter);
 	    }

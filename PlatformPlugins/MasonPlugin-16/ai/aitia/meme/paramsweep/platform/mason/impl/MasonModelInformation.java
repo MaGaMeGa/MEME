@@ -33,7 +33,7 @@ import javassist.CannotCompileException;
 import javassist.CtClass;
 import sim.engine.SimState;
 import sim.util.Interval;
-import ai.aitia.meme.MEMEApp;
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.paramsweep.batch.IHierarchicalModelInformation;
 import ai.aitia.meme.paramsweep.batch.output.NonRecordableFunctionInfo;
 import ai.aitia.meme.paramsweep.batch.output.NonRecordableInfo;
@@ -267,13 +267,13 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 			}
 		} catch (final CannotCompileException e) {
 			error = "Error while processing the model : " + modelClass.getSimpleName();
-			MEMEApp.logException(e);
+			Logger.logExceptionCallStack(e);
 		} catch (final InstantiationException e) {
 			error = "Can't instantiate : " + modelClass.getSimpleName();
-			MEMEApp.logException(e);
+			Logger.logExceptionCallStack(e);
 		} catch (final IllegalAccessException e) {
 			error = "Can't instantiate : " + modelClass.getSimpleName();
-			MEMEApp.logException(e);
+			Logger.logExceptionCallStack(e);
 		} finally {
 			modelClass.defrost();
 		}
@@ -383,16 +383,16 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 				if (seedGetter != null)
 					parameters.add(createParameterInfo(instance, "Seed", seedGetter, parent));
 			} catch (final SecurityException e) {
-				MEMEApp.logException(e);
+				Logger.logException(e);
 				return "The method " + Util.getLocalizedMessage(e) + " is not visible.";
 			} catch (final NoSuchMethodException e) {
-				MEMEApp.logException(e);
+				Logger.logException(e);
 				return "The method " + Util.getLocalizedMessage(e) + " does not exist.";
 			} catch (final IllegalAccessException e) {
-				MEMEApp.logException(e);
+				Logger.logException(e);
 				return "The method " + Util.getLocalizedMessage(e) + " is not visible.";
 			} catch (final InvocationTargetException e) {
-				MEMEApp.logException(e);
+				Logger.logException(e);
 				return e.getClass().getSimpleName() + " occurs during the initialization: " + Util.getLocalizedMessage(e);
 			}
 		}
@@ -443,13 +443,13 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 			}
 		} catch (final InstantiationException e1) {
 			error = "Can't instantiate : " + submodel.getActualType().getSimpleName();
-			MEMEApp.logException(e1);
+			Logger.logException(e1);
 		} catch (final IllegalAccessException e1) {
 			error = "Can't instantiate : " + submodel.getActualType().getSimpleName();
-			MEMEApp.logException(e1);
+			Logger.logException(e1);
 		} catch (final InvocationTargetException e1) {
 			error = "Error while processing the model : " + submodel.getActualType().getSimpleName();
-			MEMEApp.logException(e1.getTargetException());
+			Logger.logException(e1.getTargetException());
 		}
 		
 		if (error != null)

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 
 /** Collection of utility functions. */
@@ -1172,7 +1173,7 @@ public class Utils
 			if (MEMEApp.isDebugVersion())
 				MEMEApp.uncaughtException(where, Thread.currentThread(), t);
 			else
-				MEMEApp.logExceptionCallStack(where, t);
+				Logger.logExceptionCallStack(where, t);
 		}
 	}
 

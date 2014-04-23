@@ -22,7 +22,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 
-import ai.aitia.meme.MEMEApp;
+import ai.aitia.meme.Logger;
 
 /**
  * Default implementation for nonstandard SQL commands.
@@ -106,7 +106,7 @@ public class DefaultSQLDialect extends SQLDialect
 	    	};
 	    	ans = tmp;
     	} catch (Exception e) {
-    		MEMEApp.logException("DefaultSQLDialect.createResultsTables()", e);
+    		Logger.logException("DefaultSQLDialect.createResultsTables()", e);
     	}
     	return ans;
 	}
@@ -138,7 +138,7 @@ public class DefaultSQLDialect extends SQLDialect
 	    	};
 	    	ans = tmp;
     	} catch (Exception e) {
-    		MEMEApp.logException("DefaultSQLDialect.createViewsTables()", e);
+    		Logger.logException("DefaultSQLDialect.createViewsTables()", e);
     	}
     	return ans;
 	}
@@ -288,7 +288,7 @@ public class DefaultSQLDialect extends SQLDialect
 				maxColumnNameLength = getConnection().getMetaData().getMaxColumnNameLength();
 				if (maxColumnNameLength == 0) maxColumnNameLength = Integer.MAX_VALUE;
 			} catch (Throwable t) {
-				MEMEApp.logException("DatabaseConnection.getMaxColumnNameLength()", t);
+				Logger.logException("DatabaseConnection.getMaxColumnNameLength()", t);
 				return 0;
 			}
 		}

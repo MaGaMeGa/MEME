@@ -76,6 +76,7 @@ import ai.aitia.chart.dialogs.ChartDialogChangeListener;
 import ai.aitia.chart.networkpanel.NetworkPanel;
 import ai.aitia.chart.util.ChartConstants;
 import ai.aitia.chart.util.XMLLoadingException;
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.chart.ResultDataSources;
 import ai.aitia.meme.chart.ViewDataSources;
@@ -183,8 +184,8 @@ public class ChartsPanel extends JPanel implements IHybridActionListener, ChartD
 				start(chartConfigCollection,m.getName() + "/" + m.getVersion(),false);
 			}
 		} catch (Exception e) {
-			MEMEApp.logError("Unable to create Charts panel.");
-			MEMEApp.logException(e);
+			Logger.logError("Unable to create Charts panel.");
+			Logger.logException(e);
 		}
 	}
 	
@@ -238,12 +239,12 @@ public class ChartsPanel extends JPanel implements IHybridActionListener, ChartD
 									}
 									processed++;
 								} catch (final IOException ex) {
-									MEMEApp.logError("Unable to save file: %s",imgName);
-									MEMEApp.logException(ex);
+									Logger.logError("Unable to save file: %s",imgName);
+									Logger.logException(ex);
 								}
 							} catch (final Throwable ex) {
-								MEMEApp.logError("Unable to create chart");
-								MEMEApp.logException(ex);
+								Logger.logError("Unable to create chart");
+								Logger.logException(ex);
 							}
 						}
 						return processed;
@@ -432,7 +433,7 @@ public class ChartsPanel extends JPanel implements IHybridActionListener, ChartD
 					
 				});
 				if (error[0] != null) 
-					MEMEApp.logException("ChartsPanel.openChart",error[0]);
+					Logger.logException("ChartsPanel.openChart",error[0]);
 		    	// end of fix 
 		    }
 		} else if (a == exportChartAsImage) {
@@ -474,8 +475,8 @@ public class ChartsPanel extends JPanel implements IHybridActionListener, ChartD
 								try {
 									ccc = isViewChartXML(fs[i].toURI()) ? ViewDataSources.load(fs[i].toURI()) : ResultDataSources.load(fs[i].toURI());
 								} catch (Exception ex) {
-									MEMEApp.logError("Unable to load file: %s.",fs[i].getName());
-									MEMEApp.logException(ex);
+									Logger.logError("Unable to load file: %s.",fs[i].getName());
+									Logger.logException(ex);
 									errorNumberFiles++;
 									continue;
 								}
@@ -505,14 +506,14 @@ public class ChartsPanel extends JPanel implements IHybridActionListener, ChartD
 												exportChart(panel,imgName,extension);
 											}
 										} catch (final IOException ex) {
-											MEMEApp.logError("Unable to save file: %s",imgName + extension);
-											MEMEApp.logException(ex);
+											Logger.logError("Unable to save file: %s",imgName + extension);
+											Logger.logException(ex);
 											errorNumberImgs++;
 										}
 									} catch (final Throwable ex) {
-										MEMEApp.logError("Unable to create chart");
-										MEMEApp.logException(ex);
-										MEMEApp.logExceptionCallStack(ex);
+										Logger.logError("Unable to create chart");
+										Logger.logException(ex);
+										Logger.logExceptionCallStack(ex);
 										errorNumberImgs++;
 									}
 								}
@@ -587,9 +588,9 @@ public class ChartsPanel extends JPanel implements IHybridActionListener, ChartD
     						fr.pack();    						
     						fr.setVisible(true);
     					} catch (final Throwable ex) {
-    						MEMEApp.logError("Unable to create chart");
-    						MEMEApp.logException(ex);
-    						MEMEApp.logExceptionCallStack(ex);
+    						Logger.logError("Unable to create chart");
+    						Logger.logException(ex);
+    						Logger.logExceptionCallStack(ex);
     					}
     				}
     			}
@@ -690,7 +691,7 @@ public class ChartsPanel extends JPanel implements IHybridActionListener, ChartD
 				xml = ((CCCollectionDialog)cccdialog).exportToXMLString();
 			} catch (final Exception e) {
 				MEMEApp.userErrors("Switch view","Error while switching view.","See error log for details.");
-				MEMEApp.logExceptionCallStack("ChartsPanel.changeView",e);
+				Logger.logExceptionCallStack("ChartsPanel.changeView",e);
 			}
 			if (xml != null) {
 				final ViewRec[] oldView = new ViewRec[1];
@@ -722,13 +723,13 @@ public class ChartsPanel extends JPanel implements IHybridActionListener, ChartD
 						
 					});
 				} catch (final Exception e) {
-					MEMEApp.logExceptionCallStack("ChartsPanel.changeView",e);
+					Logger.logExceptionCallStack("ChartsPanel.changeView",e);
 				}
 				if (error[0] != null) 
 					if (applyError[0]) {
 						MEMEApp.userAlert("The defined charts cannot be applied to the selected view.","MEME switched back to the original view.");
 					} else
-						MEMEApp.logExceptionCallStack("ChartsPanel.changeView",error[0]);
+						Logger.logExceptionCallStack("ChartsPanel.changeView",error[0]);
 			}
 		}
 	}
@@ -746,7 +747,7 @@ public class ChartsPanel extends JPanel implements IHybridActionListener, ChartD
 				xml = ((CCCollectionDialog)cccdialog).exportToXMLString();
 			} catch (final Exception e) {
 				MEMEApp.userErrors("Switch result","Error while switching result.","See error log for details.");
-				MEMEApp.logExceptionCallStack("ChartsPanel.changeResult",e);
+				Logger.logExceptionCallStack("ChartsPanel.changeResult",e);
 			}
 			if (xml != null) {
 				
@@ -780,13 +781,13 @@ public class ChartsPanel extends JPanel implements IHybridActionListener, ChartD
 						
 					});
 				} catch (final Exception e) {
-					MEMEApp.logExceptionCallStack("ChartsPanel.changeResult",e);
+					Logger.logExceptionCallStack("ChartsPanel.changeResult",e);
 				}
 				if (error[0] != null) 
 					if (applyError[0]) {
 						MEMEApp.userAlert("The defined charts cannot be applied to the selected result.","MEME switched back to the original result.");
 					} else
-						MEMEApp.logExceptionCallStack("ChartsPanel.changeResult",error[0]);
+						Logger.logExceptionCallStack("ChartsPanel.changeResult",error[0]);
 			}
 		}
 	}

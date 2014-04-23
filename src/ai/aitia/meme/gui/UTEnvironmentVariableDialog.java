@@ -44,6 +44,7 @@ import javax.swing.event.ListSelectionListener;
 import org.jvnet.substance.SubstanceLookAndFeel;
 import org.jvnet.substance.skin.ModerateSkin;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.usertools.UserToolGroup;
 import ai.aitia.meme.usertools.UserToolManager;
@@ -138,7 +139,7 @@ public class UTEnvironmentVariableDialog extends JDialog implements ActionListen
 			try {
 				manager.save();
 			} catch (Exception e1) {
-				MEMEApp.logException("Saving user tools",e1,true);
+				Logger.logException("Saving user tools",e1,true);
 				MEMEApp.userErrors("Warning","Saving environment variables failed.");
 			}
 			setVisible(false);

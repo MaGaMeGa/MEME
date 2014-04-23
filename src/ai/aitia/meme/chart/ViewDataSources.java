@@ -42,7 +42,7 @@ import ai.aitia.visu.ds.AbstractDataProducer;
 import ai.aitia.visu.ds.IDataProducer;
 import ai.aitia.visu.ds.IObjectProducer;
 import ai.aitia.visu.ds.ISeriesProducer;
-
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.database.ColumnType;
 import ai.aitia.meme.database.Columns;
@@ -261,7 +261,7 @@ public class ViewDataSources implements IDSPCollection
 				ans = new ViewDataSource(idx, prop);
 			}
 		} catch (XMLLoadingException e) {
-			MEMEApp.logExceptionCallStack("ViewDataSources.load()", e);
+			Logger.logExceptionCallStack("ViewDataSources.load()", e);
 		}
 		return ans;
 	}

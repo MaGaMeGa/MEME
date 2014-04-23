@@ -78,6 +78,7 @@
     >
       <fileset dir="${basedir}" defaultexcludes="yes"
          excludes="**/*.java* .**/ .* **/*.bak **/*.jar **/*.zip **/inf.___ **/*.bat build.xml" />
+    	<fileset dir="${bin}" includes="ai/aitia/meme/Logger*.class"/>
       <zipgroupfileset dir="${basedir}" includes="**/*.jar" />
 <!--
       <indexjars>

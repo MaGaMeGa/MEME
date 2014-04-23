@@ -34,6 +34,7 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.database.ConnChangedEvent;
 import ai.aitia.meme.database.Model;
@@ -134,7 +135,7 @@ public class ResultsTree extends javax.swing.tree.DefaultTreeModel
 						dbname = MEMEApp.getDatabase().getSQLDialect().getDbName();
 						return;
 					} catch (java.sql.SQLException e) {
-						MEMEApp.logException("ResultsTree.refresh().run()", e);
+						Logger.logException("ResultsTree.refresh().run()", e);
 					}
 					try { dbname = conn.getMetaData().getURL(); } 
 					catch (java.sql.SQLException e) {}

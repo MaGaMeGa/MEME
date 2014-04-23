@@ -53,6 +53,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.database.Model;
 import ai.aitia.meme.gui.SimpleFileFilter;
@@ -811,7 +812,7 @@ public class CSVMultiImportSettingsDialog extends CSVImportSettingsDialog implem
 				os.close();
 			} catch (IOException e1) {
 				ai.aitia.meme.MEMEApp.userAlert("Save failed.");
-				ai.aitia.meme.MEMEApp.logException(e1);
+				ai.aitia.meme.Logger.logException(e1);
 			}
 		} else if (command.equals("LOAD_SETTINGS")) {
 			JFileChooser chooser = new JFileChooser(ai.aitia.meme.MEMEApp.getLastDir());
@@ -827,7 +828,7 @@ public class CSVMultiImportSettingsDialog extends CSVImportSettingsDialog implem
 					setLastSettings();
 				} catch (IOException e1) {
 					ai.aitia.meme.MEMEApp.userAlert("Load failed.");
-					ai.aitia.meme.MEMEApp.logException(e1);
+					ai.aitia.meme.Logger.logException(e1);
 				}
 			}
 		} else if (command.equals("NOTOTHER")) {
@@ -948,7 +949,7 @@ public class CSVMultiImportSettingsDialog extends CSVImportSettingsDialog implem
 							interrupted = true;
 							break;
 						} else {
-							MEMEApp.logException("CSVMultiImportSettingsDialog.okButton", t);
+							Logger.logException("CSVMultiImportSettingsDialog.okButton", t);
 							text = messagePane.getText();
 							text += "\nError while writing to database: " + Utils.getLocalizedMessage(t);
 							text += "\nFile: " + files[i].getName();

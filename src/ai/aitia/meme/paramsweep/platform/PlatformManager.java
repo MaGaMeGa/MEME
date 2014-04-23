@@ -40,7 +40,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import javassist.ClassPool;
-import ai.aitia.meme.MEMEApp;
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.paramsweep.platform.repast.RepastPlatform;
 import ai.aitia.meme.paramsweep.utils.Util;
 import ai.aitia.meme.pluginmanager.IPlugin;
@@ -446,7 +446,7 @@ public class PlatformManager {
 				URL baseURL = PlatformManager.class.getResource("/ai/aitia/meme/paramsweep/platform/PlatformManager.class");
 			    DEBUG = !baseURL.toString().startsWith("jar:"); 
 			} catch (Exception ex) {
-				MEMEApp.logExceptionCallStack(ex);
+				Logger.logExceptionCallStack(ex);
 			}
 		}
 		return DEBUG;

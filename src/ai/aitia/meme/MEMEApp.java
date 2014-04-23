@@ -103,10 +103,6 @@ public class MEMEApp
 	private static MainWindow					g_AppWindow		= null;
 	/** The manager object that handles the plugins of the application. */
 	private static PluginManager				g_PluginManager	= null;
-	/** The log file. */
-	private static java.io.File					g_logFileLoc	= null;
-	/** The log stream. */
-	private static java.io.PrintStream			g_logStream		= null;
 	/** The look&feel object. */
 	private static LookAndFeel					g_lf			= null;
 
@@ -126,7 +122,7 @@ public class MEMEApp
 	//-------------------------------------------------------------------------
 	//	Getter methods
 
-	public static File											getLogFile()			{ return g_logFileLoc; }
+	public static File											getLogFile()			{ return Logger.g_logFileLoc; }
 	public static File											getLastDir()			{ return g_LastDir; }
 	public static DatabaseConnection							getDatabase()			{ return g_database; }
 	public static ai.aitia.meme.database.IResultsDbMinimal		getResultsDbMinimal()	{ return g_LAPI; }
@@ -161,14 +157,15 @@ public class MEMEApp
 			assert assertsEnabled = true; // this should make it true - INTENTIONAL side effect!
 			if (!assertsEnabled)
 				throw new RuntimeException("Asserts should be enabled! (java -ea)");
+		} else {
+			String tmp = userPrefs.get(UserPrefs.LOGFILELOC, "MEME.log");
+			Logger.g_logFileLoc = new java.io.File(tmp);
+			if (!Logger.g_logFileLoc.isAbsolute()) {
+				Logger.g_logFileLoc = new java.io.File(g_AppDir, Logger.g_logFileLoc.toString());
+			}
 		}
 
-		String tmp = userPrefs.get(UserPrefs.LOGFILELOC, "MEME.log");
-		g_logFileLoc = new java.io.File(tmp);
-		if (!g_logFileLoc.isAbsolute()) {
-			g_logFileLoc = new java.io.File(g_AppDir, g_logFileLoc.toString());
-		}
-		logError(""); // initializing log
+		Logger.logError(""); // initializing log
 		LastDirectoryChanger.add(MEMEApp.class);
 
 		// Parse command line arguments
@@ -228,7 +225,7 @@ public class MEMEApp
 
 		// Be able to continue even if our custom Look & Feel fails to initialize.   
 		try { g_lf = new LookAndFeel(); g_lf.init(); }
-		catch (Throwable t) { MEMEApp.logException(t); }
+		catch (Throwable t) { Logger.logException(t); }
 
 		// Here we could display a splash screen, showing progress at the bottom 
 		// (loading plugins, connecting database, etc.)..
@@ -247,7 +244,7 @@ public class MEMEApp
 			
 			//----------------------------------------------------------------------------------------------------
 			public void newInstanceCreated() {
-				logError("New instance of MEME detected");
+				Logger.logError("New instance of MEME detected");
 				if (MEMEApp.g_AppWindow != null)
 					MEMEApp.g_AppWindow.getJFrame().toFront();
 			}
@@ -274,7 +271,7 @@ public class MEMEApp
 					m.setAccessible(true);
 					m.invoke(Toolkit.getDefaultToolkit(),new Object[] { "Shell.shellFolderManager",folderManagerClass });
 				} catch (Throwable t) {
-					logException("Failed to initialized MaskedShellFolderManager",t);
+					Logger.logException("Failed to initialized MaskedShellFolderManager",t);
 				}
 			} else {
 				// see PS_ModelWizard.initialze() method for explanation
@@ -324,7 +321,7 @@ public class MEMEApp
 				}
 			});
 		} catch (InvocationTargetException e) {
-			logExceptionCallStack("MainWindow+JFrame creation", e.getCause());
+			Logger.logExceptionCallStack("MainWindow+JFrame creation", e.getCause());
 			onClose(false);
 		} catch (InterruptedException e) {
 			onClose(false);
@@ -375,7 +372,7 @@ public class MEMEApp
 			getDbSettings().init();
 		} catch (Exception e) {
 			if (SESSION.getFile() == null)			// the user's registry is corrupted
-				logException("SESSION.load()", e);
+				Logger.logException("SESSION.load()", e);
 			else
 				nonFatalErrors.add(String.format("Error while opening file %s (%s)", 
 						SESSION.getFile().toString(), Utils.getLocalizedMessage(e)));
@@ -390,7 +387,7 @@ public class MEMEApp
 			nonFatalErrors = null;
 		}
 
-		ParameterSweepWizard.init(g_logStream,g_AppWindow.getJFrame());
+		ParameterSweepWizard.init(Logger.g_logStream,g_AppWindow.getJFrame());
 
 		/************************************
 		 * Activation
@@ -471,7 +468,7 @@ public class MEMEApp
 			MODEL_THREAD.start();
 		
 		} catch (Throwable t) {
-			logExceptionCallStack("MODEL_THREAD.start()", t);
+			Logger.logExceptionCallStack("MODEL_THREAD.start()", t);
 		}
 		System.exit(EXIT_CODE_NORMAL);
 	}
@@ -608,8 +605,8 @@ public class MEMEApp
 			if (t instanceof java.lang.reflect.InvocationTargetException)
 				t = t.getCause();
 			String before= "While running test " + name + ":\n ";
-			String after = (isDebugVersion() || g_logFileLoc == null) ? null : 
-							" \nSee this in " + g_logFileLoc;
+			String after = (isDebugVersion() || Logger.g_logFileLoc == null) ? null : 
+							" \nSee this in " + Logger.g_logFileLoc;
 			userErrors("Test error", (Object[])Utils.getStackTraceLines(t, before, after));
 		}
 		return true;
@@ -628,7 +625,7 @@ public class MEMEApp
 	public static void userAlert(Object ... messages) {
 		if (messages.length == 1 && messages[0] instanceof Object[])
 			messages = (Object[])messages[0];
-		logError("[userAlert] %s", Utils.join("\n", messages));
+		Logger.logError("[userAlert] %s", Utils.join("\n", messages));
 		//javax.swing.JOptionPane.showMessageDialog(getAppWnd(), messages);
 		TestableDialog.showMessageDialog(getAppWnd(), messages, "");
 	}
@@ -646,7 +643,7 @@ public class MEMEApp
 		if (title == null) {
 			title = (messages.length > 1) ? "MEME Errors" : "MEME Error";
 		}
-		logError("[userErrors] %s: %s", title, Utils.join("\n", messages));
+		Logger.logError("[userErrors] %s: %s", title, Utils.join("\n", messages));
 		/*javax.swing.JOptionPane.showMessageDialog(getAppWnd(), messages, title, javax.swing.JOptionPane.ERROR_MESSAGE);*/
 		TestableDialog.showMessageDialog(getAppWnd(), messages, title, javax.swing.JOptionPane.ERROR_MESSAGE,"");
 	}
@@ -729,8 +726,8 @@ public class MEMEApp
 				threadName = "Simulation-Thread";
 		}
 		
-		MEMEApp.logError("in Thread: %s",threadName);
-		MEMEApp.logExceptionCallStack(msg, e);
+		Logger.logError("in Thread: %s",threadName);
+		Logger.logExceptionCallStack(msg, e);
 		
 		if ((e instanceof NullPointerException) && "javax.swing.SwingUtilities".equals(e.getStackTrace()[0].getClassName()) &&
 			 "computeIntersection".equals(e.getStackTrace()[0].getMethodName())) return;
@@ -772,7 +769,7 @@ public class MEMEApp
 	 * @return the well formed message
 	 */ 
 	public static String seeTheErrorLog(String fmt) {
-		String fn = (g_logFileLoc == null) ? "" : '(' + g_logFileLoc.toString() + ')';
+		String fn = (Logger.g_logFileLoc == null) ? "" : '(' + Logger.g_logFileLoc.toString() + ')';
 		return String.format(fmt, "See the error log for details", fn);
 	}
 
@@ -792,79 +789,6 @@ public class MEMEApp
 //    	System.out.println(Utils.formatv(format, args));
 //    }
 
-	//-------------------------------------------------------------------------
-	/** Writes the error specified by <code>format</code> and <code>args</code>
-	 *  to the log file.
-	 * @param format the format string of the error message
-	 * @param args the parameters of the format string
-	 */  
-    public static void logError(String format, Object ... args) {
-    	String pfx = String.format("%1$tT.%1$tL\t", System.currentTimeMillis()); 
-    	if (g_logStream == null) {
-			g_logStream = System.err;
-			try {
-	    		if (g_logFileLoc != null) {
-	    			g_logStream = new java.io.PrintStream(g_logFileLoc);
-	    		}
-	    		g_logStream.println(String.format(
-	    				"%tF %sLog file created", System.currentTimeMillis(), pfx
-	    		));
-	    		if (isDebugVersion())
-	    			g_logStream = System.err;
-	    		else
-	    			System.setErr(g_logStream);
-			} catch (Exception e) {
-				logError("Cannot create log file " + e.getLocalizedMessage());
-			}
-    	}
-    	if (!"".equals(format.trim()))
-    		g_logStream.println(pfx + Utils.formatv(format, args));
-    }
-
-	//-------------------------------------------------------------------------
-    /** Writes the localized message of the exception <code>t</code> to the log file.
-     * @param t the exception
-     */
-    public static void logException(Throwable t)							{ logException(null, t, false); }
-    /** Writes the place and the localized message of the exception <code>t</code> to the log file.
-     * @param where the place where the exception is occured
-     * @param t the exception
-     */
-    public static void logException(String where, Throwable t)			{ logException(where,t, false); }
-    /** Writes the localized message and the stack trace of the exception <code>t</code> to the log file.
-     * @param t the exception
-     */
-    public static void logExceptionCallStack(Throwable t)					{ logException(null, t, true); }
-    /** Writes the place, the localized message and the stack trace of the exception <code>t</code> to the log file.
-     * @param where the place where the exception is occured
-     * @param t the exception
-     */
-    public static void logExceptionCallStack(String where, Throwable t) 	{ logException(where,t, true); } 
-
-	//-------------------------------------------------------------------------
-    /** Writes the place and the localized message of the exception <code>t</code> to the log file.
-     *  If <code>callStack</code> is true, the stack trace of the exception is also written. 
-     * @param where the place where the exception is occured
-     * @param t the exception
-     * @param callStack does it write the stack trace too or not?
-     */
-    public static void logException(String where, Throwable t, boolean callStack) {
-    	if (t == null) return;
-    	String type = t.getClass().getName();
-    	type = type.substring(type.lastIndexOf('.') + 1);
-    	if (where == null)
-    		logError("*** %s: %s", type, t.getLocalizedMessage());
-    	else if (t instanceof java.sql.SQLException) {
-    		java.sql.SQLException e = (java.sql.SQLException)t;
-    		logError("*** %s caught at %s: (state %s, code %d) %s",
-    				type, where, e.getSQLState(), e.getErrorCode(), t.getLocalizedMessage());
-    	}
-    	else
-    		logError("*** %s caught at %s: %s", type, where, t.getLocalizedMessage());
-    	if (callStack)
-    		t.printStackTrace(g_logStream == null ? System.err : g_logStream);
-    }
-    
 	//-------------------------------------------------------------------------
     /** Writes the the error to the log file that occured when method <code>method</code> is invoked.
      * @param where the place of the exception

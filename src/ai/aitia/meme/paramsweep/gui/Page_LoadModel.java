@@ -55,6 +55,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.gui.SimpleFileFilter;
 import ai.aitia.meme.gui.Wizard;
@@ -393,7 +394,7 @@ public class Page_LoadModel extends JPanel implements IWizardPage,
 		} else if (command.equals("SETTINGS")) { 
 			String settingsPath = ParameterSweepWizard.getPreferences().getSettingsPath();
 			if (settingsPath == null) {
-				MEMEApp.logException("No settings path in preferences: "+settingsPath, new Exception("Preferences not found"));
+				Logger.logException("No settings path in preferences: "+settingsPath, new Exception("Preferences not found"));
 				settingsPath = System.getProperty("user.home");
 			}
 			File f = fileDialog(true,new File(settingsPath),new SettingsFileFilter());

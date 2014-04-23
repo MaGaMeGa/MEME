@@ -54,6 +54,7 @@ import javax.swing.table.AbstractTableModel;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.database.Columns;
 import ai.aitia.meme.database.Model;
@@ -277,7 +278,7 @@ public class NetLogoImportDialog extends JDialog {
 		try {
 			d = getJProblemsTextPane().getPreferredSize();
 		} catch (Exception e){
-			MEMEApp.logException("NetlogoImportDialog (mostly harmless)", e);
+			Logger.logException("NetlogoImportDialog (mostly harmless)", e);
 			return;
 		}
 		if (d.width > t.width) 
@@ -702,7 +703,7 @@ public class NetLogoImportDialog extends JDialog {
 								app.put("EXIT_CODE","OK");
 								NetLogoImportDialog.this.dispose();
 							} else {
-								MEMEApp.logException("NetLogoImportDialog.jOkButton",getReq().getError());
+								Logger.logException("NetLogoImportDialog.jOkButton",getReq().getError());
 								if (getReq().getError().getMessage().startsWith("Missing intelliSweep tag"))
 									displayInfo("The specified IntelliSweep settings XML(" + getJIntelliSweepFileTextField().getText() + ") does not" +
 												" contain IntelliSweep information.",ErrorType.WARNING);

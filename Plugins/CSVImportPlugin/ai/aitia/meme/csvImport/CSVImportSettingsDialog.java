@@ -985,7 +985,7 @@ public class CSVImportSettingsDialog extends JDialog implements ActionListener,
 				os.close();
 			} catch (IOException e1) {
 				ai.aitia.meme.MEMEApp.userAlert("Save failed.");
-				ai.aitia.meme.MEMEApp.logException(e1);
+				ai.aitia.meme.Logger.logException(e1);
 			}
 		} else if (command.equals("LOAD_SETTINGS")) {
 			JFileChooser chooser = new JFileChooser(ai.aitia.meme.MEMEApp.getLastDir());
@@ -1001,7 +1001,7 @@ public class CSVImportSettingsDialog extends JDialog implements ActionListener,
 					setLastSettings();
 				} catch (IOException e1) {
 					ai.aitia.meme.MEMEApp.userAlert("Load failed.");
-					ai.aitia.meme.MEMEApp.logException(e1);
+					ai.aitia.meme.Logger.logException(e1);
 				}
 			}
 		} else if (command.equals("NOTOTHER")) {
@@ -1056,7 +1056,7 @@ public class CSVImportSettingsDialog extends JDialog implements ActionListener,
 				start(SECOND_PART);
 			} catch (Exception e1) {
 				GUIUtils.setBusy(this,false);
-				ai.aitia.meme.MEMEApp.logExceptionCallStack("during the CSV file parsing",e1);
+				ai.aitia.meme.Logger.logExceptionCallStack("during the CSV file parsing",e1);
 				ai.aitia.meme.MEMEApp.userErrors("Error while reading the file",Utils.getLocalizedMessage(e1)+".");
 			}
 		} else if (command.equals("S_OK")) {
@@ -1075,7 +1075,7 @@ public class CSVImportSettingsDialog extends JDialog implements ActionListener,
 				@Override
 				public void finished() {
 					if (getReq().getError() != null) {
-						ai.aitia.meme.MEMEApp.logException(getReq().getError());
+						ai.aitia.meme.Logger.logException(getReq().getError());
 					}
 					setVisible(false);
 					dispose();

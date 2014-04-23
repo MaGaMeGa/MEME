@@ -129,7 +129,7 @@ public class CSVExportPlugin implements IExportPlugin {
 				}
 			} catch (Exception e) {
 				if (!(e instanceof UserBreakException)) {
-					ai.aitia.meme.MEMEApp.logExceptionCallStack(e);
+					ai.aitia.meme.Logger.logExceptionCallStack(e);
 					ai.aitia.meme.MEMEApp.userErrors("Error while collecting informations",
 													 Utils.getLocalizedMessage(e)+".");
 				}
@@ -171,7 +171,7 @@ public class CSVExportPlugin implements IExportPlugin {
 								GUIUtils.setBusy(ctx.getAppWindow(),false);
 								if (getReq().getError() != null) {
 									if (!(getReq().getError() instanceof UserBreakException)) {
-										ai.aitia.meme.MEMEApp.logExceptionCallStack(getReq().getError());
+										ai.aitia.meme.Logger.logExceptionCallStack(getReq().getError());
 									}
 									if (file.exists()) file.delete();
 			 					}
@@ -195,7 +195,7 @@ public class CSVExportPlugin implements IExportPlugin {
 								GUIUtils.setBusy(ctx.getAppWindow(),false);
 								if (getReq().getError() != null) {
 									if (!(getReq().getError() instanceof UserBreakException)) {
-										ai.aitia.meme.MEMEApp.logExceptionCallStack(getReq().getError());
+										ai.aitia.meme.Logger.logExceptionCallStack(getReq().getError());
 									}
 									if (file.exists()) file.delete();
 			 					}
@@ -223,7 +223,7 @@ public class CSVExportPlugin implements IExportPlugin {
 						GUIUtils.setBusy(ctx.getAppWindow(),false);
 						if (getReq().getError() != null) {
 							if (!(getReq().getError() instanceof UserBreakException)) 
-								ai.aitia.meme.MEMEApp.logExceptionCallStack(getReq().getError());
+								ai.aitia.meme.Logger.logExceptionCallStack(getReq().getError());
 							if (f.exists()) f.delete();
 			 			}
 					}
@@ -243,7 +243,7 @@ public class CSVExportPlugin implements IExportPlugin {
 						GUIUtils.setBusy(ctx.getAppWindow(),false);
 						if (getReq().getError() != null) {
 							if (!(getReq().getError() instanceof UserBreakException)) 
-								ai.aitia.meme.MEMEApp.logExceptionCallStack(getReq().getError());
+								ai.aitia.meme.Logger.logExceptionCallStack(getReq().getError());
 							if (f.exists()) f.delete();
 			 			}
 					}

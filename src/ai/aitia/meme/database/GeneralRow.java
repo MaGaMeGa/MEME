@@ -19,7 +19,7 @@ package ai.aitia.meme.database;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import ai.aitia.meme.MEMEApp;
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.database.ColumnType.ValueNotSupportedException;
 import ai.aitia.meme.utils.Utils;
 
@@ -92,7 +92,7 @@ public class GeneralRow implements Cloneable
 			try {
 				writeValue(i, ps, offset + i);
 			} catch (final ValueNotSupportedException e) {
-				MEMEApp.logError(e.getMessage());
+				Logger.logError(e.getMessage());
 				exception = true;
 			}
 		}

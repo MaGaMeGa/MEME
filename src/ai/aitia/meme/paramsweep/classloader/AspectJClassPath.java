@@ -28,7 +28,7 @@ import javassist.NotFoundException;
 import org.apache.commons.io.IOUtils;
 import org.aspectj.weaver.loadtime.ClassLoaderWeavingAdaptor;
 
-import ai.aitia.meme.MEMEApp;
+import ai.aitia.meme.Logger;
 
 /**
  * @author Tamás Máhr
@@ -64,7 +64,7 @@ public class AspectJClassPath implements ClassPath {
 					weaver.weaveClass(classname, classBytes);
 				}
 			} catch (IOException e) {
-				MEMEApp.logExceptionCallStack(e);
+				Logger.logExceptionCallStack(e);
 				throw new RuntimeException(e);
 			}
 			

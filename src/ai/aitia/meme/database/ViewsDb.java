@@ -24,6 +24,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.utils.Utils;
 import ai.aitia.meme.utils.XMLUtils;
@@ -113,7 +114,7 @@ public class ViewsDb implements IViewsDbMinimal, IConnChangedListener
 	    	rs.close();
 	    	ps.close(); ps = null;
 		} catch (SQLException e) {
-			MEMEApp.logException("ViewsDb.findView()", e);
+			Logger.logException("ViewsDb.findView()", e);
 			MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e);
 		} finally {
 			release(ps);
@@ -133,7 +134,7 @@ public class ViewsDb implements IViewsDbMinimal, IConnChangedListener
 	    	rs.close();
 	    	st.close(); st = null;
 		} catch (SQLException e) {
-			MEMEApp.logException("ViewsDb.getName()", e);
+			Logger.logException("ViewsDb.getName()", e);
 			MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e);
 		} finally {
 			release(st);
@@ -158,7 +159,7 @@ public class ViewsDb implements IViewsDbMinimal, IConnChangedListener
 	    	rs.close();
 	    	st.close(); st = null;
 		} catch (SQLException e) {
-			MEMEApp.logException("ViewsDb.getViews()", e);
+			Logger.logException("ViewsDb.getViews()", e);
 			MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e);
 		} finally {
 			release(st);
@@ -179,7 +180,7 @@ public class ViewsDb implements IViewsDbMinimal, IConnChangedListener
 	    	rs.close();
 	    	st.close(); st = null;
 		} catch (Exception e) {
-			MEMEApp.logException("ViewsDb.getColumns()", e);
+			Logger.logException("ViewsDb.getColumns()", e);
 			ans = null;
 		} finally {
 			release(st);
@@ -253,7 +254,7 @@ public class ViewsDb implements IViewsDbMinimal, IConnChangedListener
 				if (ended) dispose();
 				else cols.reorder(rs);
 			} catch (SQLException e) {
-				MEMEApp.logException("ViewsDb.RowIterator.iterator()", e);
+				Logger.logException("ViewsDb.RowIterator.iterator()", e);
 				MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e);
 				release(st);
 				dispose();
@@ -268,7 +269,7 @@ public class ViewsDb implements IViewsDbMinimal, IConnChangedListener
 				ended = !rs.next();
 				if (ended) dispose();
 			} catch (SQLException e) {
-				MEMEApp.logException("ViewsDb.RowIterator.next()", e);
+				Logger.logException("ViewsDb.RowIterator.next()", e);
 				MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e);
 			}
 			return ans;
@@ -282,7 +283,7 @@ public class ViewsDb implements IViewsDbMinimal, IConnChangedListener
 				rs.close();
 				st.close();
 			} catch (SQLException e) {
-				MEMEApp.logException("ViewsDb.RowIterator.dispose()", e);
+				Logger.logException("ViewsDb.RowIterator.dispose()", e);
 				MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e);
 			}
 			rs = null;
@@ -315,7 +316,7 @@ public class ViewsDb implements IViewsDbMinimal, IConnChangedListener
 	    	rs.close();
 	    	st.close(); st = null;
 		} catch (SQLException e) {
-			MEMEApp.logException("ViewsDb.getDescription()", e);
+			Logger.logException("ViewsDb.getDescription()", e);
 			MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e);
 		} finally {
 			release(st);
@@ -342,7 +343,7 @@ public class ViewsDb implements IViewsDbMinimal, IConnChangedListener
 	    	ps.close(); ps = null;
     		viewsDbChanged.fire(new ViewsDbChangeEvent(this, ChangeAction.MODIFIED, toViewRec(view_id)));
 		} catch (SQLException e) {
-			MEMEApp.logException("ViewsDb.setDescription()", e);
+			Logger.logException("ViewsDb.setDescription()", e);
 			MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e);
 		} finally {
 			release(ps);
@@ -369,7 +370,7 @@ public class ViewsDb implements IViewsDbMinimal, IConnChangedListener
 	    	if (tmp != null)
 	    		ans = new ViewCreationRule(tmp);
 		} catch (Exception e) {
-			MEMEApp.logException("ViewsDb.getRule()", e);
+			Logger.logException("ViewsDb.getRule()", e);
 		} finally {
 			release(st);
 		}
@@ -391,7 +392,7 @@ public class ViewsDb implements IViewsDbMinimal, IConnChangedListener
 	    	rs.close();
 	    	st.close(); st = null;
 		} catch (Exception e) {
-			MEMEApp.logException("ViewsDb.getNrOfRows()", e);
+			Logger.logException("ViewsDb.getNrOfRows()", e);
 		} finally {
 			release(st);
 		}
@@ -445,13 +446,13 @@ public class ViewsDb implements IViewsDbMinimal, IConnChangedListener
 			}
 		} catch (SQLException e) {
 			result = false;
-			MEMEApp.logException("ViewsDb.renameColumn()", e);
+			Logger.logException("ViewsDb.renameColumn()", e);
 			MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e);
 			if (t != null) {
 				try {
 					t.rollback();
 				} catch (SQLException e1) {
-					MEMEApp.logException("ViewsDb.renameColumn()", e1);
+					Logger.logException("ViewsDb.renameColumn()", e1);
 					MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e1);
 				}
 			}
@@ -510,14 +511,14 @@ public class ViewsDb implements IViewsDbMinimal, IConnChangedListener
 	   		viewsDbChanged.fire(new ViewsDbChangeEvent(this,ChangeAction.MODIFIED,toViewRec(view_id)));
 		} catch (Exception e) {
 			result = false;
-			MEMEApp.logException("ViewsDb.renameView()", e);
+			Logger.logException("ViewsDb.renameView()", e);
 			if (e instanceof SQLException)
 				MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory((SQLException)e);
 			if (t != null) {
 				try {
 					t.rollback();
 				} catch (SQLException e1) {
-					MEMEApp.logException("ViewsDb.renameView()", e1);
+					Logger.logException("ViewsDb.renameView()", e1);
 					MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e1);
 				}
 			}
@@ -723,7 +724,7 @@ public class ViewsDb implements IViewsDbMinimal, IConnChangedListener
     		viewsDbChanged.fire(new ViewsDbChangeEvent(this, ChangeAction.REMOVED, v));
 
 		} catch (SQLException e) {
-			MEMEApp.logException("ViewsDb.deleteView()", e);
+			Logger.logException("ViewsDb.deleteView()", e);
 			MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e);
 		} finally {
 			release(st);
@@ -761,7 +762,7 @@ public class ViewsDb implements IViewsDbMinimal, IConnChangedListener
 			st.close(); st = null;
 
 		} catch (SQLException e) {
-			MEMEApp.logException("ViewsDb.reorderTable()", e);
+			Logger.logException("ViewsDb.reorderTable()", e);
 			MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e);
 		} finally {
 			release(st);
@@ -769,7 +770,7 @@ public class ViewsDb implements IViewsDbMinimal, IConnChangedListener
 				if (tmpName != null) dialect.deleteTableIfExists(tmpName);
 				if (seq != null) dialect.deleteSeqIfExists(seq);
 			} catch (SQLException e) {
-				MEMEApp.logException("ViewsDb.reorderTable()", e);
+				Logger.logException("ViewsDb.reorderTable()", e);
 				MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e);
 			}
 		}
@@ -802,7 +803,7 @@ public class ViewsDb implements IViewsDbMinimal, IConnChangedListener
 		try {
 			LocalAPI.runCreateCommands(getConnection(), cmds);
 		} catch (SQLException e) {
-			MEMEApp.logException("LocalAPI.createTables()", e);    			
+			Logger.logException("LocalAPI.createTables()", e);    			
 			MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e);
 		}
     }
@@ -835,7 +836,7 @@ public class ViewsDb implements IViewsDbMinimal, IConnChangedListener
 	    	rs.close();
 	    	st.close(); st = null;
 		} catch (SQLException e) {
-			MEMEApp.logException("ViewsDb.toViewRec()", e);
+			Logger.logException("ViewsDb.toViewRec()", e);
 			MEMEApp.getDatabase().getSQLDialect().checkOutOfMemory(e);
 		} finally {
 			release(st);

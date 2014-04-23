@@ -41,6 +41,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.database.AbstractResultsDb;
 import ai.aitia.meme.database.Columns;
@@ -454,12 +455,12 @@ public class ResultProcessingFrameV2 implements ActionListener {
 			if (model_version != null && model_version.length() != 0) { // reference to result table
 				final String model_name = table.getAttribute(ViewCreationRule.INPUT_MODELNAME_ATTR);
 				if (model_name == null || model_name.length() == 0) {
-					MEMEApp.logError("Missing model name attribute");
+					Logger.logError("Missing model name attribute");
 					return;
 				}
 				final Model model = MEMEApp.getResultsDb().findModel(model_name,model_version);
 				if (model == null) {
-					MEMEApp.logError("Invalid reference to model %s",model_name + "/" + model_version);
+					Logger.logError("Invalid reference to model %s",model_name + "/" + model_version);
 					return;
 				}
 				table.setAttribute(ViewCreationRule.INPUT_MODELID_ATTR,String.valueOf(model.getModel_id()));
@@ -481,7 +482,7 @@ public class ResultProcessingFrameV2 implements ActionListener {
 			System.gc();
 			vc.trun();
 		} catch (final Exception e) {
-			MEMEApp.logException("ResultsPanel.loadViews() - " + rule.getName(), e);
+			Logger.logException("ResultsPanel.loadViews() - " + rule.getName(), e);
 		}
 	}
 
