@@ -303,6 +303,7 @@ public class MasonBatchController implements IBatchController, IRecorderListener
 			try {
 				if (info.getParentInfo() == null) {
 					final Method setter = modelClass.getMethod("set" + Util.capitalize(info.getName()),info.getReferenceType());
+					System.out.println(info.getReferenceType().isAssignableFrom(instance.getClass()));
 					setter.invoke(model,instance);
 				} else {
 					final Method setter = info.getParentInfo().getActualType().getMethod("set" + Util.capitalize(info.getName()),info.getReferenceType());

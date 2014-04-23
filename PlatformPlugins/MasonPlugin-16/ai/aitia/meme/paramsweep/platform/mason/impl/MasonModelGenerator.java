@@ -632,24 +632,24 @@ public class MasonModelGenerator {
 	private String createVariableName(final String original) {
 		String vName = new String(original);
 		vName = vName.replace(' ','_');
-		vName = vName.replace('�','a');
-		vName = vName.replace('�','e');
-		vName = vName.replace('�','i');
-		vName = vName.replace('�','o');
-		vName = vName.replace('�','o');
-		vName = vName.replace('�','o');
-		vName = vName.replace('�','u');
-		vName = vName.replace('�','u');
-		vName = vName.replace('�','u');
-		vName = vName.replace('�','A');
-		vName = vName.replace('�','E');
-		vName = vName.replace('�','I');
-		vName = vName.replace('�','O');
-		vName = vName.replace('�','O');
-		vName = vName.replace('�','O');
-		vName = vName.replace('�','U');
-		vName = vName.replace('�','U');
-		vName = vName.replace('�','U');
+		vName = vName.replace('á','a');
+		vName = vName.replace('é','e');
+		vName = vName.replace('í','i');
+		vName = vName.replace('ó','o');
+		vName = vName.replace('ö','o');
+		vName = vName.replace('ő','o');
+		vName = vName.replace('ú','u');
+		vName = vName.replace('ü','u');
+		vName = vName.replace('ű','u');
+		vName = vName.replace('Á','A');
+		vName = vName.replace('É','E');
+		vName = vName.replace('Í','I');
+		vName = vName.replace('Ó','O');
+		vName = vName.replace('Ö','O');
+		vName = vName.replace('Ő','O');
+		vName = vName.replace('Ú','U');
+		vName = vName.replace('Ü','U');
+		vName = vName.replace('Ű','U');
 		
 		for (final char c : vName.toCharArray()) {
 			if (!Character.isJavaIdentifierPart(c))

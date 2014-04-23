@@ -388,43 +388,24 @@ public class ModelGenerator {
 	private String createVariableName(String original) {
 		String vName = new String(original);
 		vName = vName.replace(' ','_');
-//		vName = vName.replace('ÔøΩ','a');
-//		vName = vName.replace('ÔøΩ','e');
-//		vName = vName.replace('ÔøΩ','i');
-//		vName = vName.replace('ÔøΩ','o');
-//		vName = vName.replace('ÔøΩ','o');
-//		vName = vName.replace('ÔøΩ','o');
-//		vName = vName.replace('ÔøΩ','u');
-//		vName = vName.replace('ÔøΩ','u');
-//		vName = vName.replace('ÔøΩ','u');
-//		vName = vName.replace('ÔøΩ','A');
-//		vName = vName.replace('ÔøΩ','E');
-//		vName = vName.replace('ÔøΩ','I');
-//		vName = vName.replace('ÔøΩ','O');
-//		vName = vName.replace('ÔøΩ','O');
-//		vName = vName.replace('ÔøΩ','O');
-//		vName = vName.replace('ÔøΩ','U');
-//		vName = vName.replace('ÔøΩ','U');
-//		vName = vName.replace('ÔøΩ','U');
-		
-		vName = vName.replace('·','a');
-		vName = vName.replace('È','e');
-		vName = vName.replace('Ì','i');
-		vName = vName.replace('Û','o');
-		vName = vName.replace('ı','o');
-		vName = vName.replace('ˆ','o');
-		vName = vName.replace('˙','u');
-		vName = vName.replace('˚','u');
-		vName = vName.replace('¸','u');
-		vName = vName.replace('¡','A');
-		vName = vName.replace('…','E');
-		vName = vName.replace('Õ','I');
-		vName = vName.replace('”','O');
-		vName = vName.replace('’','O');
-		vName = vName.replace('÷','O');
-		vName = vName.replace('⁄','U');
-		vName = vName.replace('€','U');
-		vName = vName.replace('‹','U');
+		vName = vName.replace('√°','a');
+		vName = vName.replace('√©','e');
+		vName = vName.replace('√≠','i');
+		vName = vName.replace('√≥','o');
+		vName = vName.replace('√∂','o');
+		vName = vName.replace('≈ë','o');
+		vName = vName.replace('√∫','u');
+		vName = vName.replace('√º','u');
+		vName = vName.replace('≈±','u');
+		vName = vName.replace('√Å','A');
+		vName = vName.replace('√â','E');
+		vName = vName.replace('√ç','I');
+		vName = vName.replace('√ì','O');
+		vName = vName.replace('√ñ','O');
+		vName = vName.replace('≈ê','O');
+		vName = vName.replace('√ö','U');
+		vName = vName.replace('√ú','U');
+		vName = vName.replace('≈∞','U');
 		
 		for (final char c : vName.toCharArray()) {
 			if (!Character.isJavaIdentifierPart(c))
