@@ -42,6 +42,7 @@ import ai.aitia.chart.ds.IElementListProducer;
 import ai.aitia.chart.ds.IStringSeriesProducer;
 import ai.aitia.chart.util.Utilities;
 import ai.aitia.chart.util.XMLLoadingException;
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.chart.ViewDataSources.MyStrComparator;
 import ai.aitia.meme.chart.ViewDataSources.ViewDataSource;
@@ -272,7 +273,7 @@ public class ResultDataSources implements IDSPCollection {
 				ans = new ResultDataSource(idx,input,prop);
 			}
 		} catch (XMLLoadingException e) {
-			MEMEApp.logExceptionCallStack("ResultDataSources.load()",e);
+			Logger.logExceptionCallStack("ResultDataSources.load()",e);
 		}
 		return ans;
 	}

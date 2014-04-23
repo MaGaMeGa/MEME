@@ -21,7 +21,7 @@ import java.lang.reflect.Method;
 import java.util.LinkedHashSet;
 import java.util.WeakHashMap;
 
-import ai.aitia.meme.MEMEApp;
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.utils.Utils;
 
 //-----------------------------------------------------------------------------
@@ -112,7 +112,7 @@ public abstract class Controller extends UntypedParameter implements IProgramSta
 			try {
 				m.invoke(target, args);
 			} catch (Exception e) {
-				MEMEApp.logExceptionCallStack("Controller.PSAction.call()", e);
+				Logger.logExceptionCallStack("Controller.PSAction.call()", e);
 			}
 		}
 		/** It maps target objects with methods. */

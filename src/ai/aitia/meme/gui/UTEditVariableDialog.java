@@ -39,6 +39,7 @@ import javax.swing.JTextField;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.usertools.UserToolGroup;
 import ai.aitia.meme.usertools.UserToolGroup.EnvironmentVariable;
@@ -170,7 +171,7 @@ public class UTEditVariableDialog extends JDialog implements ActionListener,
 					valueField.setText(f.getCanonicalPath());
 					valueField.setToolTipText(f.getCanonicalPath());
 				} catch (IOException e1) {
-					MEMEApp.logException("UTEditVariableDialog",e1,true);
+					Logger.logException("UTEditVariableDialog",e1,true);
 					MEMEApp.userErrors("Error","Error accessing seleted file.");
 					valueField.setText("");
 					valueField.setToolTipText("");
@@ -185,7 +186,7 @@ public class UTEditVariableDialog extends JDialog implements ActionListener,
 					valueField.setText(dir.getCanonicalPath());
 					valueField.setToolTipText(dir.getCanonicalPath());
 				} catch (IOException e1) {
-					MEMEApp.logException("UTEditVariableDialog",e1,true);
+					Logger.logException("UTEditVariableDialog",e1,true);
 					MEMEApp.userErrors("Error","Error accessing seleted folder.");
 					valueField.setText("");
 					valueField.setToolTipText("");

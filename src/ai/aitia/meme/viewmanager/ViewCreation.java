@@ -33,6 +33,7 @@ import java.util.RandomAccess;
 
 import org.apache.bsf.BSFException;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.database.ColumnType;
 import ai.aitia.meme.database.Columns;
@@ -55,7 +56,6 @@ import ai.aitia.meme.pluginmanager.impl.PluginContextBase;
 import ai.aitia.meme.utils.Utils;
 import ai.aitia.meme.viewmanager.ParameterSet.Category;
 import ai.aitia.meme.viewmanager.ViewCreationRule.Column;
-
 import static ai.aitia.meme.database.SQLDialect.release;
 
 /**
@@ -290,7 +290,7 @@ public class ViewCreation extends LongRunnable implements InputRowsIterator.ITab
 
 		} catch (Exception e) {
 
-			MEMEApp.logExceptionCallStack("ViewCreation.trun()", e);
+			Logger.logExceptionCallStack("ViewCreation.trun()", e);
 			t.rollback();
 			if (displayableErrMsg == null || e instanceof BSFException)
 				displayableErrMsg = Utils.getLocalizedMessage(e);
@@ -306,7 +306,7 @@ public class ViewCreation extends LongRunnable implements InputRowsIterator.ITab
 				System.gc(); System.gc();
 			}
 			catch (SQLException e) {
-				MEMEApp.logExceptionCallStack("ViewCreation.deleteTMPTables()", e);
+				Logger.logExceptionCallStack("ViewCreation.deleteTMPTables()", e);
 				SQLDialect().checkOutOfMemory(e);
 			}
 			// TODO: kitakaritani minel tobb objektumot hogy ha bennmaradna a memoriaban ez az
@@ -565,7 +565,7 @@ public class ViewCreation extends LongRunnable implements InputRowsIterator.ITab
 			try {
 				p.getDatatype().writeValue(((ValuePar)p).getSingleValue(), ps, ++colIdx);
 			} catch (final ValueNotSupportedException e) {
-				MEMEApp.logError(e.getMessage());
+				Logger.logError(e.getMessage());
 				owner.warning();
 			}
 		}

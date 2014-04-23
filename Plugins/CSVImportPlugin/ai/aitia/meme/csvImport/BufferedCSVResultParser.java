@@ -573,7 +573,7 @@ public class BufferedCSVResultParser {
 				} catch (final AdvancedCSVParserException e) {
 					if (e.isWarning()) {
 						warnings++;
-						ai.aitia.meme.MEMEApp.logError("Warning: %s: ignoring line %d",e.getLocalizedMessage(),lineno);
+						ai.aitia.meme.Logger.logError("Warning: %s: ignoring line %d",e.getLocalizedMessage(),lineno);
 						continue;
 					}
 					throw e;
@@ -981,7 +981,7 @@ public class BufferedCSVResultParser {
 					db.addResult(result);
 				} catch (final ValueNotSupportedException e) {
 					warnings++;
-					ai.aitia.meme.MEMEApp.logError("Database warnings: see the error log for details.");
+					ai.aitia.meme.Logger.logError("Database warnings: see the error log for details.");
 				}
 
 				// free memory:

@@ -48,6 +48,8 @@ import javax.swing.event.HyperlinkEvent;
 import org.jvnet.substance.SubstanceLookAndFeel;
 //import org.nlogo.app.HelpMenu;
 
+
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.UserPrefs;
 import ai.aitia.meme.database.ConnChangedEvent;
@@ -438,7 +440,7 @@ public class MainWindow implements IProgramStateChangeListener, IHybridActionLis
 					MEMEApp.SESSION.load();
 					MEMEApp.getDbSettings().init();
 				} catch (Exception e1) {
-					MEMEApp.logException("SESSION.load()", e1);
+					Logger.logException("SESSION.load()", e1);
 					MEMEApp.userErrors(null, "Error while loading " + e1.getLocalizedMessage());
 				}
 				MEMEApp.reconnect();
@@ -664,7 +666,7 @@ public class MainWindow implements IProgramStateChangeListener, IHybridActionLis
 		java.net.URL imgURL = MainWindow.class.getResource(path);
 		if (imgURL != null)
 			return 	new ImageIcon(imgURL);
-		MEMEApp.logError("Cannot find icon: " + path);
+		Logger.logError("Cannot find icon: " + path);
 		return null;
 	}
 
@@ -692,7 +694,7 @@ public class MainWindow implements IProgramStateChangeListener, IHybridActionLis
 				htmlPage = htmlPage.replace("src=\"", "src=\"gui/icons/about/");
 				GUIUtils.setTextPane(aboutContentPane, htmlPage);
 			} catch (Exception e) {
-				MEMEApp.logException("MainWindow.getAboutContentPane()", e);
+				Logger.logException("MainWindow.getAboutContentPane()", e);
 			}
 			GUIUtils.setWrapLength(aboutContentPane, GUIUtils.dluX(350, aboutContentPane));
 		}
@@ -723,7 +725,7 @@ public class MainWindow implements IProgramStateChangeListener, IHybridActionLis
 		try { 
 			message = new GUIUtils.SPMSAEditorPane(url);
 		} catch (Exception e) { 
-			MEMEApp.logException("MainWindow.showLicense()", e);
+			Logger.logException("MainWindow.showLicense()", e);
 			return;
 		}
 		message.setEditable(false);
@@ -746,7 +748,7 @@ public class MainWindow implements IProgramStateChangeListener, IHybridActionLis
 				sp.setMaximumSize(new Dimension(GUIUtils.dluX(400), GUIUtils.getRelScrH(80)));
 				javax.swing.JOptionPane.showMessageDialog(getJFrame(), sp, "MEME log", JOptionPane.PLAIN_MESSAGE);
 		} catch (Exception e) {
-			MEMEApp.logException("MainWindow.showLog()",e);
+			Logger.logException("MainWindow.showLog()",e);
 			MEMEApp.userErrors("Error",Utils.getLocalizedMessage(e));
 		}
 	}
@@ -841,7 +843,7 @@ public class MainWindow implements IProgramStateChangeListener, IHybridActionLis
 					parser.execute();
 				} catch (UserToolParserException e1) {
 					MEMEApp.userErrors("User Tool Error - " + item.getMenuText(),e1.getLocalizedMessage() + ".");
-					MEMEApp.logExceptionCallStack(e1);
+					Logger.logExceptionCallStack(e1);
 				}
 			}
 		};

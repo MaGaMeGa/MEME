@@ -43,6 +43,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.gui.UTEditVariableDialog;
 import ai.aitia.meme.usertools.UserToolGroup.EnvironmentVariable;
@@ -199,7 +200,7 @@ public class UserToolManager {
 				groups.add(utGroup);
 			}
 		} catch (Exception e) {
-			MEMEApp.logError("Invalid or missing user tool configuration file.");
+			Logger.logError("Invalid or missing user tool configuration file.");
 			createDefaultGroups(this);
 		}
 	}
@@ -247,7 +248,7 @@ public class UserToolManager {
 		try {
 			save();
 		} catch (Exception e) {
-			MEMEApp.logExceptionCallStack("UserToolsManager.scanCustomGroups",e);
+			Logger.logExceptionCallStack("UserToolsManager.scanCustomGroups",e);
 		}
 		if (invalidFiles.size() > 0) {
 			String msg = Utils.join(invalidFiles,"\n");
@@ -310,7 +311,7 @@ public class UserToolManager {
 				// never happens
 				throw new IllegalStateException(e);
 			} catch (IOException e) {
-				MEMEApp.logExceptionCallStack(e);
+				Logger.logExceptionCallStack(e);
 			} finally {
 				try { reader.close(); } catch (IOException e1) {}
 			}
@@ -396,7 +397,7 @@ public class UserToolManager {
 			}
 			return utGroup;
 		} catch (Exception e) {
-			MEMEApp.logError("Invalid user tool definition file: " + file.getName());
+			Logger.logError("Invalid user tool definition file: " + file.getName());
 			return null;
 		}
 	}

@@ -31,7 +31,7 @@ import javassist.ClassPath;
 import javassist.CtClass;
 import javassist.Modifier;
 import javassist.NotFoundException;
-import ai.aitia.meme.MEMEApp;
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.paramsweep.batch.IBatchController;
 import ai.aitia.meme.paramsweep.batch.IModelInformation;
 import ai.aitia.meme.paramsweep.batch.IParameterPartitioner;
@@ -230,7 +230,7 @@ public class MasonPlatform extends DefaultPluginPlatform {
 					c.getConstructor(Long.TYPE);
 				} catch (NoSuchMethodException e) {
 					error[0] = "The model does not have a constructor with a long parameter.";
-					MEMEApp.logException("when checking the model", e, true);
+					Logger.logException("when checking the model", e, true);
 					return null;
 				}
 				return clazz;

@@ -54,6 +54,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.database.ColumnType;
 import ai.aitia.meme.database.Columns;
@@ -447,7 +448,7 @@ public class ViewsBrowser extends JPanel implements java.awt.event.ActionListene
 				}
 			} catch (PatternSyntaxException e) {
 				views.addAll(copy);
-				MEMEApp.logError("Invalid regular expression: %s",regexp);
+				Logger.logError("Invalid regular expression: %s",regexp);
 				MEMEApp.userErrors(null,String.format("Invalid regular expression: %s",regexp));
 			} finally {
 				copy.clear();
@@ -526,7 +527,7 @@ public class ViewsBrowser extends JPanel implements java.awt.event.ActionListene
 		else try {
 			task.finished(); 
 		} catch (Exception e) {
-			MEMEApp.logExceptionCallStack("ViewsBrowser.refreshInfo()", e);
+			Logger.logExceptionCallStack("ViewsBrowser.refreshInfo()", e);
 		}
 	}
 	

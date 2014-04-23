@@ -22,6 +22,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.LinkedList;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.events.Event;
 import ai.aitia.meme.utils.Utils;
@@ -90,8 +91,8 @@ public class DatabaseConnection
 				//String err = connectToServer("", settings);
 				String err = connectToServer(settings.getExtConnStr(), settings);
 				if (0 != err.length()) {
-					MEMEApp.logError("Connection to external server failed: %s", err);
-					MEMEApp.logError("Fall back to Stand Alone Mode");
+					Logger.logError("Connection to external server failed: %s", err);
+					Logger.logError("Fall back to Stand Alone Mode");
 					launchInternal(settings);	
 				}
 			}
@@ -135,11 +136,11 @@ public class DatabaseConnection
     		if (conn != null) {
     			conn.close();    // if there are no other open connection
     			conn = null;
-		        MEMEApp.logError("Connection closed");
+		        Logger.logError("Connection closed");
     		}
     	} catch (SQLException e) {
 	        conn = null;
-	        MEMEApp.logError("Error while disconnecting database: %s", e.getMessage());
+	        Logger.logError("Error while disconnecting database: %s", e.getMessage());
     	}
     	if (dialect != null) {
     		dialect.clearCache();
@@ -155,7 +156,7 @@ public class DatabaseConnection
     	if (shouldBeShutdown && conn != null) {
     		// This is executed for HSQLDB only
     		// (if you change it in the future, then move shutdown behind SQLDialect)
-    		MEMEApp.logError("Shutting down database engine..");
+    		Logger.logError("Shutting down database engine..");
     		try {
 	    		Statement st = conn.createStatement();
 
@@ -164,10 +165,10 @@ public class DatabaseConnection
 	        	// when program ends
 	        	st.execute("SHUTDOWN");
 	        	shouldBeShutdown = false;
-	        	MEMEApp.logError("done");  
+	        	Logger.logError("done");  
     		}
     		catch (SQLException e) {
-    			MEMEApp.logError("error: %s", e.getMessage());
+    			Logger.logError("error: %s", e.getMessage());
     		}
     	}
     	disconnect();
@@ -224,15 +225,15 @@ public class DatabaseConnection
 				// TODO: kellenek meg SEUQENCE-k is, es 3 helyett lehet hogy 5 Statement is is kell?
 			} catch (Exception e) {
 				problems.add("throws exception while checking capabilities: " + Utils.getLocalizedMessage(e));
-				MEMEApp.logExceptionCallStack("DatabaseConnection.checkCapabilities()", e);
+				Logger.logExceptionCallStack("DatabaseConnection.checkCapabilities()", e);
 			}
 			if (!warnings.isEmpty()) {
 				if (warnings.size() > 1) warnings.add(0, "");
-				MEMEApp.logError("Warning: the database server %s", Utils.join(warnings, "\n- "));
+				Logger.logError("Warning: the database server %s", Utils.join(warnings, "\n- "));
 			}
 			if (!problems.isEmpty()) {
 				if (problems.size() > 1) problems.add(0, "");
-				MEMEApp.logError("ERROR: this database server %s", Utils.join(problems, "\n- "));
+				Logger.logError("ERROR: this database server %s", Utils.join(problems, "\n- "));
 				msg = "Incompatible database! The database server does not support " +
 							"all necessary SQL+JDBC functionality.";
 				shutdown();	// - do not use this database: it is not compatible
@@ -267,7 +268,7 @@ public class DatabaseConnection
 			if (dialect.isHSQLDB())  
 				setBigDBIfNeed();
 			
-    		MEMEApp.logError("Connection succeeded: %s", connStr);
+    		Logger.logError("Connection succeeded: %s", connStr);
 			return "";
 		} catch(Exception e) {
 			return Utils.getLocalizedMessage(e);
@@ -337,7 +338,7 @@ public class DatabaseConnection
 			final int CONN_TIMEOUT = 20;	// seconds 
 			MEMEApp.LONG_OPERATION.progress(-1, CONN_TIMEOUT);
 
-			MEMEApp.logError("Launching a server in a separate process..");
+			Logger.logError("Launching a server in a separate process..");
 			// Note: the following command is specific to the Windows platform, 
 			// but this should be no problem because this is executed only during development,
 			// which is normally done under Windows.
@@ -350,10 +351,10 @@ public class DatabaseConnection
 			// completes at the moment when the server process is started.
 			String cmd = "cmd /c start \"\" /MIN java -Xmx256m -cp 3rdParty/hsqldb/lib/hsqldb.jar org.hsqldb.Server " +
 							"-dbname.0 \"\" -database.0 \"" + DatabaseSettings.toUnixStylePath(settings.getIntDbPath()) + "\"";
-			MEMEApp.logError("%s", cmd);
+			Logger.logError("%s", cmd);
 			Runtime.getRuntime().exec(cmd);
 
-			MEMEApp.logError("Server launching succeeded");
+			Logger.logError("Server launching succeeded");
 			for (int i = 0; i < CONN_TIMEOUT; ++i) {
 				java.lang.Thread.sleep(1000);
 				MEMEApp.LONG_OPERATION.progress(i+1);

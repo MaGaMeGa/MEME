@@ -45,7 +45,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import ai.aitia.meme.MEMEApp;
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.gui.IRngSeedManipulatorChangeListener;
 import ai.aitia.meme.gui.RngSeedManipulator;
 import ai.aitia.meme.paramsweep.batch.IParameterSweepResultReader;
@@ -889,7 +889,7 @@ public class IterativeUniformInterpolation implements IIntelliDynamicMethodPlugi
 	}
 
 	protected void aggregationOfResults(IParameterSweepResultReader reader, String aggregationMethod) throws ReadingException {
-		MEMEApp.logError("***DEBUG: aggregation method=%s", aggregationMethod);
+		Logger.logError("***DEBUG: aggregation method=%s", aggregationMethod);
 		RecordableElement re = selectedVars.get(0);
 		RecordableInfo recInfo = new RecordableInfo(re.getAlias() != null ? re.getAlias() : re.getInfo().getName(),re.getInfo().getJavaType(),
 				re.getInfo().getName()); 

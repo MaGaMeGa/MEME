@@ -67,6 +67,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.gui.IPanelManager;
 import ai.aitia.meme.paramsweep.cloud.util.IFileTranserService;
@@ -429,13 +430,13 @@ public class VCloudDownloader extends JPanel implements ActionListener,
 					return true;
 				}
 			} catch (final UnknownHostException e) {
-				MEMEApp.logException(e);
+				Logger.logException(e);
 				Utilities.userAlert(this,"Host " + this.hostname + " is unknown.");
 			} catch (final IOException e) {
-				MEMEApp.logException(e);
+				Logger.logException(e);
 				Utilities.userAlert(this,"Error during the connection to the Model Exploration Server: " + Util.getLocalizedMessage(e));
 			} catch (ClassNotFoundException e) {
-				MEMEApp.logException(e);
+				Logger.logException(e);
 				throw new IllegalStateException(e);
 			}  finally {
 				if (socket != null) {
@@ -563,8 +564,8 @@ public class VCloudDownloader extends JPanel implements ActionListener,
 							mScreen.hideScreen();
 							Utilities.userAlert(this,"Unable to transfer the results from the Model Exploration Server",
 												Util.getLocalizedMessage(e));
-							MEMEApp.logError(Util.getLocalizedMessage(e) + "\nStacktrace: ");
-							MEMEApp.logException(e);
+							Logger.logError(Util.getLocalizedMessage(e) + "\nStacktrace: ");
+							Logger.logException(e);
 							return;
 						} 
 						String workspace = msg.getWorkspace();
@@ -597,28 +598,28 @@ public class VCloudDownloader extends JPanel implements ActionListener,
 									out.writeObject(message);
 									out.flush();
 								} catch (final IOException e) {
-									MEMEApp.logError(Util.getLocalizedMessage(e) + "\nStacktrace: ");
-									MEMEApp.logException(e);
+									Logger.logError(Util.getLocalizedMessage(e) + "\nStacktrace: ");
+									Logger.logException(e);
 								}
 								Utilities.userAlert(owner,"Downloading is done.");
 							}
 						} catch (final OperationFailedException e) {
 							mScreen.hideScreen();
 							Utilities.userAlert(this,"Error while downloading result(s).",Util.getLocalizedMessage(e));
-							MEMEApp.logError(Util.getLocalizedMessage(e) + "\nStacktrace: ");
-							MEMEApp.logException(e);
+							Logger.logError(Util.getLocalizedMessage(e) + "\nStacktrace: ");
+							Logger.logException(e);
 							return;
 						}
 					}
 				}
 			} catch (final UnknownHostException e) {
-				MEMEApp.logException(e);
+				Logger.logException(e);
 				Utilities.userAlert(this,"Host " + this.hostname + " is unknown.");
 			} catch (final IOException e) {
-				MEMEApp.logException(e);
+				Logger.logException(e);
 				Utilities.userAlert(this,"Error during the connection to the Model Exploration Server: " + Util.getLocalizedMessage(e));
 			} catch (ClassNotFoundException e) {
-				MEMEApp.logException(e);
+				Logger.logException(e);
 				throw new IllegalStateException(e);
 			}  finally {
 				if (socket != null) {
@@ -703,8 +704,8 @@ public class VCloudDownloader extends JPanel implements ActionListener,
 						mScreen.hideScreen();
 						Utilities.userAlert(this,"Unable to transfer the results from the Model Exploration Server",
 											Util.getLocalizedMessage(e));
-						MEMEApp.logError(Util.getLocalizedMessage(e) + "\nStacktrace: ");
-						MEMEApp.logException(e);
+						Logger.logError(Util.getLocalizedMessage(e) + "\nStacktrace: ");
+						Logger.logException(e);
 						dir.delete();
 						return;
 					} 
@@ -742,8 +743,8 @@ public class VCloudDownloader extends JPanel implements ActionListener,
 								out.writeObject(message);
 								out.flush();
 							} catch (final IOException e) {
-								MEMEApp.logError(Util.getLocalizedMessage(e) + "\nStacktrace: ");
-								MEMEApp.logException(e);
+								Logger.logError(Util.getLocalizedMessage(e) + "\nStacktrace: ");
+								Logger.logException(e);
 							}
 							
 							boolean canceled = false;
@@ -761,8 +762,8 @@ public class VCloudDownloader extends JPanel implements ActionListener,
 							} catch (final CancelImportException _) {
 								canceled = true;
 							} catch (final Exception e) {
-								MEMEApp.logError("Error at automatic importing");
-								MEMEApp.logException(e);
+								Logger.logError("Error at automatic importing");
+								Logger.logException(e);
 								Utilities.userAlert(owner,"Error at automatic importing.",Util.getLocalizedMessage(e));
 							}
 							fs = dir.listFiles();
@@ -774,19 +775,19 @@ public class VCloudDownloader extends JPanel implements ActionListener,
 					} catch (final OperationFailedException e) {
 						mScreen.hideScreen();
 						Utilities.userAlert(this,"Error while downloading result(s).",Util.getLocalizedMessage(e));
-						MEMEApp.logError(Util.getLocalizedMessage(e) + "\nStacktrace: ");
-						MEMEApp.logException(e);
+						Logger.logError(Util.getLocalizedMessage(e) + "\nStacktrace: ");
+						Logger.logException(e);
 						return;
 					}
 				}
 			} catch (final UnknownHostException e) {
-				MEMEApp.logException(e);
+				Logger.logException(e);
 				Utilities.userAlert(this,"Host " + this.hostname + " is unknown.");
 			} catch (final IOException e) {
-				MEMEApp.logException(e);
+				Logger.logException(e);
 				Utilities.userAlert(this,"Error during the connection to the Model Exploration Server: " + Util.getLocalizedMessage(e));
 			} catch (ClassNotFoundException e) {
-				MEMEApp.logException(e);
+				Logger.logException(e);
 				throw new IllegalStateException(e);
 			}  finally {
 				if (socket != null) {

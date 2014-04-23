@@ -45,6 +45,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.JTextComponent;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.database.Model;
 import ai.aitia.meme.paramsweep.utils.SettingsFileFilter;
@@ -205,7 +206,7 @@ public class NetLogoMultiImportDialog extends JDialog implements ActionListener 
 						}
 					});
 					if (t != null) {
-						MEMEApp.logException("NetLogoMultiImportDialog.okButton",t);
+						Logger.logException("NetLogoMultiImportDialog.okButton",t);
 						text = messagePane.getText();
 						text += "\nError while writing to database: " + Utils.getLocalizedMessage(t);
 						text += "\nFile: " + files[i].getName();

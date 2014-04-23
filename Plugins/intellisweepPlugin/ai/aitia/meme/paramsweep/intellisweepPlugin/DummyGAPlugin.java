@@ -67,7 +67,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
-import ai.aitia.meme.MEMEApp;
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.paramsweep.batch.IParameterSweepResultReader;
 import ai.aitia.meme.paramsweep.batch.ReadingException;
 import ai.aitia.meme.paramsweep.batch.ResultValueInfo;
@@ -934,7 +934,7 @@ public class DummyGAPlugin implements IIntelliDynamicMethodPlugin,
 			try{
 				opManager.loadOperators( lib, libLoc );
 			}catch( Exception e ){
-				MEMEApp.logError("(GAOperatorManager) Error while loading %s operators.", lib );
+				Logger.logError("(GAOperatorManager) Error while loading %s operators.", lib );
 				importInfoLabel.setText( "Error while loading " + lib + " operators." );
 			}
 			
@@ -1610,7 +1610,7 @@ public class DummyGAPlugin implements IIntelliDynamicMethodPlugin,
 						(ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?>)
 						 InfoConverter.parameterInfo2ParameterInfo(innerInfo);
 					}catch( ClassCastException e ){
-						MEMEApp.logError( "Cannot contvert parameter info: %s Problem is: \n%s", 
+						Logger.logError( "Cannot contvert parameter info: %s Problem is: \n%s", 
 										 innerInfo.getName(), e.getLocalizedMessage() );
 					}
 					pCombo.add(info);
@@ -1619,7 +1619,7 @@ public class DummyGAPlugin implements IIntelliDynamicMethodPlugin,
 				try{
 					descendants.get( i ).setFitness( ((Number)results.get( 0 ).getValue()).doubleValue() );
 				}catch( IndexOutOfBoundsException e ){
-					MEMEApp.logError( "%s", e.getLocalizedMessage() );
+					Logger.logError( "%s", e.getLocalizedMessage() );
 				}
 				//fitness.add( (Double)results.get( 0 ).getValue() );
 			}
@@ -1776,7 +1776,7 @@ public class DummyGAPlugin implements IIntelliDynamicMethodPlugin,
 			popWriter.println();
 			popWriter.close();
 		}catch( IOException e ){
-			MEMEApp.logError( "Cannot print population to file:\n%s", e );
+			Logger.logError( "Cannot print population to file:\n%s", e );
 		}
 	}
 	
@@ -1799,7 +1799,7 @@ public class DummyGAPlugin implements IIntelliDynamicMethodPlugin,
 			}
 			popWriter.close();
 		}catch( IOException e ){
-			MEMEApp.logError( "Cannot print population to file:\n%s", e );
+			Logger.logError( "Cannot print population to file:\n%s", e );
 		}
 	}
 	

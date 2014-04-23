@@ -48,6 +48,7 @@ import javax.swing.JTextField;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.usertools.UserToolGroup;
 import ai.aitia.meme.usertools.UserToolManager;
@@ -260,7 +261,7 @@ public class UserToolsDialog extends JDialog implements ActionListener,
 			try {
 				manager.save();
 			} catch (Exception e1) {
-				MEMEApp.logExceptionCallStack("UserToolsDialog [OK]",e1);
+				Logger.logExceptionCallStack("UserToolsDialog [OK]",e1);
 			}
 			canceled = false;
 			setVisible(false);

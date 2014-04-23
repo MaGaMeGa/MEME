@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry excluding="lib/" kind="src" path=""/>
-	<classpathentry combineaccessrules="false" kind="src" path="/MEME_All"/>
 	<classpathentry kind="lib" path="lib/NetLogo.jar"/>
 	<classpathentry kind="lib" path="lib/scala-library.jar"/>
 	<classpathentry kind="lib" path="lib/BehaviorSpace.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/MEME"/>
 	<classpathentry kind="output" path=""/>
 </classpath>

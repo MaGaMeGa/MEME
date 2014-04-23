@@ -42,6 +42,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.utils.Utils.Callback;
 
@@ -325,7 +326,7 @@ public class GUIUtils {
     		if (r != null)
     			ans.height = r.y + r.height;
     	} catch (javax.swing.text.BadLocationException e) {
-    		MEMEApp.logExceptionCallStack(e);
+    		Logger.logExceptionCallStack(e);
     		ans.height += getRowHeight(tc);
     	}
     	if (setWidth) d = ans; else if (!wasSet) d = null;
@@ -623,14 +624,14 @@ public class GUIUtils {
 			}
 			catch (Exception e){
 				ans = e;
-				MEMEApp.logException("in modelEventLoop", e, true);
+				Logger.logException("in modelEventLoop", e, true);
 			} finally {
 				if (filter != null)
 					m_removeFilter.invoke(thread, filter);
 			}
 		} catch (Exception e) {
 			ans = e;
-			MEMEApp.logException("in modelEventLoop", e, true);
+			Logger.logException("in modelEventLoop", e, true);
 		}
 
 		return ans;

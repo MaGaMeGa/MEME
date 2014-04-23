@@ -35,7 +35,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
 
-import ai.aitia.meme.MEMEApp;
+import ai.aitia.meme.Logger;
 
 /** Collection of XML related utility functions. */
 public class XMLUtils {
@@ -51,7 +51,7 @@ public class XMLUtils {
 			try {
 				g_DefaultXMLParser = factory.newDocumentBuilder();
 			} catch (ParserConfigurationException e) {
-				MEMEApp.logExceptionCallStack("getXMLParser()", e);
+				Logger.logExceptionCallStack("getXMLParser()", e);
 			}
 		}
 		return g_DefaultXMLParser;
@@ -64,7 +64,7 @@ public class XMLUtils {
 			try {
 				g_DefaultXMLWriter = TransformerFactory.newInstance().newTransformer();
 			} catch (Throwable t) {
-				MEMEApp.logExceptionCallStack("getXMLWriter()", t);
+				Logger.logExceptionCallStack("getXMLWriter()", t);
 			}
 		}
 		return g_DefaultXMLWriter;

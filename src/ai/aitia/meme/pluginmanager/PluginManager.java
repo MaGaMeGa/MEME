@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipFile;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.paramsweep.platform.IPluginPlatform;
 import ai.aitia.meme.paramsweep.plugin.IIntelliMethodPlugin;
@@ -152,7 +153,7 @@ public class PluginManager
 		InputStream is;
 
 		if (!dir.exists()) {
-			MEMEApp.logError("Cannot locate the Plugins directory '%s'", dir.toString());
+			Logger.logError("Cannot locate the Plugins directory '%s'", dir.toString());
 			throw new Exception("Cannot locate the Plugins directory");
 		}
 		files = dir.list();
@@ -242,7 +243,7 @@ public class PluginManager
 				err = getLocalizedMessage(ex);
 			}
 			if (err != null) {
-				MEMEApp.logError("Error reading plugin file %s: %s", files[i], err);
+				Logger.logError("Error reading plugin file %s: %s", files[i], err);
 			}
 		} // for i in files[]
 	}

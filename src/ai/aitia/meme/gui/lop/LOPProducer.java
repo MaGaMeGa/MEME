@@ -27,6 +27,7 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.utils.Utils;
 import ai.aitia.meme.utils.GUIUtils;
@@ -198,7 +199,7 @@ public class LOPProducer implements ActionListener, IProgressUpdate {
 				try {
 					SwingUtilities.invokeAndWait(new Runnable() {
 						public void run() {
-							MEMEApp.logExceptionCallStack(req.getError());
+							Logger.logExceptionCallStack(req.getError());
 							Utils.invokeLater(this, "setTaskName", req.getTaskName());
 							appendErrorInfo(req.getError());
 							if (queue.isEmpty(true)) {
@@ -279,7 +280,7 @@ public class LOPProducer implements ActionListener, IProgressUpdate {
 		try {
 			req = execute(taskName, true, r);	// true: hiba megjelenitese
 		} catch (Throwable t) {
-			MEMEApp.logExceptionCallStack(t);
+			Logger.logExceptionCallStack(t);
 			e = t;
 		}
 		if (th != null && th.length > 0) th[0] = e;
@@ -370,7 +371,7 @@ public class LOPProducer implements ActionListener, IProgressUpdate {
 			else try {
 				SwingUtilities.invokeAndWait(r);
 			} catch (Exception e) {		// InterruptedException, InvocationTargetException
-				MEMEApp.logExceptionCallStack("LOPProducer.getTaskName()", e);
+				Logger.logExceptionCallStack("LOPProducer.getTaskName()", e);
 			}
 		}
 	}
@@ -394,7 +395,7 @@ public class LOPProducer implements ActionListener, IProgressUpdate {
 				public void run() { ans[0] = getTaskName(); }
 			});
 		} catch (Exception e) {		// InterruptedException, InvocationTargetException
-			MEMEApp.logExceptionCallStack("LOPProducer.getTaskName()", e);
+			Logger.logExceptionCallStack("LOPProducer.getTaskName()", e);
 		}
 		return ans[0];
 	}
@@ -616,7 +617,7 @@ public class LOPProducer implements ActionListener, IProgressUpdate {
 		assert(queue.getCurrent() == req);
 
 		if (req.getError() != null) {
-			MEMEApp.logExceptionCallStack(req.getError());
+			Logger.logExceptionCallStack(req.getError());
 			if (req.isErrorDisplay())
 				appendErrorInfo(req.getError());
 		}
@@ -627,7 +628,7 @@ public class LOPProducer implements ActionListener, IProgressUpdate {
 		if (req.task instanceof ILopListener) {
 			try { ((ILopListener)req.task).finished(); }
 			catch (Throwable t) {
-				MEMEApp.logExceptionCallStack(t);
+				Logger.logExceptionCallStack(t);
 				if (req.isErrorDisplay())
 					appendErrorInfo(t);
 				else

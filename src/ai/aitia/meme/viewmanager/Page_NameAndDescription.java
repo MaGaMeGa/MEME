@@ -34,6 +34,7 @@ import javax.swing.event.CaretListener;
 
 import org.w3c.dom.Element;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.database.Model;
 import ai.aitia.meme.database.ViewRec;
@@ -206,7 +207,7 @@ public class Page_NameAndDescription extends JPanel implements Wizard.IWizardPag
 			try {
 				XMLUtils.write(f,node);
 			} catch (Exception e1) {
-				MEMEApp.logExceptionCallStack("Saving view script", e1);
+				Logger.logExceptionCallStack("Saving view script", e1);
 				throw new IllegalStateException(e1);
 			} finally {
 //				setInSave(false);
@@ -426,7 +427,7 @@ public class Page_NameAndDescription extends JPanel implements Wizard.IWizardPag
 			owner.getWizard().enableDisableButtons();
 			return ok;
 		} catch (final Exception e) {
-			MEMEApp.logException("Page_NameAndDescription.checkViewName",e);
+			Logger.logException("Page_NameAndDescription.checkViewName",e);
 			return false;
 		}
 	}
