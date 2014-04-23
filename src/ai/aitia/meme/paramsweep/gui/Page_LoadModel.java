@@ -305,7 +305,7 @@ public class Page_LoadModel extends JPanel implements IWizardPage,
 			if (f == null) return;
 			while (f.exists()) {
 				int result = Utilities.askUser(this,false,"Override comfirmation",
-											   String.format("%s is exists. The wizard may change its" +
+											   String.format("%s exists. The wizard may change its" +
 											   				" content.",f.getName()),"Are you sure?");
 				if (result == 0) {
 					f = fileDialog(false,f,null);
