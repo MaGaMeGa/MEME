@@ -298,6 +298,7 @@
 					<filename name="${paramsweepdir}/**"/>
 					<filename name="ai/aitia/meme/pluginmanager/IPlugin.class"/>
 					<filename name="ai/aitia/meme/utils/Util*.class"/>
+					<filename name="ai/aitia/meme/gui/SimpleFileFilter.class"/>
 				</or>
 			</fileset>
 			<fileset dir="${bin}" includes="${paramsweepdir}/platform/mason/recording/annotation/*.class"/>
