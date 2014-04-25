@@ -294,7 +294,7 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	private String collectParameters (final Class<?> javaClass, final List<ParameterInfo<?>> parameters, final List<String> unusedParameters, final Object instance,
+	private String collectParameters(final Class<?> javaClass, final List<ParameterInfo<?>> parameters, final List<String> unusedParameters, final Object instance,
 									  final SubmodelInfo<?> parent) {
 		final Method[] allMethods = javaClass.getMethods();
 		for (int i = 0; i < allMethods.length; i++) {
@@ -370,7 +370,13 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 							}
 						}
 						
-						parameters.add(createSubmodelParameterInfo(capitalizedFieldName,field.getType(),description,submodelInformations,parent));
+						try {
+							parameters.add(createSubmodelParameterInfo(instance,capitalizedFieldName,field.getType(),getter,description,submodelInformations,parent));
+						} catch (final IllegalAccessException e) {
+							return "The method " + Util.getLocalizedMessage(e) + " is not visible.";
+						} catch (final InvocationTargetException e) {
+							return e.getClass().getSimpleName() + " occurs during the initialization: " + Util.getLocalizedMessage(e);
+						}						
 					}
 				}
 			}
@@ -630,12 +636,20 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	private SubmodelInfo<?> createSubmodelParameterInfo(final String name, final Class<?> type, final String description, 
-														final Map<String,Object> submodelInformations, final SubmodelInfo<?> parent) {
+	private SubmodelInfo<?> createSubmodelParameterInfo(final Object ownerObject, final String name, final Class<?> type, final Method getter, final String description, 
+														final Map<String,Object> submodelInformations, final SubmodelInfo<?> parent) 
+																											throws IllegalAccessException, InvocationTargetException {
 		
 		@SuppressWarnings("unchecked") final List<Class<?>> types = (List<Class<?>>) submodelInformations.get("types"); 
 		SubmodelInfo<Object> result = new SubmodelInfo<Object>(name,description,null,types,type);
 		result.setParent(parent);
+		
+		Object o = null;
+		o = getter.invoke(ownerObject);
+		
+		if (o != null)
+			result.setActualType(o.getClass());
+		
 		return result;
 	}
 
