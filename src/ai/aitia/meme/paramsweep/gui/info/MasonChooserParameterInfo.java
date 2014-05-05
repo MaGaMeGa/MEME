@@ -19,6 +19,10 @@ package ai.aitia.meme.paramsweep.gui.info;
 import java.util.ArrayList;
 import java.util.List;
 
+import _.unknown;
+import ai.aitia.meme.paramsweep.internal.platform.PlatformSettings;
+import ai.aitia.meme.paramsweep.internal.platform.IGUIController.RunOption;
+
 public class MasonChooserParameterInfo extends ParameterInfo {
 	
 	private static final long serialVersionUID = 2402682107091329763L;
@@ -93,5 +97,28 @@ public class MasonChooserParameterInfo extends ParameterInfo {
 	
 	public String[] getValidStrings(){
 		return validStringValues.toArray(new String[validStringValues.size()]);
+	}
+	
+	//-------------------------------------------------------------------------------
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder(name);
+		sb.append(" : ").append(type.equals("List") || javaType.equals(unknown.class) ? javaType.getSimpleName() : type);
+		sb.append(" - [");
+		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.LOCAL && runs > 0) {
+			sb.append("runs=");
+			sb.append(runs);
+			sb.append(",");
+		}
+		switch (defType) {
+		case CONST_DEF : sb.append("value=");
+						 sb.append(validStringValues.get((Integer)getValue()));
+						 break;
+		case LIST_DEF  : 
+		case INCR_DEF  : 
+			throw new UnsupportedOperationException();
+		}
+		sb.append("]");
+		return sb.toString();
 	}
 }
