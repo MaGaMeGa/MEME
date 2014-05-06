@@ -107,4 +107,14 @@ public class SubmodelInfo extends ParameterInfo implements ISubmodelGUIInfo {
 		return result;
 		
 	}
+	
+	//----------------------------------------------------------------------------------------------------
+	@Override
+	public String toString() {
+		String result = name + " : " + javaType.getSimpleName();
+		if (actualType != null) 
+			result += "[actual type=" + actualType.getSimpleName() + "]";
+		
+		return result;
+	}
 }
