@@ -16,6 +16,8 @@
  ******************************************************************************/
 package ai.aitia.meme.paramsweep.batch.param;
 
+import java.util.Iterator;
+
 
 public class SubmodelParameterInfo<T> extends ParameterInfo<T> implements ISubmodelParameterInfo {
 	
@@ -56,5 +58,32 @@ public class SubmodelParameterInfo<T> extends ParameterInfo<T> implements ISubmo
 		final SubmodelParameterInfo<T> clone = new SubmodelParameterInfo<T>(this.name,this.description,this.defaultValue,this.originalConstant,this.parent);
 		
 		return clone;
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	@Override
+	public Iterator<ParameterInfo<T>> parameterIterator() {
+    	if (valueType == ValueType.CONSTANT) 
+    		return new PiConstantIterator();
+   		return new SmPiListIterator();
+    }
+	
+	//====================================================================================================
+	// nested classes
+	
+	//----------------------------------------------------------------------------------------------------
+	class SmPiListIterator extends PiMyListIterator {
+		
+		//====================================================================================================
+		// methods
+		
+		//----------------------------------------------------------------------------------------------------
+		public SmPiListIterator() { valueIt = SubmodelParameterInfo.this.iterator(); }
+		
+		//----------------------------------------------------------------------------------------------------
+		@Override
+		public ParameterInfo<T> next() {
+			return new SubmodelParameterInfo<T>(name,description,valueIt.next(),false,parent);
+		}
 	}
 }

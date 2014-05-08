@@ -233,7 +233,7 @@ public class ParameterInfo<T> extends AbstractParameterInfo<T> {
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	final private class PiConstantIterator implements Iterator<ParameterInfo<T>> {
+	public final class PiConstantIterator implements Iterator<ParameterInfo<T>> {
 		
 		//====================================================================================================
 		// members
@@ -257,12 +257,12 @@ public class ParameterInfo<T> extends AbstractParameterInfo<T> {
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	class PiMyListIterator implements Iterator<ParameterInfo<T>> {
+	public class PiMyListIterator implements Iterator<ParameterInfo<T>> {
 		
 		//====================================================================================================
 		// members
 		
-		private Iterator<T> valueIt;
+		protected Iterator<T> valueIt;
 		
 		//====================================================================================================
 		// methods
