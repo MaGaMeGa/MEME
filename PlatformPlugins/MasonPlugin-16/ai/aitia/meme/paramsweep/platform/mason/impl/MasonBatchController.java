@@ -91,13 +91,22 @@ public class MasonBatchController implements IBatchController, IRecorderListener
 		listeners.remove(listener);
 	}
 	
+	//----------------------------------------------------------------------------------------------------
 	public void addRecorderListener(final MasonRecorderListener listener){
 		model.aitiaGenerated_addRecorderListener(listener);
 	}
 	
+	//----------------------------------------------------------------------------------------------------
 	public void removeRecorderListener(final MasonRecorderListener listener){
 		model.aitiaGenerated_removeRecorderListener(listener);
 	}
+	
+	//----------------------------------------------------------------------------------------------------
+	public Map<String,Object> getConstantParameterNames() { return constantParameterNames; }
+	
+	//----------------------------------------------------------------------------------------------------
+	public Map<String,Object> getMutableParameterNames() { return mutableParameterNames; }
+	
 	//----------------------------------------------------------------------------------------------------
 	public int getNumberOfRuns() {
 		if (noRuns < 0) {

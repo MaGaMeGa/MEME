@@ -6,6 +6,7 @@ import java.util.Locale;
 
 import javax.accessibility.Accessible;
 import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -126,34 +127,56 @@ public class TestableDialog extends JComponent implements Accessible
 	        Object message, String title, int optionType, int messageType,
 	        Icon icon, Object[] options, Object initialValue, String name)
 	        throws HeadlessException {
-	        JOptionPane             pane = new JOptionPane(message, messageType,
-	                                                       optionType, icon,
-	                                                       options, initialValue);
+	        JOptionPane pane = new JOptionPane(message, messageType, optionType, icon, options, initialValue);
 
 	        pane.setInitialValue(initialValue);
 	        pane.setComponentOrientation(((parentComponent == null) ?
 	            JOptionPane.getRootFrame() : parentComponent).getComponentOrientation());
 	        
-	        Component[] gombok = ((JPanel)pane.getComponents()[1]).getComponents();
+	        Component[] buttons = null;
 	        
-	        switch(optionType)
-	        {
+	        for (int i = pane.getComponentCount() - 1;i >= 0;i--) {
+	        	final Component comp = pane.getComponent(i);
+	        	if (comp instanceof JPanel) {
+	        		final JPanel panel = (JPanel) comp;
+	        		boolean allButton = true;
+	        		for (int j = 0;j < panel.getComponentCount();++j) {
+	        			if (!(panel.getComponent(j) instanceof JButton)) {
+	        				allButton = false;
+	        				break;
+	        			}
+	        		}
+	        		
+	        		if (allButton) {
+	        			buttons = panel.getComponents();
+	        			break;
+	        		}
+	        	}
+	        }
+	        
+	        if (buttons == null)
+	        	throw new IllegalStateException("Invalid JOptionPane format.");
+	        
+	        switch (optionType) {
 	        	case JOptionPane.OK_CANCEL_OPTION:
-	        		gombok[0].setName("btn_ok");
-	        		gombok[1].setName("btn_cancel");
+	        		buttons[0].setName("btn_ok");
+	        		buttons[1].setName("btn_cancel");
 	        		break;
 	        	case JOptionPane.YES_NO_CANCEL_OPTION:
-	        		gombok[0].setName("btn_yes");
-	        		gombok[1].setName("btn_no");
-	        		gombok[2].setName("btn_cancel");
+	        		buttons[0].setName("btn_yes");
+	        		buttons[1].setName("btn_no");
+	        		buttons[2].setName("btn_cancel");
 	        		break;
 	        	case JOptionPane.YES_NO_OPTION:
-	        		gombok[0].setName("btn_yes");
-	        		gombok[1].setName("btn_no");
+	        		buttons[0].setName("btn_yes");
+	        		buttons[1].setName("btn_no");
 	        		break;
 	        	case JOptionPane.DEFAULT_OPTION:
-	        		if(options!=null)for(int i=0; i<options.length;i++)gombok[i].setName("btn_".concat((String)options[i]).toLowerCase());
-	        		else gombok[0].setName("btn_ok");
+	        		if (options != null) {
+	        			for(int i = 0;i < options.length;i++)
+	        				buttons[i].setName("btn_".concat((String)options[i]).toLowerCase());
+	        		} else
+	        			buttons[0].setName("btn_ok");
 	        		break;
 	        }
 	        int style = styleFromMessageType(messageType);

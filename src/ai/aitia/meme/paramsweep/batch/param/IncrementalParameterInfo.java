@@ -125,7 +125,7 @@ public class IncrementalParameterInfo<T extends Number> extends AbstractParamete
 	// nested classes
     
 	//----------------------------------------------------------------------------------------------------
-	final private class IncrementIterator implements Iterator<T> {
+	final class IncrementIterator implements Iterator<T> {
 		
 		//====================================================================================================
 		// members
@@ -191,12 +191,12 @@ public class IncrementalParameterInfo<T extends Number> extends AbstractParamete
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	final private class PiIncrementIterator implements Iterator<ParameterInfo<T>> {
+	class PiIncrementIterator implements Iterator<ParameterInfo<T>> {
 		
 		//====================================================================================================
 		// members
 		
-		private IncrementIterator it;
+		protected IncrementIterator it;
 		
 		//====================================================================================================
 		// methods

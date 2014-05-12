@@ -13,12 +13,15 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- ******************************************************************************/package ai.aitia.meme.paramsweep.platform.mason.info;
+ ******************************************************************************/
+package ai.aitia.meme.paramsweep.platform.mason.info;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import ai.aitia.meme.paramsweep.batch.param.ISubmodelParameterInfo;
+import ai.aitia.meme.paramsweep.batch.param.ParameterInfo;
 import ai.aitia.meme.paramsweep.batch.param.SubmodelInfo;
 
 public class MasonChooserSubmodelParameterInfo<T> extends MasonChooserParameterInfo<T> implements ISubmodelParameterInfo {
@@ -52,5 +55,32 @@ public class MasonChooserSubmodelParameterInfo<T> extends MasonChooserParameterI
 																									possibleValuesClone,possibleNamedValuesClone,this.parent);
 		
 		return clone; 
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	@Override
+	public Iterator<ParameterInfo<T>> parameterIterator() {
+    	if (getValueType() == ValueType.CONSTANT) 
+    		return new PiConstantIterator();
+   		return new McSmPiListIterator();
+    }
+	
+	//====================================================================================================
+	// nested classes
+	
+	//----------------------------------------------------------------------------------------------------
+	class McSmPiListIterator extends PiMyListIterator {
+		
+		//====================================================================================================
+		// methods
+		
+		//----------------------------------------------------------------------------------------------------
+		public McSmPiListIterator() { valueIt = MasonChooserSubmodelParameterInfo.this.iterator(); }
+		
+		//----------------------------------------------------------------------------------------------------
+		@Override
+		public ParameterInfo<T> next() {
+			return new MasonChooserSubmodelParameterInfo<T>(getName(),getDescription(),valueIt.next(),possibleValues,possibleNamedValues,parent);
+		}
 	}
 }

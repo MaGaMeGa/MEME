@@ -16,7 +16,10 @@
  ******************************************************************************/
 package ai.aitia.meme.paramsweep.platform.mason.info;
 
+import java.util.Iterator;
+
 import ai.aitia.meme.paramsweep.batch.param.ISubmodelParameterInfo;
+import ai.aitia.meme.paramsweep.batch.param.ParameterInfo;
 import ai.aitia.meme.paramsweep.batch.param.SubmodelInfo;
 
 public class MasonIntervalSubmodelParameterInfo<T> extends MasonIntervalParameterInfo<T> implements ISubmodelParameterInfo {
@@ -46,4 +49,32 @@ public class MasonIntervalSubmodelParameterInfo<T> extends MasonIntervalParamete
 	public MasonIntervalSubmodelParameterInfo<T> clone() {
 		return new MasonIntervalSubmodelParameterInfo<T>(this.getName(),this.getDescription(),this.getDefaultValue(),this.min,this.max,this.isDouble,this.parent);
 	}
+	
+	//----------------------------------------------------------------------------------------------------
+	@Override
+	public Iterator<ParameterInfo<T>> parameterIterator() {
+    	if (getValueType() == ValueType.CONSTANT) 
+    		return new PiConstantIterator();
+   		return new MiSmPiListIterator();
+    }
+	
+	//====================================================================================================
+	// nested classes
+	
+	//----------------------------------------------------------------------------------------------------
+	class MiSmPiListIterator extends PiMyListIterator {
+		
+		//====================================================================================================
+		// methods
+		
+		//----------------------------------------------------------------------------------------------------
+		public MiSmPiListIterator() { valueIt = MasonIntervalSubmodelParameterInfo.this.iterator(); }
+		
+		//----------------------------------------------------------------------------------------------------
+		@Override
+		public ParameterInfo<T> next() {
+			return new MasonIntervalSubmodelParameterInfo<T>(getName(),getDescription(),valueIt.next(),min,max,isDouble,parent);
+		}
+	}
+
 }

@@ -16,6 +16,8 @@
  ******************************************************************************/
 package ai.aitia.meme.paramsweep.batch.param;
 
+import java.util.Iterator;
+
 public class SubmodelIncrementalParameterInfo<T extends Number> extends IncrementalParameterInfo<T> implements ISubmodelParameterInfo {
 	
 	//====================================================================================================
@@ -43,11 +45,33 @@ public class SubmodelIncrementalParameterInfo<T extends Number> extends Incremen
 	//----------------------------------------------------------------------------------------------------
 	public SubmodelInfo<?> getParentInfo() { return parent; }
 	
+    //----------------------------------------------------------------------------------------------------
+	@Override public Iterator<ParameterInfo<T>> parameterIterator() { return new SmPiIncrementIterator(getStart(),getEnd(),getIncrement()); }
+	
 	//----------------------------------------------------------------------------------------------------
 	@Override
 	public SubmodelIncrementalParameterInfo<T> clone() {
 		final SubmodelIncrementalParameterInfo<T> clone = new SubmodelIncrementalParameterInfo<T>(this.name,this.description,this.defaultValue,this.parent);
 		
 		return clone;
+	}
+	
+	//====================================================================================================
+	// nested classes
+	
+	//----------------------------------------------------------------------------------------------------
+	class SmPiIncrementIterator extends PiIncrementIterator {
+		
+		//====================================================================================================
+		// methods
+		
+		//----------------------------------------------------------------------------------------------------
+		public SmPiIncrementIterator(T start, T end, T increment) { super(start,end,increment); }
+		
+		//----------------------------------------------------------------------------------------------------
+		@Override
+		public ParameterInfo<T> next() {
+			return new SubmodelParameterInfo<T>(name,description,it.next(),false,parent);
+		}
 	}
 }
