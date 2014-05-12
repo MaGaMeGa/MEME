@@ -297,6 +297,7 @@
 				<or>
 					<filename name="${paramsweepdir}/**"/>
 					<filename name="ai/aitia/meme/pluginmanager/IPlugin.class"/>
+					<filename name="ai/aitia/meme/pluginmanager/IPlugin$IContext.class"/>
 					<filename name="ai/aitia/meme/utils/Util*.class"/>
 					<filename name="ai/aitia/meme/gui/SimpleFileFilter.class"/>
 					<filename name="ai/aitia/meme/utils/TestableDialog.class"/>

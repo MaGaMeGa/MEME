@@ -320,7 +320,9 @@ public class InfoConverter {
 					   break;
 		default: 
 			if (Enum.class.isAssignableFrom(info.getJavaType())){ // Enum type
-				 convertedInfo = new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Enum<?>>(info.getName(),"",(Enum<?>)info.getValue());
+				 convertedInfo = info.isSubmodelParameter() ?
+						 new SubmodelParameterInfo<Enum<?>>(info.getName(), "", (Enum<?>)info.getValue(), submodelInfo2submodelInfo(((ISubmodelGUIInfo)info).getParent()))
+						 : new ai.aitia.meme.paramsweep.batch.param.ParameterInfo<Enum<?>>(info.getName(),"",(Enum<?>)info.getValue());
 				 if (info.getDefinitionType() == ParameterInfo.LIST_DEF) {
 					 ArrayList<Enum<?>> values = new ArrayList<Enum<?>>();
 					 List<Object> toConvert = info.getValues();
@@ -331,8 +333,10 @@ public class InfoConverter {
 			} else if (info instanceof ai.aitia.meme.paramsweep.gui.info.SubmodelInfo) {
 				convertedInfo = submodelInfo2submodelInfo((ai.aitia.meme.paramsweep.gui.info.SubmodelInfo)info); 
 			} else {
-				convertedInfo = info.getDefinitionType() == ParameterInfo.INCR_DEF ? new IncrementalParameterInfo(info.getName(), "", 0)
-				: new ai.aitia.meme.paramsweep.batch.param.ParameterInfo(info.getName(), "", 0);
+				// never happens
+				throw new IllegalStateException("Unknown parameter type cannot be converted");
+//				convertedInfo = info.getDefinitionType() == ParameterInfo.INCR_DEF ? new IncrementalParameterInfo(info.getName(), "", 0)
+//				: new ai.aitia.meme.paramsweep.batch.param.ParameterInfo(info.getName(), "", 0);
 			}
 		}
 		convertedInfo.setRunNumber(info.getRuns());
