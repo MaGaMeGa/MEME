@@ -121,7 +121,7 @@ public class MemberInfo extends NodeInfo {
 			return (value.trim().equals("true") || value.trim().equals("false"));
 		if ("String".equals(type))
 			return getStringValue(value.trim()) != null;
-		if("file".equals(type)||"File".equals(type))
+		if ("File".equals(type))
 			return new File(getStringValue(value.trim())).isFile();
 		return false;
 	}
@@ -149,7 +149,7 @@ public class MemberInfo extends NodeInfo {
 			return new Boolean(value.trim());
 		if ("String".equals(type))
 			return getStringValue(value.trim());
-		if ("File".equals(type) || "file".equals(type)){
+		if ("File".equals(type)) {
 			return new File(value.trim());
 		}
 		return null;

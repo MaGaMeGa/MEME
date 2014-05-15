@@ -158,7 +158,7 @@ public class ParameterInfo extends MemberInfo implements Cloneable {
 						 if (isFile()) {
 							 final File file = (File) values.get(0);
 							 if (file != null)
-								 sb.append(file.getName());
+								 sb.append(file.getAbsolutePath());
 						 } else
 							 sb.append(toStringWithoutFuckingScientificNotation(values.get(0),type));
 						 break;
