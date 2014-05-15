@@ -16,6 +16,7 @@
  ******************************************************************************/
 package ai.aitia.meme.paramsweep.gui.info;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -154,7 +155,12 @@ public class ParameterInfo extends MemberInfo implements Cloneable {
 		}
 		switch (defType) {
 		case CONST_DEF : sb.append("value=");
-						 sb.append(toStringWithoutFuckingScientificNotation(values.get(0),type));
+						 if (isFile()) {
+							 final File file = (File) values.get(0);
+							 if (file != null)
+								 sb.append(file.getName());
+						 } else
+							 sb.append(toStringWithoutFuckingScientificNotation(values.get(0),type));
 						 break;
 		case LIST_DEF  : sb.append("list=");
 						 for (int i = 0;i < values.size();++i) {

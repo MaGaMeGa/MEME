@@ -129,7 +129,7 @@ public class MemberInfo extends NodeInfo {
 	//-------------------------------------------------------------------------------
 	/** Returns <code>value</code> string as a value with type <code>type</code>. If
 	 *  <code>value</code> is not interpretable as a <code>type</code> value, it returns
-	 *  null. If <code>type</code> is a primitive type the the mothod uses its wrapper
+	 *  null. If <code>type</code> is a primitive type the the method uses its wrapper
 	 *  type instead.
 	 */
 	public static Object getValue(String value, String type) {
