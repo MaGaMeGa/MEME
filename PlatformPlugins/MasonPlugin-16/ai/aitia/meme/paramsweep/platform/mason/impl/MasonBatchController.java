@@ -55,6 +55,7 @@ public class MasonBatchController implements IBatchController, IRecorderListener
 	private int noRuns = -1;
 	private IMasonGeneratedModel model = null; 
 	private long batchCount = 0;
+	private long skipCount = -1;
 	private Class<?> modelClass = null;
 	
 	private Map<String,Pair<Object,Method>> methods = new HashMap<String,Pair<Object,Method>>();
@@ -155,18 +156,20 @@ public class MasonBatchController implements IBatchController, IRecorderListener
 		while (it.hasNext() && !stopped) {
 			batchCount++;
 			List<AbstractParameterInfo> combination = it.next();
-			fillParentParametersTable(combination);
-			fillMethodTable(combination);
-			setParameters(combination);
-			setSubmodelParameters();
-			model.modelInitialization();
-			try {
-				startSim();
-			}catch (SimulationException e) {
-				throw new BatchException(e);
-			}
-			catch(Throwable e){
-				System.out.println(e);
+			
+			if (batchCount > skipCount) {
+				fillParentParametersTable(combination);
+				fillMethodTable(combination);
+				setParameters(combination);
+				setSubmodelParameters();
+				model.modelInitialization();
+				try {
+					startSim();
+				} catch (final SimulationException e) {
+					throw new BatchException(e);
+				} catch (final Throwable e) {
+					e.printStackTrace();
+				}
 			}
 	
 		}
@@ -181,7 +184,12 @@ public class MasonBatchController implements IBatchController, IRecorderListener
 		stopped = true;
 		model.simulationStop();
 	}
+	
+	//----------------------------------------------------------------------------------------------------
 	public void stopCurrentRun() throws BatchException { model.simulationStop(); }
+	
+	//----------------------------------------------------------------------------------------------------
+	public void setSkipCount(final long skipCount) { this.skipCount = skipCount; } 
 
 	//====================================================================================================
 	// assistant methods
