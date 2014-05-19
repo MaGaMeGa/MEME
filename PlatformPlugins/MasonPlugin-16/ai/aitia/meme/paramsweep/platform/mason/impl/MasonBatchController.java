@@ -31,6 +31,7 @@ import ai.aitia.meme.paramsweep.batch.BatchEvent.EventType;
 import ai.aitia.meme.paramsweep.batch.BatchException;
 import ai.aitia.meme.paramsweep.batch.IBatchController;
 import ai.aitia.meme.paramsweep.batch.IBatchListener;
+import ai.aitia.meme.paramsweep.batch.IClusterBatchController;
 import ai.aitia.meme.paramsweep.batch.InvalidEntryPointException;
 import ai.aitia.meme.paramsweep.batch.output.RecorderInfo;
 import ai.aitia.meme.paramsweep.batch.param.AbstractParameterInfo;
@@ -42,7 +43,7 @@ import ai.aitia.meme.paramsweep.utils.SimulationException;
 import ai.aitia.meme.paramsweep.utils.Util;
 import ai.aitia.meme.utils.Utils.Pair;
 
-public class MasonBatchController implements IBatchController, IRecorderListenerAware {
+public class MasonBatchController implements IBatchController, IClusterBatchController, IRecorderListenerAware {
 
 	//====================================================================================================
 	// members
@@ -56,6 +57,7 @@ public class MasonBatchController implements IBatchController, IRecorderListener
 	private IMasonGeneratedModel model = null; 
 	private long batchCount = 0;
 	private long skipCount = -1;
+	private boolean oneRunOnly = false;
 	private Class<?> modelClass = null;
 	
 	private Map<String,Pair<Object,Method>> methods = new HashMap<String,Pair<Object,Method>>();
@@ -165,6 +167,8 @@ public class MasonBatchController implements IBatchController, IRecorderListener
 				model.modelInitialization();
 				try {
 					startSim();
+					if (oneRunOnly)
+						stopBatch();
 				} catch (final SimulationException e) {
 					throw new BatchException(e);
 				} catch (final Throwable e) {
@@ -189,7 +193,8 @@ public class MasonBatchController implements IBatchController, IRecorderListener
 	public void stopCurrentRun() throws BatchException { model.simulationStop(); }
 	
 	//----------------------------------------------------------------------------------------------------
-	public void setSkipCount(final long skipCount) { this.skipCount = skipCount; } 
+	public void setSkipCount(final long skipCount) { this.skipCount = skipCount; }
+	public void setOneRunOnly(final boolean oneRunOnly) { this.oneRunOnly = oneRunOnly; }
 
 	//====================================================================================================
 	// assistant methods
