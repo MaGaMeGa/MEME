@@ -168,7 +168,7 @@ public class MasonBatchController implements IBatchController, IClusterBatchCont
 				try {
 					startSim();
 					if (oneRunOnly)
-						stopBatch();
+						stopped = true;
 				} catch (final SimulationException e) {
 					throw new BatchException(e);
 				} catch (final Throwable e) {

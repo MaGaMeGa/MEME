@@ -194,16 +194,17 @@ public class MasonRecorder {
 		if (parameterValues == null)
 			initializeParameterValues();
 	    try {
-	      if (model.aitiaGenerated_getRun() == 1 && writeHeader) { // if this is the first line to write
-	        renameFile();
-	        out = new BufferedWriter(new FileWriter(fileName,true));
-	        out.write(getModelHeader());
-	        out.newLine();
-	        out.newLine();
-	        out.write(getHeader());
-	        out.newLine();
-	        writeHeader = false;
-	      }
+//	      if (model.aitiaGenerated_getRun() == 1 && writeHeader) { // if this is the first line to write
+	    	if (writeHeader) { // if this is the first line to write
+		        renameFile();
+		        out = new BufferedWriter(new FileWriter(fileName,true));
+		        out.write(getModelHeader());
+		        out.newLine();
+		        out.newLine();
+		        out.write(getHeader());
+		        out.newLine();
+		        writeHeader = false;
+	    	}
 
 	      if (out == null){ // somehow this get's nulled...
 		        out = new BufferedWriter(new FileWriter(fileName,true));
