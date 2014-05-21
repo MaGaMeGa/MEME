@@ -81,6 +81,10 @@ public class MasonIntervalParameterInfo extends ParameterInfo {
 		}
 	}
 	
+	public boolean isDoubleInterval() {
+		return isDoubleInterval;
+	}
+	
 	protected MasonIntervalParameterInfo(MasonIntervalParameterInfo p) {
 		super(p);
 		this.isDoubleInterval = p.isDoubleInterval;
