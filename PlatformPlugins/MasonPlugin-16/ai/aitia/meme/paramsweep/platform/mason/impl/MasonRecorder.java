@@ -162,6 +162,13 @@ public class MasonRecorder {
 		Map<String, Object> reportedValues = new HashMap<String, Object>(sources.size());
 		reportedValues.put(TICK_HEADER_LABEL, model.getCurrentStep());
 	    for (Pair<String,Method> source : sources) {
+
+	    	final String key = source.getFirst();
+	    	if (collectionLengthMember.get(key) != null) {
+		    	final int length = getCollectionLength(key);
+				if (length == 0) continue;
+	    	}
+
 	    	Method m = source.getSecond();
 			Object o = null;
 			try {
@@ -173,12 +180,12 @@ public class MasonRecorder {
 			if (listeners.size() > 0){
 				if (o instanceof SeparatedList){
 					SeparatedList list = (SeparatedList)o;
-					String name = source.getFirst().replace(Util.GENERATED_MODEL_MULTICOLUMN_POSTFIX, "") + "Multi_";
+					String name = key.replace(Util.GENERATED_MODEL_MULTICOLUMN_POSTFIX, "") + "Multi_";
 					for (int i = 0 ; i < list.size() ; i++){
 						reportedValues.put(name + i, list.get(i));
 					}
 				} else {
-					reportedValues.put(source.getFirst(), o);
+					reportedValues.put(key, o);
 				}
 			}
 	    }
@@ -419,7 +426,8 @@ public class MasonRecorder {
 //				collectionLength.put(name, length);
 			}
 
-			b.append("\"").append(name).append("\"").append(delimiter);
+			if (length == null || length.intValue() > 0)
+				b.append("\"").append(name).append("\"").append(delimiter);
 		}
 		String result = b.toString();
 		return result.substring(0,result.length() - delimiter.length());
