@@ -160,7 +160,7 @@ public class MasonRecorder {
 		
 		Vector<String> v = new Vector<String>();
 		Map<String, Object> reportedValues = new HashMap<String, Object>(sources.size());
-		reportedValues.put(TICK_HEADER_LABEL, model.getCurrentStep());
+		reportedValues.put(TICK_HEADER_LABEL, model.getCurrentTime());
 	    for (Pair<String,Method> source : sources) {
 
 	    	final String key = source.getFirst();
@@ -173,7 +173,9 @@ public class MasonRecorder {
 			Object o = null;
 			try {
 				o = m.invoke(model);
-			} catch (Exception e) {}
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 
 			v.add(o.toString());
 			
@@ -189,7 +191,7 @@ public class MasonRecorder {
 				}
 			}
 	    }
-	    data.add(new Pair<String,Vector<String>>(String.valueOf(model.getCurrentStep()),v));
+	    data.add(new Pair<String,Vector<String>>(String.valueOf(model.getCurrentTime()),v));
 	    
 	    for (MasonRecorderListener listener : listeners) {
 			listener.recordingPerformed(parameterList, reportedValues);

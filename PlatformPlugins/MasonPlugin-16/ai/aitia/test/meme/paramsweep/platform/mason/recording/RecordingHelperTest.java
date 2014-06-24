@@ -139,9 +139,9 @@ public class RecordingHelperTest {
 		TestModel testModel = new TestModel(0);
 		testModel.start();
 		
-		RecordingHelper.newInstance(testModel);
+		RecordingHelper recordingHelper = new RecordingHelper(testModel, false);
 		
-		List<RecorderInfo> recorders = RecordingHelper.getRecorders(testModel);
+		List<RecorderInfo> recorders = recordingHelper.getRecorders();
 		
 		assertEquals(1, recorders.size());
 		
@@ -149,13 +149,13 @@ public class RecordingHelperTest {
 		
 		assertEquals(testModel.getClass().getAnnotation(Recorder.class).sources().length, recorderInfo.getRecordables().size());
 		
-		RecordingHelper.getInstance().scheduleRecording(testModel);
+		recordingHelper.scheduleRecording(testModel);
 		
 		testModel.schedule.step(testModel);
 		testModel.schedule.step(testModel);
 		testModel.finish();
 		
-		RecordingHelper.getInstance().closeRecorder();
+		recordingHelper.closeRecorder();
 		
 		File resultFile = recorderInfo.getOutputFile();
 		
