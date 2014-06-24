@@ -47,6 +47,7 @@ import ai.aitia.meme.paramsweep.platform.mason.info.MasonChooserParameterInfo;
 import ai.aitia.meme.paramsweep.platform.mason.info.MasonChooserSubmodelParameterInfo;
 import ai.aitia.meme.paramsweep.platform.mason.info.MasonIntervalParameterInfo;
 import ai.aitia.meme.paramsweep.platform.mason.info.MasonIntervalSubmodelParameterInfo;
+import ai.aitia.meme.paramsweep.platform.mason.recording.RecordingHelper;
 import ai.aitia.meme.paramsweep.platform.mason.recording.annotation.Submodel;
 import ai.aitia.meme.paramsweep.utils.Util;
 
@@ -653,6 +654,15 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 		return result;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * This method first calls the {@link RecordingHelper#newInstance(SimState)} method of the recording helper to create a new RecordingHelper -- the model might have
+	 * changed since the previous time due to sub-models. Then the {@link RecordingHelper#getRecorders(SimState)} method is called to retrieve the actual
+	 * recorders.
+	 * 
+	 * @return a lsit of recorders
+	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<RecorderInfo> getRecorders() throws ModelInformationException {
@@ -660,9 +670,12 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 			if (recordingClass == null){
 				initializeRecordingClass();
 			}
-			final Method method = recordingClass.getMethod("getRecorders", SimState.class);
+//			Method method = recordingClass.getMethod("newInstance", SimState.class);
+//			method.invoke(null, model);
+
+			Method method = recordingClass.getMethod("getRecorders", SimState.class);
 			return (List<RecorderInfo>)method.invoke(null, model);
-		} catch (final NoSuchMethodException e) {
+} catch (final NoSuchMethodException e) {
 			throw new ModelInformationException(e);
 		} catch (final SecurityException e) {
 			throw new ModelInformationException(e);

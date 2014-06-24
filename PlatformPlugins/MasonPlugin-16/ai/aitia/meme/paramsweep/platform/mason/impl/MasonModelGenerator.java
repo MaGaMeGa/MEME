@@ -254,8 +254,8 @@ public class MasonModelGenerator {
 			generateGetCurrentStepMethod(model);
 			//generating getCurrentTime() method
 			generateGetCurrentTimeMethod(model);
-			//generating own figureTime method
-			generateOwnFigureTime(model);
+//			//generating own figureTime method
+//			generateOwnFigureTime(model);
 			
 			// implementing IMasonGeneratedModel interface
 			generateAddBatchListenerMethod(model);
@@ -348,7 +348,7 @@ public class MasonModelGenerator {
 	}
 	
 	private void generateModelMember(final CtClass model) throws CannotCompileException {
-		String src = "private " + ancestor.getName() + " " + Util.GENERATED_MODEL_MODEL_FIELD_NAME + " = null; \n";
+		String src = ancestor.getName() + " " + Util.GENERATED_MODEL_MODEL_FIELD_NAME + " = null; \n";
 		CtField modelField = CtField.make(src,model);
 		model.addField(modelField);
 		source.append(src);
@@ -383,20 +383,20 @@ public class MasonModelGenerator {
 		model.addMethod(modelInitMethod);
 	}
 
-	private void generateOwnFigureTime(CtClass model) throws CannotCompileException {
-		StringBuilder sb = new StringBuilder("		static long "+memberPrefix+"FigureTime(long time) {\n" + 
-				"			long n = 1L;\n" + 
-				"			while(true) {\n" + 
-				"				if (n >= time) return n;\n" + 
-				"				if ((n*10L)/4L >= time) return (n*10L)/4L;\n" + 
-				"				if ((n*10L)/2L >= time) return (n*10L)/2L;\n" + 
-				"				n = n*10L;\n" + 
-				"			}\n" + 
-				"		}\n");
-		source.append(sb.toString()+"\n");
-		CtMethod onwFigureTimeMethod = CtNewMethod.make(sb.toString(), model);
-		model.addMethod(onwFigureTimeMethod);
-	}
+//	private void generateOwnFigureTime(CtClass model) throws CannotCompileException {
+//		StringBuilder sb = new StringBuilder("		static long "+memberPrefix+"FigureTime(long time) {\n" + 
+//				"			long n = 1L;\n" + 
+//				"			while(true) {\n" + 
+//				"				if (n >= time) return n;\n" + 
+//				"				if ((n*10L)/4L >= time) return (n*10L)/4L;\n" + 
+//				"				if ((n*10L)/2L >= time) return (n*10L)/2L;\n" + 
+//				"				n = n*10L;\n" + 
+//				"			}\n" + 
+//				"		}\n");
+//		source.append(sb.toString()+"\n");
+//		CtMethod onwFigureTimeMethod = CtNewMethod.make(sb.toString(), model);
+//		model.addMethod(onwFigureTimeMethod);
+//	}
 
 	private void generateGetCurrentStepMethod(CtClass model) throws CannotCompileException {
 		StringBuilder sb = new StringBuilder("public double getCurrentStep() {\n");
@@ -599,7 +599,7 @@ public class MasonModelGenerator {
 		if (!stopAfterFixInterval)
 			sb.append("return ((boolean) (" + stopData + "));\n");
 		else
-			sb.append("return getCurrentStep() >= ").append(getFixValue()).append(";\n"); 
+			sb.append("return getCurrentTime() >= ").append(getFixValue()).append(";\n"); 
 		sb.append("}\n");
 		final CtMethod stopIsMethod = CtNewMethod.make(sb.toString(),model);
 		source.append(sb.toString() + "\n");
@@ -675,30 +675,31 @@ public class MasonModelGenerator {
 		if (needInitializationForTimeSeries())
 			sb.append(generateInitializing(model));
 		//sb.append(generateRecorders(model));
-		sb.append("	// do the loop\n");
-		sb.append("	long time = -1L;\n");
-		sb.append("	long steps = 0L;\n");
-		sb.append("	long clock = 0L;\n");
-		sb.append("	long oldClock = System.currentTimeMillis();\n");
-		sb.append("	long firstSteps = " + Util.GENERATED_MODEL_MODEL_FIELD_NAME + ".schedule.getSteps();\n");
+//		sb.append("	long time = -1L;\n");
+//		sb.append("	long steps = 0L;\n");
+//		sb.append("	long clock = 0L;\n");
+//		sb.append("	long oldClock = System.currentTimeMillis();\n");
+//		sb.append("	long firstSteps = " + Util.GENERATED_MODEL_MODEL_FIELD_NAME + ".schedule.getSteps();\n");
+		sb.append(" " + Util.GENERATED_MODEL_MODEL_FIELD_NAME + ".schedule.scheduleRepeating(new MasonStepEnded(this), Integer.MAX_VALUE, 1.);\n");
 		sb.append("\n");
+		sb.append("	// do the loop\n");
 		sb.append("	while(! " + memberPrefix + "_isStop()) {\n");
 		sb.append("		if (!" + Util.GENERATED_MODEL_MODEL_FIELD_NAME + ".schedule.step(" + Util.GENERATED_MODEL_MODEL_FIELD_NAME + ")) {\n");
 		sb.append("			break;\n");
 		sb.append("		}\n");
-		sb.append("		steps = " + Util.GENERATED_MODEL_MODEL_FIELD_NAME + ".schedule.getSteps();\n");
-		sb.append("		if (time < 0L) { // don't know how long to make the time yet\n");
-		sb.append("			if (System.currentTimeMillis() - oldClock > 1000L)  // time to set the time\n");
-		sb.append("			{\n");
-		sb.append("				time = "+memberPrefix+"FigureTime(steps - firstSteps);\n");
-		sb.append("			}\n");
-		sb.append("		}\n");
-		sb.append("		if (time > 0L && steps % time == 0L) {\n");
-		sb.append("			clock = System.currentTimeMillis();\n");
-		sb.append("			firstSteps = steps;\n");
-		sb.append("			oldClock = clock;\n");
-		sb.append("		}\n");
-		sb.append("		stepEnded();");
+//		sb.append("		steps = " + Util.GENERATED_MODEL_MODEL_FIELD_NAME + ".schedule.getSteps();\n");
+//		sb.append("		if (time < 0L) { // don't know how long to make the time yet\n");
+//		sb.append("			if (System.currentTimeMillis() - oldClock > 1000L)  // time to set the time\n");
+//		sb.append("			{\n");
+//		sb.append("				time = "+memberPrefix+"FigureTime(steps - firstSteps);\n");
+//		sb.append("			}\n");
+//		sb.append("		}\n");
+//		sb.append("		if (time > 0L && steps % time == 0L) {\n");
+//		sb.append("			clock = System.currentTimeMillis();\n");
+//		sb.append("			firstSteps = steps;\n");
+//		sb.append("			oldClock = clock;\n");
+//		sb.append("		}\n");
+//		sb.append("		stepEnded();");
 		sb.append("	}\n");
 //		sb.append("	" + Util.GENERATED_MODEL_MODEL_FIELD_NAME + ".finish();\n");
 		sb.append("return;\n");
@@ -749,10 +750,11 @@ public class MasonModelGenerator {
 		String src = "public int " + methodName + "(){\n";
 		String collectionLength = ((MultiColumnOperatorGeneratedRecordableInfo)re).getCollectionLength();
 		try {
-			Integer length = Integer.parseInt(collectionLength);
+			Integer.parseInt(collectionLength);
 			src += "return " + collectionLength + ";\n";
 		} catch (NumberFormatException e){
-			src += "return " + Util.GENERATED_MODEL_MODEL_FIELD_NAME + "." + collectionLength + ";\n";
+			String accessor = Util.getMethodAccessorInGeneratedModel(collectionLength);
+			src += "return " + accessor + ";\n";
 		}
 		src += "}\n";
 		final CtMethod m = CtNewMethod.make(src,model);
@@ -784,7 +786,7 @@ public class MasonModelGenerator {
 	
 	//--------------------------------------------------------------------------------
 	private String generateRecorderMethod(final String recorderVariableName, final RecordableInfo re, final CtClass model) throws CannotCompileException {
-		String accessor = "";
+		String accessor = re.getAccessibleName();
 		if (re instanceof StatisticGeneratedRecordableInfo) {
 			final StatisticGeneratedRecordableInfo sgri = (StatisticGeneratedRecordableInfo) re;
 			generateStatistic(recorderVariableName, sgri,model);
@@ -795,12 +797,12 @@ public class MasonModelGenerator {
 			final ScriptGeneratedRecordableInfo sgri = (ScriptGeneratedRecordableInfo) re;
 			generateScript(recorderVariableName, sgri,model);
 		} else {
-			accessor = Util.GENERATED_MODEL_MODEL_FIELD_NAME + ".";
+			accessor = Util.getMethodAccessorInGeneratedModel(re.getAccessibleName());
 		}
 		final String methodName = memberPrefix + "_privateMethod" + String.valueOf(ID++);
 		String src = "public ";
 		src += re.getType().getSimpleName() + " " + methodName + "() {\n";
-		src += "return " + accessor + re.getAccessibleName() + ";\n";
+		src += "return " + accessor + ";\n";
 		src += "}\n";
 		final CtMethod m = CtNewMethod.make(src,model);
 		model.addMethod(m);
@@ -894,7 +896,7 @@ public class MasonModelGenerator {
 		for (final RecorderInfo rec : recorders) 
 			generateRecordingCode(rec,b,model);
 		final String event = "ai.aitia.meme.paramsweep.batch.BatchEvent"; 
-		b.append(event).append(" event = new ").append(event).append("(this,").append(event).append(".EventType.STEP_ENDED,this.getCurrentStep());\n");
+		b.append(event).append(" event = new ").append(event).append("(this,").append(event).append(".EventType.STEP_ENDED,this.getCurrentTime());\n");
 		b.append("for (int i = 0;i < ").append(listenersField.getName()).append(".size();++i) {\n");
 		b.append("((IBatchListener)").append(listenersField.getName()).append(".get(i)).timeProgressed(event);\n");
 		b.append("}\n");

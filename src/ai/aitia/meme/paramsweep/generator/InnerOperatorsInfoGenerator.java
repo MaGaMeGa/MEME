@@ -31,7 +31,7 @@ public class InnerOperatorsInfoGenerator {
 		if (object instanceof GeneratedMemberInfo)
 			newInfo.addReference((GeneratedMemberInfo)object);
 		newInfo.setDisplayName(Utilities.name(object) + "." + Utilities.name(member) + "[]");
-		String accessor = Util.GENERATED_MODEL_MODEL_FIELD_NAME + "." + object.getName();
+		String accessor = Util.getMethodAccessorInGeneratedModel(object.getName());
 		StringBuilder code = new StringBuilder();
 		Class<?> innerType = object.getInnerType();
 		if (Utilities.isPrimitive(member.getJavaType())) {
@@ -82,7 +82,7 @@ public class InnerOperatorsInfoGenerator {
 	 */
 	public InnerOperatorGeneratedMemberInfo generateSimpleInfoObject(final MemberInfo object, final MemberInfo member){
 		InnerOperatorGeneratedMemberInfo newInfo = new InnerOperatorGeneratedMemberInfo("innerSelection" + generatedIdx++ + "()",member.getJavaType().getSimpleName(),member.getJavaType(),object);
-		String accessor = Util.GENERATED_MODEL_MODEL_FIELD_NAME + "." + object.getName();
+		String accessor = Util.getMethodAccessorInGeneratedModel(object.getName());
 		newInfo.setDisplayName(Utilities.name(object) + "." + Utilities.name(member));
 		newInfo.setSource("return " + accessor + "." + member.getName() + ";\n");
 		if (object instanceof GeneratedMemberInfo)
