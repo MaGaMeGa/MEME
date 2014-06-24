@@ -265,9 +265,11 @@ public class StatisticsInfoGenerator implements IStatisticInfoGenerator {
 			call.append(Utilities.name(mi) + ",");
 			source.append(local + ".add("); 
 			if (!(mi instanceof GeneratedMemberInfo)){
-				source.append(Util.GENERATED_MODEL_MODEL_FIELD_NAME).append(".");
+				source.append(Util.getMethodAccessorInGeneratedModel(mi.getName()));
+			} else {
+				source.append(mi.getName());
 			}
-			source.append(mi.getName()).append(");\n");
+			source.append(");\n");
 			if (mi instanceof GeneratedMemberInfo)
 				result.addReference((GeneratedMemberInfo)mi);
 		}

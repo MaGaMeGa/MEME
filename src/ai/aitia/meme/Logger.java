@@ -3,10 +3,6 @@
  */
 package ai.aitia.meme;
 
-import java.io.File;
-import java.io.PrintStream;
-import java.sql.SQLException;
-
 import ai.aitia.meme.utils.Utils;
 
 /**
@@ -93,6 +89,12 @@ public class Logger {
 			logError("*** %s caught at %s: %s", type, where, t.getLocalizedMessage());
 		if (callStack)
 			t.printStackTrace(g_logStream == null ? System.err : g_logStream);
+	}
+	
+	public static void logWarning(final String message){
+		if (!"".equals(message.trim())){
+			logError(message);
+		}
 	}
 
 }

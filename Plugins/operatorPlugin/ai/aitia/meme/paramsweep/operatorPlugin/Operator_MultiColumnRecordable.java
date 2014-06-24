@@ -123,7 +123,8 @@ public class Operator_MultiColumnRecordable implements IMultiColumnOperatorPlugi
 	}
 
 	private String getJavaCode(MemberInfo collection, Class<?> innerType, MemberInfo member, String noDataFiller, String dataSourceName) {
-		String accessor = Util.GENERATED_MODEL_MODEL_FIELD_NAME + "." + collection.getName();
+		String collectionName = collection.getName();
+		String accessor = Util.getMethodAccessorInGeneratedModel(collectionName);
 		StringBuilder code = new StringBuilder();
 		code.append("int recordingLength = " + Util.GENERATED_MODEL_RECORDER_VARIABLE_NAME + ".getCollectionLength(\"" + dataSourceName + "\");\n");
 		code.append("java.util.ArrayList result = new ai.aitia.meme.paramsweep.utils.SeparatedList(recordingLength);\n");

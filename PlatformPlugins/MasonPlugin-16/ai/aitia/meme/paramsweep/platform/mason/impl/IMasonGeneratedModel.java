@@ -16,11 +16,11 @@
  ******************************************************************************/
 package ai.aitia.meme.paramsweep.platform.mason.impl;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import ai.aitia.meme.paramsweep.batch.IBatchListener;
 
+@SuppressWarnings("rawtypes")
 public interface IMasonGeneratedModel {
 	//====================================================================================================
 	// methods
@@ -44,6 +44,8 @@ public interface IMasonGeneratedModel {
 	public void aitiaGenerated_writeEnd();
 	
 	public double getCurrentStep();
+	
+	public double getCurrentTime();
 	
 	public void simulationStart();
 	public void simulationStop();

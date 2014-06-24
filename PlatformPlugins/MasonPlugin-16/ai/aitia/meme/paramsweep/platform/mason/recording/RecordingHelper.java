@@ -36,6 +36,7 @@ import org.reflections.ReflectionUtils;
 
 import sim.engine.SimState;
 import sim.engine.Steppable;
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.paramsweep.batch.output.RecordableInfo;
 import ai.aitia.meme.paramsweep.batch.output.RecorderInfo;
 import ai.aitia.meme.paramsweep.batch.param.AbstractParameterInfo;
@@ -57,6 +58,7 @@ import ai.aitia.meme.paramsweep.platform.mason.recording.annotation.Recorder;
 import ai.aitia.meme.paramsweep.platform.mason.recording.annotation.Recorder.OutputTime;
 import ai.aitia.meme.paramsweep.platform.mason.recording.annotation.Recorder.RecordTime;
 import ai.aitia.meme.paramsweep.platform.mason.recording.annotation.RecorderSource;
+import ai.aitia.meme.paramsweep.platform.mason.recording.annotation.Submodel;
 import ai.aitia.meme.paramsweep.platform.repast.impl.IGeneratedModel;
 import ai.aitia.meme.paramsweep.plugin.IStatisticsPlugin;
 import ai.aitia.meme.paramsweep.settingsxml.Block;
@@ -78,8 +80,6 @@ import ai.aitia.meme.paramsweep.settingsxml.Time;
 import ai.aitia.meme.paramsweep.settingsxml.WritingTime;
 import ai.aitia.meme.paramsweep.utils.Util;
 import ai.aitia.meme.paramsweep.utils.Utilities;
-
-import com.google.common.base.Predicates;
 
 /**
  * @author Tamás Máhr
@@ -166,7 +166,7 @@ public class RecordingHelper {
 		
 	}
 
-	private static RecordingHelper instance = null;
+//	private static RecordingHelper instance = null;
 	
 	protected static final Map<String, Class<?>> statisticsPluginNames = new HashMap<String, Class<?>>();
 	
@@ -187,6 +187,8 @@ public class RecordingHelper {
 	private static InnerOperatorsInfoGenerator innerOperatorInfoGenerator = new InnerOperatorsInfoGenerator();
 
 	private Map<Class<?>, Set<RecordingInfo>> annotatedRecordables = new HashMap<Class<?>, Set<RecordingInfo>>();
+	
+	private Map<String, List<String>> usedRecorderSources = new HashMap<String, List<String>>();
 	
 	private boolean recorderClosed = false;
 	
@@ -217,49 +219,56 @@ public class RecordingHelper {
 			throw new IllegalStateException(e);
 		}
 	}
+
+	public RecordingHelper(final SimState model){
+		this(model, false);
+	}
 	
-	private RecordingHelper(final SimState model, final boolean writeSource){
+	public RecordingHelper(final SimState model, final boolean writeSource){
 		this.writeSource = writeSource;
 		
 		buildRecorderInfo(model);
 	}
 
-	public static RecordingHelper newInstance(final SimState model){
-		return newInstance(model, false);
-	}
-	
-	public static RecordingHelper newInstance(final SimState model, final boolean writeSource){
-		// if the model was instantiated by MEME, do nothing 
-		if (model.getClass().getName().contains(MasonModelGenerator.modelSuffix) && IGeneratedModel.class.isAssignableFrom(model.getClass())){
-			return instance;
-		}
-
-		instance = new RecordingHelper(model, writeSource);
-
-//		if (instance.recorders.size() > 0){
-//			instance.createGeneratedModel(model);
+//	public static RecordingHelper newInstance(final SimState model){
+//		return newInstance(model, false);
+//	}
+//	
+//	public static RecordingHelper newInstance(final SimState model, final boolean writeSource){
+//		// if the model was instantiated by MEME, just update the submodels 
+//		if (model.getClass().getName().contains(MasonModelGenerator.modelSuffix) && IGeneratedModel.class.isAssignableFrom(model.getClass())){
+//			return instance;
 //		}
-		
-		return instance;
-	}
+//
+//		instance = new RecordingHelper(model, writeSource);
+// 
+////		if (instance.recorders.size() > 0){
+////			instance.createGeneratedModel(model);
+////		}
+//		
+//		return instance;
+//	}
 	
-	/**
-	 * Returns the last created {@link RecordingHelper} instance.
-	 * 
-	 * @return the last created {@link RecordingHelper} instance
-	 */
-	public static RecordingHelper getInstance(){
-		return instance;
-	}
+//	/**
+//	 * Returns the last created {@link RecordingHelper} instance.
+//	 * 
+//	 * @return the last created {@link RecordingHelper} instance
+//	 */
+//	public static RecordingHelper getInstance(){
+//		return instance;
+//	}
 
+	public List<RecorderInfo> getRecorders(){
+		return recorders;
+	}
 	public static List<RecorderInfo> getRecorders(final SimState model){
 		return getRecorders(model, false);
 	}
 	
 	public static List<RecorderInfo> getRecorders(final SimState model, final boolean writeSource){
-		if (instance == null){
-			instance = new RecordingHelper(model, writeSource);
-		}
+//		if (instance == null){
+			RecordingHelper instance = new RecordingHelper(model, writeSource);
+//		}
 		
 		return instance.recorders;
 	}
@@ -269,9 +278,9 @@ public class RecordingHelper {
 	}
 	
 	public static String getRecorderPageXML(final SimState model, final boolean writeSource){
-		if (instance == null){
-			instance = new RecordingHelper(model, writeSource);
-		}
+//		if (instance == null){
+			RecordingHelper instance = new RecordingHelper(model, writeSource);
+//		}
 		
 		if (instance.recordersPage == null || instance.recordersPage.getRecorders() == null){
 			return null;
@@ -326,7 +335,7 @@ public class RecordingHelper {
 		String recorderFileName;
 		if (recorderFile.getParent() == null){
 			recorderFileName = System.getProperty("java.io.tmpdir") + File.separator + recorderFile.getName();
-			System.out.println("Recorder file: " + recorderFileName);
+//			System.out.println("Recorder file: " + recorderFileName);
 		} else {
 			recorderFileName = recorderFile.getPath();
 		}
@@ -373,9 +382,28 @@ public class RecordingHelper {
 		Scripts scripts = new Scripts();
 		recordersPage.setScripts(scripts );
 		
+		findSources(recorderObj, "", requiredSources, recorder, recorderInfo, recordables);
+		
+		
+		sortRecorderMembers(recorderInfo, recorder, recorderAnnotation.sources());
+		
+		// check whether all sources are found
+		for (String requiredSource : requiredSources.keySet()){
+			if (! usedRecorderSources.containsKey(requiredSource)){
+				Logger.logWarning(requiredSource + " is listed in @Recorder(sources=), but no corresponding @RecorderSource annotation has been found!");
+			}
+		}
+		
+	}
+	
+	private void findSources(final Object objectToExplore,final String objectAccessor, final Map<String, List<String>> requiredSources,
+			final ai.aitia.meme.paramsweep.settingsxml.Recorder recorder, final RecorderInfo recorderInfo, final List<RecordableInfo> recordables) {
+		
+		Class<? extends Object> classToExplore = objectToExplore.getClass();
+		
 		// find RecorderSource values
 		@SuppressWarnings("unchecked")
-		Set<Method> sourceMethods = ReflectionUtils.getAllMethods(recorderObj.getClass(), ReflectionUtils.withAnnotation(RecorderSource.class));
+		Set<Method> sourceMethods = ReflectionUtils.getAllMethods(classToExplore, ReflectionUtils.withAnnotation(RecorderSource.class));
 		
 		for (Method method : sourceMethods) {
 			RecorderSource annotation = method.getAnnotation(RecorderSource.class);
@@ -387,6 +415,15 @@ public class RecordingHelper {
 				throw new IllegalArgumentException("Method '" + method.getReturnType() + " " + method.getName() + "("
 						+ Arrays.toString(method.getParameterTypes()) + ")' is private, only public or protected methods can be recorded.");
 			}
+			
+			// if this method is not in the model (but in a submodel), then it should be public!
+			if (!SimState.class.isAssignableFrom(classToExplore)){
+				if (!Modifier.isPublic(method.getModifiers())){
+					throw new IllegalArgumentException("Method '" + method.getReturnType() + " " + method.getName() + "("
+							+ Arrays.toString(method.getParameterTypes()) + ")' is not public, only public methods can be recorded in sub-models.");
+				}
+			}
+
 			
 			if (method.getParameterTypes().length > 0){
 				throw new IllegalArgumentException("Method '" + method.getReturnType() + " " + method.getName() + "("
@@ -476,14 +513,15 @@ public class RecordingHelper {
 						}
 
 						//addStatistics(recorder, recorderInfo, annotation.value(), statName, method.getName() + "()", method.getReturnType(), innerType, innerMemberName, innerMemberType);
-						addStatistics(recorder, recorderInfo, annotation.value() + info.getRecordingName(), statName, method.getName() + "()",
+						addStatistics(recorder, recorderInfo, annotation.value() + info.getRecordingName(), statName, objectAccessor + method.getName() + "()",
 								method.getReturnType(), innerType, innerMemberName, innerMemberType);
 
 					} else {
 						if (!method.getReturnType().isArray() && !Collection.class.isAssignableFrom(method.getReturnType())
 								&& !Map.class.isAssignableFrom(method.getReturnType())) {
-							if (requiredSources.containsKey(annotation.value() + info.getRecordingName())){
-								recordables.add(new RecordableInfo(annotation.value() + info.getRecordingName(), method.getReturnType(), null, method.getName() + "()"));
+							String annotationValue = annotation.value() + info.getRecordingName();
+							if (requiredSources.containsKey(annotationValue)){
+								recordables.add(new RecordableInfo(annotation.value() + info.getRecordingName(), method.getReturnType(), null, objectAccessor + method.getName() + "()"));
 
 								Member member = new Member();
 								member.setAlias(annotation.value() + info.getRecordingName());
@@ -491,11 +529,14 @@ public class RecordingHelper {
 								member.setType(Utilities.toTypeString2(method.getReturnType()));
 								member.setContent(method.getName() + "()");
 								recorder.getMember().add(member);
-							}
+
+								addUsedRecorderSource(annotationValue, objectAccessor + method.getName());
+								checkUsedRecorderSources(annotationValue);
+}
 						} else { // this is a multicolumn recordable
 							int collectionLength = annotation.collectionLength();
 							String collectionLengthMember = annotation.collectionLengthMember();
-
+							
 							if (collectionLength == 0 && collectionLengthMember.isEmpty()){
 								throw new IllegalArgumentException("Either the collectionLength (!= 0) or the collectionLengthMember (!= \"\") attribute should be set when recording collections or arrays (" + annotation.value() + info.getRecordingName() + ")");
 							}
@@ -519,8 +560,8 @@ public class RecordingHelper {
 							}
 							//						addMultiColumnOperator(recorder, recorderInfo, method.getName() + "()", method.getReturnType(),
 							//								annotation.value(), innerType, annotation.member(), innerMemberType, collectionLength, annotation.NAFiller());
-							addMultiColumnOperator(recorder, infoIfNeeded, method.getName() + "()", method.getReturnType(),
-									annotation.value() + info.getRecordingName(), innerType, innerMemberName, innerMemberType, collectionLength, collectionLengthMember, annotation.NAFiller());
+							addMultiColumnOperator(recorder, infoIfNeeded, objectAccessor + method.getName() + "()", method.getReturnType(),
+									annotation.value() + info.getRecordingName(), innerType, innerMemberName, innerMemberType, collectionLength, objectAccessor + collectionLengthMember, annotation.NAFiller());
 						}
 					}
 				}
@@ -528,7 +569,7 @@ public class RecordingHelper {
 		}
 		
 		@SuppressWarnings("unchecked")
-		Set<Field> sourceFields = ReflectionUtils.getAllFields(recorderObj.getClass(), ReflectionUtils.withAnnotation(RecorderSource.class));
+		Set<Field> sourceFields = ReflectionUtils.getAllFields(classToExplore, ReflectionUtils.withAnnotation(RecorderSource.class));
 		
 		for (Field field : sourceFields) {
 			RecorderSource annotation = field.getAnnotation(RecorderSource.class);
@@ -608,6 +649,19 @@ public class RecordingHelper {
 					continue;
 				}
 
+				String fieldName = field.getName();
+				// if this field is not in the model (but in a submodel), then we should use a getter to reach it!
+				if (!SimState.class.isAssignableFrom(classToExplore)){
+					try {
+						fieldName = classToExplore.getMethod("get" + Util.capitalize(field.getName())).getName() + "()";
+					} catch (NoSuchMethodException e) {
+						throw new IllegalArgumentException("Field '" + field.getName() 
+								+ "' should have a getter to be used as a recorder source in " + classToExplore.getName() + ", which is used as a sub-model.");
+					} catch (SecurityException e) {
+						throw new IllegalStateException(e);
+					}
+				}
+
 				for (String statName : requiredSources.get(annotation.value() + info.getRecordingName())){
 					if (statName != null){
 						if (!field.getType().isArray() && !Collection.class.isAssignableFrom(field.getType())){
@@ -619,11 +673,12 @@ public class RecordingHelper {
 											+ "' cannot be aggregated (" + statName + "), only fields of a Collection or array type can be aggregated.");
 						}
 
-						addStatistics(recorder, recorderInfo, annotation.value() + info.getRecordingName(), statName, field.getName(), field.getType(), innerType, innerMemberName, innerMemberType);
+						addStatistics(recorder, recorderInfo, annotation.value() + info.getRecordingName(), statName, objectAccessor + fieldName, field.getType(), innerType, innerMemberName, innerMemberType);
 					} else {
 						if (!field.getType().isArray() && !Collection.class.isAssignableFrom(field.getType()) && !Map.class.isAssignableFrom(field.getType())){
-							if (requiredSources.containsKey(annotation.value() + info.getRecordingName())){
-								recordables.add(new RecordableInfo(annotation.value() + info.getRecordingName(), field.getType(), null, field.getName()));
+							String annotationValue = annotation.value() + info.getRecordingName();
+							if (requiredSources.containsKey(annotationValue)){
+								recordables.add(new RecordableInfo(annotationValue, field.getType(), null, objectAccessor + fieldName));
 
 								Member member = new Member();
 								member.setJavaType(field.getType().getName());
@@ -631,15 +686,18 @@ public class RecordingHelper {
 								member.setContent(field.getName());
 								member.setAlias(annotation.value() + info.getRecordingName());
 								recorder.getMember().add(member);
-							}
+
+								addUsedRecorderSource(annotationValue, objectAccessor + fieldName);
+								checkUsedRecorderSources(annotationValue);
+}
 						} else { // this is a multi-column field
 							int collectionLength = annotation.collectionLength();
 							String collectionLengthMember = annotation.collectionLengthMember();
-
+							
 							if (collectionLength == 0 && collectionLengthMember.isEmpty()){
 								throw new IllegalArgumentException("Either the collectionLength (!= 0) or the collectionLengthMember (!= \"\") attribute should be set when recording collections or arrays (" + annotation.value() + info.getRecordingName() + ")");
 							}
-
+							
 							//							collectionLength = getCollectionLength(recorderObj, collectionLengthMember);
 							//						}
 
@@ -658,8 +716,8 @@ public class RecordingHelper {
 								infoIfNeeded = recorderInfo;
 							}
 
-							addMultiColumnOperator(recorder, infoIfNeeded, field.getName(), field.getType(),
-									annotation.value() + info.getRecordingName(), innerType, innerMemberName, innerMemberType, collectionLength, collectionLengthMember,
+							addMultiColumnOperator(recorder, infoIfNeeded, objectAccessor + fieldName, field.getType(),
+									annotation.value() + info.getRecordingName(), innerType, innerMemberName, innerMemberType, collectionLength, objectAccessor + collectionLengthMember,
 									annotation.NAFiller());
 						}
 					}
@@ -667,9 +725,29 @@ public class RecordingHelper {
 			}
 		}
 		
-		sortRecorderMembers(recorderInfo, recorder, recorderAnnotation.sources());
+		@SuppressWarnings("unchecked")
+		Set<Field> subModelFields = ReflectionUtils.getAllFields(classToExplore, ReflectionUtils.withAnnotation(Submodel.class));
+		for (Field field : subModelFields) {
+			try {
+				field.setAccessible(true);
+				Method getter = classToExplore.getMethod("get" + Util.capitalize(field.getName()));
+				Object objectToExplore2 = field.get(objectToExplore);
+				if (objectToExplore2 != null){
+					findSources(objectToExplore2, "((" + objectToExplore2.getClass().getName() + ")" + objectAccessor + getter.getName() + "()).", requiredSources, recorder, recorderInfo, recordables);
+				}
+			} catch (IllegalArgumentException e) {
+				throw new IllegalStateException(e);
+			} catch (IllegalAccessException e) {
+				throw new IllegalStateException(e);
+			} catch (NoSuchMethodException e) {
+				throw new IllegalArgumentException("Submodel '" + field.getName() + "' has no getter/setter!"
+						+ " Members annotated as @Submodel need to have getters/setters in order to be handled as parameters and to be able to record values from them.");
+			} catch (SecurityException e) {
+				throw new IllegalStateException(e);
+			}
+		}
 	}
-	
+
 	private void sortRecorderMembers(final RecorderInfo recorderInfo, final ai.aitia.meme.paramsweep.settingsxml.Recorder recorderXml, final String[] sources){
 		List<RecordableInfo> recordables = recorderInfo.getRecordables();
 		List<RecordableInfo> newRecordables = new ArrayList<RecordableInfo>();
@@ -682,16 +760,13 @@ public class RecordingHelper {
 				if (name.equals(source)){
 					newRecordables.add(recordableInfo);
 					
-					break;
+					//break; // don't break; it's possible to have multiple recorders with the same name
 				}
 				
-				if (name.startsWith(source)){
-					if (name.endsWith(Util.GENERATED_MODEL_MULTICOLUMN_POSTFIX)){
-//					if (name.substring(source.length(), name.indexOf('"')).matches("Multi_[0-9]+")){
-						newRecordables.add(recordableInfo);
+				if (name.equals(source + Util.GENERATED_MODEL_MULTICOLUMN_POSTFIX)){
+					newRecordables.add(recordableInfo);
 						
-						break;
-					}
+					//break; // don't break; it's possible to have multiple recorders with the same name
 				}
 			}
 			
@@ -700,16 +775,13 @@ public class RecordingHelper {
 				if (name.equals(source)){
 					newMembers.add(member);
 					
-					break;
+					//break; // don't break; it's possible to have multiple recorders with the same name
 				}
 				
-				if (name.startsWith(source)){
-					if (name.endsWith(Util.GENERATED_MODEL_MULTICOLUMN_POSTFIX)){
-//					if (name.substring(source.length(), name.indexOf('"')).matches("Multi_[0-9]+")){
-						newMembers.add(member);
+				if (name.equals(source + Util.GENERATED_MODEL_MULTICOLUMN_POSTFIX)){
+					newMembers.add(member);
 						
-						break;
-					}
+					//break; // don't break; it's possible to have multiple recorders with the same name
 				}
 			}
 		}
@@ -793,7 +865,11 @@ public class RecordingHelper {
 			return;
 		}
 		
-		instance.createGeneratedModel(model);
+		for (RecorderInfo recorder : recorders) {
+			System.out.println(recorder.getOutputFile().getAbsolutePath());
+		}
+		
+		createGeneratedModel(model);
 
 		model.schedule.scheduleRepeating(new Steppable() {
 			
@@ -903,6 +979,12 @@ public class RecordingHelper {
 		
 		if (recorderInfo != null){
 			RecordableInfo recordableInfo = InfoConverter.convertRecordableElement2RecordableInfo(recordableElement);
+			String accessorName = methodMemberInfo.getName();
+			if (innerMemberName != null && !innerMemberName.isEmpty()){
+				accessorName += "{" + innerType.getName() + " -> " + innerMemberName + "}";
+			}
+			addUsedRecorderSource(annotationValue, accessorName);
+			checkUsedRecorderSources(annotationValue);
 			recorderInfo.getRecordables().add(recordableInfo);
 		}
 		
@@ -983,78 +1065,98 @@ public class RecordingHelper {
 		}
 	}
 
-	private int getCollectionLength(final Object recorderObj, String collectionLengthMember) {
-		int collectionLength;
-		if (collectionLengthMember.endsWith("()")){
-			String methodName = collectionLengthMember.substring(0, collectionLengthMember.length() - 2);
-			@SuppressWarnings("unchecked")
-			Set<Method> methods = ReflectionUtils.getAllMethods(recorderObj.getClass(), Predicates.and(ReflectionUtils.withName(methodName), ReflectionUtils
-					.withParametersCount(0)));
-			
-			// we have to find the method definition that belongs to the top-most model class
-			Method collectionLengthMethod = null;
-			if (methods.size() >= 1){
-				for (Class<?> cl = recorderObj.getClass() ; !cl.equals(Object.class) ; cl = cl.getSuperclass()){
-					for (Method m : cl.getDeclaredMethods()){
-						if (m.getName().equals(methodName) && m.getParameterTypes().length == 0){
-							collectionLengthMethod = m;
-							break;
-						}
-					}
-					
-					if (collectionLengthMethod != null){
-						break;
-					}
-				}
-			}
-			
-			if (collectionLengthMethod != null){	
-				try {
-					collectionLengthMethod.setAccessible(true);
-					collectionLength = (Integer) collectionLengthMethod.invoke(recorderObj);
-				} catch (IllegalArgumentException e) {
-					throw new IllegalArgumentException("Could not retrieve an int value from the method '" + recorderObj.getClass().getSimpleName() + "." + collectionLengthMethod.getName() + "'!", e);
-				} catch (IllegalAccessException e) {
-					throw new IllegalArgumentException("Could not retrieve an int value from the method '" + recorderObj.getClass().getSimpleName() + "." + collectionLengthMethod.getName() + "'!", e);
-				} catch (InvocationTargetException e) {
-					throw new IllegalArgumentException("Could not retrieve an int value from the method '" + recorderObj.getClass().getSimpleName() + "." + collectionLengthMethod.getName() + "'!", e);
-				} catch (ClassCastException e){
-					throw new IllegalArgumentException("Could not retrieve an int value from the method '" + recorderObj.getClass().getSimpleName() + "." + collectionLengthMethod.getName() + "'!", e);
-				}
-			} else {
-				throw new IllegalArgumentException("Could not retrieve an int value from the method'" + recorderObj.getClass().getSimpleName() + "." + collectionLengthMember + "', no such method found!");
-			}
-		} else {
-			@SuppressWarnings("unchecked")
-			Set<Field> fields = ReflectionUtils.getAllFields(recorderObj.getClass(), ReflectionUtils.withName(collectionLengthMember));
+//	private int getCollectionLength(final Object recorderObj, String collectionLengthMember) {
+//		int collectionLength;
+//		if (collectionLengthMember.endsWith("()")){
+//			String methodName = collectionLengthMember.substring(0, collectionLengthMember.length() - 2);
+//			@SuppressWarnings("unchecked")
+//			Set<Method> methods = ReflectionUtils.getAllMethods(recorderObj.getClass(), Predicates.and(ReflectionUtils.withName(methodName), ReflectionUtils
+//					.withParametersCount(0)));
+//			
+//			// we have to find the method definition that belongs to the top-most model class
+//			Method collectionLengthMethod = null;
+//			if (methods.size() >= 1){
+//				for (Class<?> cl = recorderObj.getClass() ; !cl.equals(Object.class) ; cl = cl.getSuperclass()){
+//					for (Method m : cl.getDeclaredMethods()){
+//						if (m.getName().equals(methodName) && m.getParameterTypes().length == 0){
+//							collectionLengthMethod = m;
+//							break;
+//						}
+//					}
+//					
+//					if (collectionLengthMethod != null){
+//						break;
+//					}
+//				}
+//			}
+//			
+//			if (collectionLengthMethod != null){	
+//				try {
+//					collectionLengthMethod.setAccessible(true);
+//					collectionLength = (Integer) collectionLengthMethod.invoke(recorderObj);
+//				} catch (IllegalArgumentException e) {
+//					throw new IllegalArgumentException("Could not retrieve an int value from the method '" + recorderObj.getClass().getSimpleName() + "." + collectionLengthMethod.getName() + "'!", e);
+//				} catch (IllegalAccessException e) {
+//					throw new IllegalArgumentException("Could not retrieve an int value from the method '" + recorderObj.getClass().getSimpleName() + "." + collectionLengthMethod.getName() + "'!", e);
+//				} catch (InvocationTargetException e) {
+//					throw new IllegalArgumentException("Could not retrieve an int value from the method '" + recorderObj.getClass().getSimpleName() + "." + collectionLengthMethod.getName() + "'!", e);
+//				} catch (ClassCastException e){
+//					throw new IllegalArgumentException("Could not retrieve an int value from the method '" + recorderObj.getClass().getSimpleName() + "." + collectionLengthMethod.getName() + "'!", e);
+//				}
+//			} else {
+//				throw new IllegalArgumentException("Could not retrieve an int value from the method'" + recorderObj.getClass().getSimpleName() + "." + collectionLengthMember + "', no such method found!");
+//			}
+//		} else {
+//			@SuppressWarnings("unchecked")
+//			Set<Field> fields = ReflectionUtils.getAllFields(recorderObj.getClass(), ReflectionUtils.withName(collectionLengthMember));
+//
+//			if (fields.size() == 1){
+//				Field field = fields.iterator().next();
+//				try {
+//					field.setAccessible(true);
+//					collectionLength = field.getInt(recorderObj);
+//				} catch (IllegalArgumentException e) {
+//					throw new IllegalArgumentException("Could not retrieve an int value from the field '" + recorderObj.getClass().getSimpleName() + "." + field.getName() + "'!", e);
+//				} catch (IllegalAccessException e) {
+//					throw new IllegalArgumentException("Could not retrieve an int value from the field '" + recorderObj.getClass().getSimpleName() + "." + field.getName() + "'!", e);
+//				}
+//			} else {
+//				throw new IllegalArgumentException("Could not retrieve an int value from the field '" + recorderObj.getClass().getSimpleName() + "." + collectionLengthMember + "', no such field found!");
+//			}
+//		}
+//		
+//		return collectionLength;
+//	}
 
-			if (fields.size() == 1){
-				Field field = fields.iterator().next();
-				try {
-					field.setAccessible(true);
-					collectionLength = field.getInt(recorderObj);
-				} catch (IllegalArgumentException e) {
-					throw new IllegalArgumentException("Could not retrieve an int value from the field '" + recorderObj.getClass().getSimpleName() + "." + field.getName() + "'!", e);
-				} catch (IllegalAccessException e) {
-					throw new IllegalArgumentException("Could not retrieve an int value from the field '" + recorderObj.getClass().getSimpleName() + "." + field.getName() + "'!", e);
-				}
-			} else {
-				throw new IllegalArgumentException("Could not retrieve an int value from the field '" + recorderObj.getClass().getSimpleName() + "." + collectionLengthMember + "', no such field found!");
-			}
-		}
-		
-		return collectionLength;
-	}
+//	/**
+//	 * Checks whether the a {@link RecordableInfo} with the same name has already been added to the given {@link RecorderInfo}.	 * 
+//	 * @param recorderInfo
+//	 *            the recorder to check
+//	 * @param recordableInfo
+//	 *            the recordable that should be unique
+//	 * @return true if the given {@link RecorderInfo} does not contain a {@link RecordableInfo} with the same name as the given one, false if it does
+//	 */
+//	private RecordableInfo getRecordable(RecorderInfo recorderInfo, String recordableName) {
+//		List<RecordableInfo> recordables = recorderInfo.getRecordables();
+//		
+//		for (RecordableInfo existingRecordableInfo : recordables) {
+//			if (existingRecordableInfo.getName().equals(recordableName)){
+//				return existingRecordableInfo;
+//			}
+//		}
+//		
+//		return null;
+//	}
 
 	private void addStatistics(ai.aitia.meme.paramsweep.settingsxml.Recorder recorder, RecorderInfo recorderInfo, String annotationName,
-			String statName, String memberName, Class<?> memberType, final Class<?> innerType, final String innerTypeMemberName,
+			String statName, String memberAccessor, Class<?> memberType, final Class<?> innerType, final String innerTypeMemberName,
 			final Class<?> innerTypeMemberType) {
 		if (!memberType.isArray() && !Collection.class.isAssignableFrom(memberType)){
 			throw new IllegalArgumentException(
 					"Member '"
 							+ memberType.getName()
 							+ " "
-							+ memberName
+							+ memberAccessor
 							+ "' cannot be aggregated, only members with array or Collection types can be aggregated.");
 		}
 		
@@ -1063,7 +1165,7 @@ public class RecordingHelper {
 					"Member '"
 							+ memberType.getName()
 							+ " "
-							+ memberName
+							+ memberAccessor
 							+ "' (inner type: '" + innerType + "', accessor: '" + (innerTypeMemberType != null ? innerTypeMemberType.getName() : "<unknown type>") + " " + 
 							(innerTypeMemberName != null ? innerTypeMemberName : "<unknown member>")+ 
 									"') cannot be aggregated, only members with array or Collection of primitive types can be aggregated.");
@@ -1072,7 +1174,7 @@ public class RecordingHelper {
 		IStatisticInfoGenerator infoGenerator = getStatisticGenerator(statName);
 		List<MemberInfo> parameters = new ArrayList<MemberInfo>();
 		
-		MemberInfo collectionMemberInfo = new MemberInfo(memberName, memberType.getSimpleName(), memberType);
+		MemberInfo collectionMemberInfo = new MemberInfo(memberAccessor, memberType.getSimpleName(), memberType);
 		collectionMemberInfo.setInnerType(innerType);
 		
 		if (!Util.isAcceptableSimpleType(innerType)){
@@ -1080,7 +1182,7 @@ public class RecordingHelper {
 		}
 		parameters.add(collectionMemberInfo);
 		
-		SimpleGeneratedMemberInfo scriptMemberInfo = infoGenerator.generateInfoObject(statName + serial++ + "_" + memberName, parameters);
+		SimpleGeneratedMemberInfo scriptMemberInfo = infoGenerator.generateInfoObject(statName + serial++, parameters);
 		scriptMemberInfo.setGeneratorName(statisticsNames.get(statName));
 		
 		List<MemberInfo> buildingBlocks = new ArrayList<MemberInfo>();
@@ -1088,6 +1190,14 @@ public class RecordingHelper {
 		scriptMemberInfo.addBuildingBlock(buildingBlocks);
 		RecordableElement recordableElement = new RecordableElement(scriptMemberInfo, statName + "(" + annotationName + ")");
 		RecordableInfo recordableInfo = InfoConverter.convertRecordableElement2RecordableInfo(recordableElement);
+		
+		String annotationValue = statName + "(" + annotationName + ")";
+		String accessorName = memberAccessor;
+		if (innerTypeMemberName != null && !innerTypeMemberName.isEmpty()){
+			accessorName += "{" + innerType.getName() + " -> " + innerTypeMemberName + "}";
+		}
+		addUsedRecorderSource(annotationValue, accessorName);
+		checkUsedRecorderSources(annotationValue);
 		recorderInfo.getRecordables().add(recordableInfo);
 		
 		if (collectionMemberInfo instanceof InnerOperatorGeneratedMemberInfo){
@@ -1102,7 +1212,7 @@ public class RecordingHelper {
 			innerScript.setDisplayName(((OperatorGeneratedMemberInfo) collectionMemberInfo).getDisplayName());
 			innerScript.setReferences("");
 			Parent parent = new Parent();
-			parent.setName(memberName);
+			parent.setName(memberAccessor);
 			parent.setType(memberType.getSimpleName());
 			parent.setJavaType(memberType.getName());
 			parent.setInnerType(innerType.getName());
@@ -1164,6 +1274,19 @@ public class RecordingHelper {
 		recorder.getMember().add(member);
 	}
 
+	protected void checkUsedRecorderSources(String annotationName) {
+		List<String> usedRecordersList = usedRecorderSources.get(annotationName);
+		if (usedRecordersList.size() > 1){
+			StringBuffer stringBuffer = new StringBuffer("Multiple recorder sources under the name '" + annotationName+ "' (");
+			for (String usedRecorder : usedRecordersList) {
+				stringBuffer.append(usedRecorder).append(", ");
+			}
+			stringBuffer.delete(stringBuffer.length() - 2, stringBuffer.length());
+			stringBuffer.append(")");
+			Logger.logWarning(stringBuffer.toString());
+		}
+	}
+
 	private static IStatisticInfoGenerator getStatisticGenerator(String statName) {
 		try {
 			IStatisticInfoGenerator infoGenerator = infoGenerators.get(statName);
@@ -1190,5 +1313,15 @@ public class RecordingHelper {
 		}
 	}
 
-
+	protected void addUsedRecorderSource(final String annotationName, final String accessorName){
+		List<String> accessorList = usedRecorderSources.get(annotationName);
+		
+		if (accessorList == null){
+			accessorList = new ArrayList<String>();
+			usedRecorderSources.put(annotationName, accessorList);
+		}
+		
+		accessorList.add(accessorName);
+	}
+	
 }

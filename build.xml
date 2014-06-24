@@ -313,6 +313,9 @@
 					<filename name="ai/aitia/meme/paramsweep/platform/mason/impl/IMasonGeneratedModel.class" />
 					<filename name="ai/aitia/meme/paramsweep/platform/mason/impl/MasonModelGenerator.class" />
 					<filename name="ai/aitia/meme/paramsweep/platform/mason/recording/RecordingHelper*.class"/>
+					<filename name="ai/aitia/meme/paramsweep/platform/mason/impl/MasonStepEnded.class" />
+					<filename name="ai/aitia/meme/paramsweep/platform/mason/impl/MasonRecorderListener.class"/>
+					<filename name="ai/aitia/meme/paramsweep/platform/mason/impl/MasonKiller.class"/>
 				</or>
 			</fileset>
 			<zipfileset src="${plugins}/coltPlugin.jar" includes="ai/**" />

@@ -120,6 +120,21 @@ public class Util {
 
 	public static final String GENERATED_MODEL_MULTICOLUMN_POSTFIX = "Multi()";
 	
+	public static final String getMethodAccessorInGeneratedModel(final String accessor){
+		String methodAccessor = GENERATED_MODEL_MODEL_FIELD_NAME + "." + accessor;
+		// if the accessor is in a submodel (then it starts with a getter and), then it is casted (potentially multiple times)
+		// we should find the accessor in the string and add Util.GENERATED_MODEL_MODEL_FIELD_NAME before it
+		int indexOfParenthesis = accessor.indexOf("()");
+		if (indexOfParenthesis > 0){
+			int indexOfAccessor = accessor.lastIndexOf(")", indexOfParenthesis - 1) + 1;
+			StringBuilder builder = new StringBuilder(accessor.substring(0, indexOfAccessor));
+			builder.append(Util.GENERATED_MODEL_MODEL_FIELD_NAME).append('.').append(accessor.substring(indexOfAccessor));
+			methodAccessor = builder.toString();
+		}
+
+		return methodAccessor;
+	}
+	
 	public static boolean isAcceptableType(Class<?> type){
 		return acceptableTypes.contains(type) || Collection.class.isAssignableFrom(type) || Enum.class.isAssignableFrom(type); 
 	}

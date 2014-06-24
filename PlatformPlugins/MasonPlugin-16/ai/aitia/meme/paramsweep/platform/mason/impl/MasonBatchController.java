@@ -20,6 +20,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -36,10 +37,10 @@ import ai.aitia.meme.paramsweep.batch.InvalidEntryPointException;
 import ai.aitia.meme.paramsweep.batch.output.RecorderInfo;
 import ai.aitia.meme.paramsweep.batch.param.AbstractParameterInfo;
 import ai.aitia.meme.paramsweep.batch.param.ISubmodelParameterInfo;
+import ai.aitia.meme.paramsweep.batch.param.ParameterNode;
 import ai.aitia.meme.paramsweep.batch.param.ParameterTree;
 import ai.aitia.meme.paramsweep.batch.param.SubmodelInfo;
 import ai.aitia.meme.paramsweep.util.DefaultParameterPartitioner;
-import ai.aitia.meme.paramsweep.utils.SimulationException;
 import ai.aitia.meme.paramsweep.utils.Util;
 import ai.aitia.meme.utils.Utils.Pair;
 
@@ -154,6 +155,25 @@ public class MasonBatchController implements IBatchController, IClusterBatchCont
 		for (IBatchListener l : listeners)
 			model.aitiaGenerated_addBatchListener(l);
 
+		submodelInfos.clear();
+
+		// we have to remove submodels that have no parameters and add them to the submodelInfos deque
+		Enumeration<ParameterNode> breadthFirstEnumeration = paramTree.breadthFirstEnumeration();
+		List<ParameterNode> toBeRemoved = new ArrayList<ParameterNode>();
+		while (breadthFirstEnumeration.hasMoreElements()) {
+			ParameterNode parameterNode = (ParameterNode) breadthFirstEnumeration.nextElement();
+			AbstractParameterInfo<Object> parameterInfo = parameterNode.getParameterInfo();
+			if (parameterInfo instanceof SubmodelInfo) {
+				SubmodelInfo submodelInfo = (SubmodelInfo) parameterInfo;
+				fillParentParametersTable(submodelInfo);
+				toBeRemoved.add(parameterNode);
+			}
+		}
+		
+		for (ParameterNode parameterNode : toBeRemoved) {
+			parameterNode.removeFromParent();
+		}
+		
 		Iterator<List<AbstractParameterInfo>> it = new DefaultParameterPartitioner().partition(paramTree);
 		while (it.hasNext() && !stopped) {
 			batchCount++;
@@ -165,15 +185,9 @@ public class MasonBatchController implements IBatchController, IClusterBatchCont
 				setParameters(combination);
 				setSubmodelParameters();
 				model.modelInitialization();
-				try {
-					startSim();
-					if (oneRunOnly)
-						stopped = true;
-				} catch (final SimulationException e) {
-					throw new BatchException(e);
-				} catch (final Throwable e) {
-					e.printStackTrace();
-				}
+				startSim();
+				if (oneRunOnly)
+					stopped = true;
 			}
 	
 		}
@@ -202,7 +216,6 @@ public class MasonBatchController implements IBatchController, IClusterBatchCont
 	//----------------------------------------------------------------------------------------------------
 	@SuppressWarnings("rawtypes")
 	private void fillParentParametersTable(List<AbstractParameterInfo> combination) throws BatchException {
-		submodelInfos.clear();
 		for (final AbstractParameterInfo p : combination) {
 			if (p instanceof ISubmodelParameterInfo) {
 				final SubmodelInfo<?> parentInfo = ((ISubmodelParameterInfo)p).getParentInfo();
@@ -339,7 +352,7 @@ public class MasonBatchController implements IBatchController, IClusterBatchCont
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	private void startSim() throws SimulationException {
+	private void startSim(){
 		model.simulationStart();
 		fireRunChanged();
 	}
