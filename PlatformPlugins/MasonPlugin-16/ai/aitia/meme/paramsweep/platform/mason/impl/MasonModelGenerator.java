@@ -700,7 +700,7 @@ public class MasonModelGenerator {
 		sb.append("		}\n");
 		sb.append("		stepEnded();");
 		sb.append("	}\n");
-//		sb.append("	" + Util.GENERATED_MODEL_MODEL_FIELD_NAME + ".finish();\n");
+		sb.append("	" + Util.GENERATED_MODEL_MODEL_FIELD_NAME + ".finish();\n");
 		sb.append("return;\n");
 		sb.append("}\n");
 		final CtMethod simulationStartMethod = CtNewMethod.make(sb.toString(),model);
