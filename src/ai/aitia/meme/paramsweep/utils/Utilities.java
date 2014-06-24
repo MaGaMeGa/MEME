@@ -43,10 +43,7 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESedeKeySpec;
 import javax.crypto.spec.IvParameterSpec;
-import javax.swing.JDialog;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JRootPane;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 
@@ -133,7 +130,7 @@ public class Utilities {
 		/*JOptionPane pane = new JOptionPane(messages);
 
 		pane.setWantsInput(false);
-		int style = JRootPane.WARNING_DIALOG;		//lehet hogy meg kell majd változtatni
+		int style = JRootPane.WARNING_DIALOG;		//lehet hogy meg kell majd vÃ¡ltoztatni
 		JDialog dialog = pane.createDialog(parent,"Message");
 		pane.selectInitialValue();
 
@@ -425,21 +422,23 @@ public class Utilities {
 	
 	//----------------------------------------------------------------------------------------------------
 	public static boolean isCompatibleWithMaskedShellFolderManager() {
-		String version = System.getProperty("java.runtime.version");
-		try {
-			int minorNr = 0;
-			String[] parts = version.split("_");
-			if (parts.length >= 2) {
-				int idx = parts[1].indexOf('-');
-				String minor = idx == -1 ? parts[1] : parts[1].substring(0,idx);
-				minorNr = Integer.parseInt(minor);
-			}
-			parts = parts[0].split("\\.");
-			int majorNr = Integer.parseInt(parts[1]);
-			return majorNr < 6 || minorNr < 14;
-		} catch (Throwable t) {
-			return false;
-		}
+//		String version = System.getProperty("java.runtime.version");
+//		try {
+//			int minorNr = 0;
+//			String[] parts = version.split("_");
+//			if (parts.length >= 2) {
+//				int idx = parts[1].indexOf('-');
+//				String minor = idx == -1 ? parts[1] : parts[1].substring(0,idx);
+//				minorNr = Integer.parseInt(minor);
+//			}
+//			parts = parts[0].split("\\.");
+//			int majorNr = Integer.parseInt(parts[1]);
+//			return majorNr < 6 || minorNr < 14;
+//		} catch (Throwable t) {
+//			return false;
+//		}
+		
+		return false;
 	}
 	
 	//----------------------------------------------------------------------------------------------------

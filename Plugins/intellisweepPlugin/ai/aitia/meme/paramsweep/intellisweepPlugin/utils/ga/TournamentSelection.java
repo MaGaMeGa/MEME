@@ -20,7 +20,6 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Random;
 
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
