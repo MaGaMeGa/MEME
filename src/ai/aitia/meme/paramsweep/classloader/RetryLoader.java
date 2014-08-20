@@ -259,6 +259,7 @@ public class RetryLoader extends Loader implements IStoppableRetryLoader {
 						  name.startsWith("_") ||
 						  name.startsWith("fables.paramsweep.runtime.annotations") || 
 						  name.startsWith("ai.aitia.meme.paramsweep.batch") ||
+						  name.startsWith("ai.aitia.meme.paramsweep.utils.AssistantMethod") ||
 						  name.contains("ToStringLocalizationResource") ||
 						  name.startsWith("ai.aitia.meme.paramsweep.platform.IPSWInformationProvider") ||
 						  name.startsWith("javassist") || // needed by the platforms to initialize IModelInformation objects

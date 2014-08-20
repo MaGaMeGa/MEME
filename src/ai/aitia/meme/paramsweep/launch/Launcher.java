@@ -64,6 +64,7 @@ import javax.swing.border.BevelBorder;
 
 import org.jgap.util.JarClassLoader;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.MEMEApp;
 import ai.aitia.meme.gui.IPanelManager;
 import ai.aitia.meme.paramsweep.PS_Monitor;
@@ -348,6 +349,7 @@ public class Launcher {
 					logicalMonitor.startMonitor();
 					_controller.startBatch();
 				} catch (BatchException e) {
+					Logger.logExceptionCallStack(e);
 					if (Util.getLocalizedMessage(e) != null)
 						error[0] = Util.getLocalizedMessage(e);
 					else

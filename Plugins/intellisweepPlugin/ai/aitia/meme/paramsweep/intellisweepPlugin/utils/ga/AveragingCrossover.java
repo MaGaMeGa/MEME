@@ -27,6 +27,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.utils.ga.jgap.GAOperationException;
 import ai.aitia.meme.utils.FormsUtils;
 
@@ -84,17 +85,18 @@ public class AveragingCrossover implements IGAOperator, Serializable {
 			Math.round( ( population.size() * ((double)crossPercent/100) ) );
 		List<Chromosome> newSolutions = new ArrayList<Chromosome>();
 		for( int i = 0; i < numOfChildren; ++i ){
-			int p1Idx = genNext.nextInt( nextPopulation.size() );
-			int p2Idx = genNext.nextInt( nextPopulation.size() );
+			int p1Idx = genNext.nextInt( population.size() );
+			int p2Idx = genNext.nextInt( population.size() );
 			//int crossIdx = 1 + genNext.nextInt( population.get( 0 ).getSize() - 1 );
-			Chromosome firstParent = nextPopulation.get( p1Idx );
-			Chromosome secondParent = nextPopulation.get( p2Idx );
+			Chromosome firstParent = population.get( p1Idx );
+			Chromosome secondParent = population.get( p2Idx );
 			Chromosome child = null;
 			try {
 				child = firstParent.cloneChromosome();
 				child.setFitness( Double.NaN );
 			} catch (Exception e) {
 				//selected parents will be nulls
+				Logger.logExceptionCallStack(e);
 			}
 			for( int j = 0; j < population.get( 0 ).getSize() &&
 								firstParent != null && secondParent != null; ++j ){
