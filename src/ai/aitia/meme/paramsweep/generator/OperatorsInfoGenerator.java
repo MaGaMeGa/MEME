@@ -21,8 +21,6 @@ import java.util.List;
 
 import ai.aitia.meme.paramsweep.gui.info.ExtendedOperatorGeneratedMemberInfo;
 import ai.aitia.meme.paramsweep.gui.info.GeneratedMemberInfo;
-import ai.aitia.meme.paramsweep.gui.info.InnerOperatorGeneratedMemberInfo;
-import ai.aitia.meme.paramsweep.gui.info.MemberInfo;
 import ai.aitia.meme.paramsweep.gui.info.MultiColumnOperatorGeneratedMemberInfo;
 import ai.aitia.meme.paramsweep.gui.info.OperatorGeneratedMemberInfo;
 import ai.aitia.meme.paramsweep.internal.platform.PlatformSettings;
@@ -32,10 +30,8 @@ import ai.aitia.meme.paramsweep.plugin.IListOperatorPlugin;
 import ai.aitia.meme.paramsweep.plugin.IMultiColumnOperatorPlugin;
 import ai.aitia.meme.paramsweep.plugin.IOperatorPlugin;
 import ai.aitia.meme.paramsweep.utils.AssistantMethod;
-import ai.aitia.meme.paramsweep.utils.PlatformConstants;
-import ai.aitia.meme.paramsweep.utils.Util;
-import ai.aitia.meme.paramsweep.utils.Utilities;
 import ai.aitia.meme.paramsweep.utils.AssistantMethod.ScheduleTime;
+import ai.aitia.meme.paramsweep.utils.PlatformConstants;
 
 public class OperatorsInfoGenerator {
 	
