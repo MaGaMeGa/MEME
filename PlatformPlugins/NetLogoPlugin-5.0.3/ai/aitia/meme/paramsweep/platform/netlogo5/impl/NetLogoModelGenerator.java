@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javassist.CannotCompileException;
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.paramsweep.batch.output.RecordableInfo;
 import ai.aitia.meme.paramsweep.batch.output.RecorderInfo;
 import ai.aitia.meme.paramsweep.platform.IPSWInformationProvider;
@@ -84,6 +85,7 @@ public class NetLogoModelGenerator extends AbstractNetLogoModelGenerator {
 			error = "Error while generating script extension or descendant model.";
 			if (e.getLocalizedMessage() != null && Util.getLocalizedMessage(e).trim().length() > 0)
 				error += "\nReason: " + Util.getLocalizedMessage(e);
+			Logger.logExceptionCallStack(e);
 		}
 		return error;
 	}

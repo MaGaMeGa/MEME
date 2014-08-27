@@ -1,3 +1,7 @@
+/CSVResultParser$AdvancedCSVParser.class
+/CSVResultParser$AdvancedCSVParserException.class
+/CSVResultParser$Run.class
+/CSVResultParser.class
 /BufferedCSVResultParser$AdvancedCSVParser.class
 /BufferedCSVResultParser$AdvancedCSVParserException.class
 /BufferedCSVResultParser$Run.class
@@ -21,7 +25,3 @@
 /CSVMultiImportSettingsDialog$6.class
 /CSVMultiImportSettingsDialog$VersionTextFieldFilter.class
 /CSVMultiImportSettingsDialog.class
-/CSVResultParser$AdvancedCSVParser.class
-/CSVResultParser$AdvancedCSVParserException.class
-/CSVResultParser$Run.class
-/CSVResultParser.class

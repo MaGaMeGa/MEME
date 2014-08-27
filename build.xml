@@ -235,7 +235,7 @@
 		<delete dir="${tmp}" />
 		<delete dir="${dist}" />
 		<!-- <delete dir="${bin}"/> -->
-		<delete includeemptydirs="true">
+		<delete includeemptydirs="true" failonerror="false">
 			<exclude name="**/screenshots/**" />
 			<fileset dir="${docs}" includes="**/*BatchGenerated*"/>
 			<fileset dir="screenshots" includes="*"/>

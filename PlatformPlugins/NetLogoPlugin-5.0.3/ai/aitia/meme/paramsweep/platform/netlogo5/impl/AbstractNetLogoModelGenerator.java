@@ -141,7 +141,6 @@ public abstract class AbstractNetLogoModelGenerator {
 			} else if ((gri instanceof ScriptGeneratedRecordableInfo) || (info instanceof OperatorGeneratedRecordableInfo)) 
 				generateClassOfReferenced(gri);
 		}
-		
 		if (info instanceof ExtendedOperatorGeneratedRecordableInfo) {
 			final ExtendedOperatorGeneratedRecordableInfo _info = (ExtendedOperatorGeneratedRecordableInfo) info;
 			for (final AssistantMethod method : _info.getAssistantMethods()) 

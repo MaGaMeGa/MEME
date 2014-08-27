@@ -240,6 +240,8 @@ public class MasonModelGenerator {
 				generateModelMember(model);
 			//}
 			
+			generateAitiaGeneratedVariablesMapDeclaration(model);
+				
 			recorderFields = createRecorderFields(model);
 			for (final CtField field : recorderFields)
 				model.addField(field);
@@ -673,7 +675,7 @@ public class MasonModelGenerator {
 		if (initializeVariablesMethod != null)
 			sb.append(initializeVariablesMethod.getName() + "();\n");
 		if (needInitializationForTimeSeries())
-			sb.append(generateInitializing(model));
+			sb.append(generateAitiaGeneratedVariablesMapInitializer(model));
 		//sb.append(generateRecorders(model));
 //		sb.append("	long time = -1L;\n");
 //		sb.append("	long steps = 0L;\n");
@@ -1457,12 +1459,15 @@ public class MasonModelGenerator {
 		}
 		return false;
 	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private String generateInitializing(final CtClass model) throws CannotCompileException {
+
+	private void generateAitiaGeneratedVariablesMapDeclaration(final CtClass model) throws CannotCompileException{
 		final String fieldStr = "private java.util.HashMap " + PlatformConstants.AITIA_GENERATED_VARIABLES + " = null;\n";
 		final CtField field = CtField.make(fieldStr,model);
 		model.addField(field);
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private String generateAitiaGeneratedVariablesMapInitializer(final CtClass model) throws CannotCompileException {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(PlatformConstants.AITIA_GENERATED_VARIABLES).append(" = new java.util.HashMap();\n");
 		return sb.toString();

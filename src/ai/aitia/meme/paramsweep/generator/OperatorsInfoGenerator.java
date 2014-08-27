@@ -103,10 +103,10 @@ public class OperatorsInfoGenerator {
 			}
 		}
 		StringBuilder sb = new StringBuilder();
-		if (PlatformSettings.getPlatformType() != PlatformType.NETLOGO)
+		if (PlatformSettings.getPlatformType() != PlatformType.NETLOGO && PlatformSettings.getPlatformType() != PlatformType.NETLOGO5)
 			sb.append("try {\n");
 		sb.append(operator.getCode(actParameters)); // TODO we have to provide the name of the class declaring the member to allow the generated code to cast the member access 
-		if (PlatformSettings.getPlatformType() != PlatformType.NETLOGO) {
+		if (PlatformSettings.getPlatformType() != PlatformType.NETLOGO && PlatformSettings.getPlatformType() != PlatformType.NETLOGO5) {
 			sb.append("}\n");
 			sb.append("catch (Throwable t) {\n");
 			sb.append("System.err.println(\"" + EXCEPTION_START + "\");\n");

@@ -99,6 +99,7 @@ public class Operator_TimeSeries implements IExtendedOperatorPlugin, IListOperat
 		final MemberInfo member = (MemberInfo) actParams[0];
 		switch (PlatformSettings.getPlatformType()) {
 		case REPAST		:
+		case MASON		:
 		case SIMPHONY2	:
 		case CUSTOM 	: return getAssistantJavaCode(member);
 		case NETLOGO5	:

@@ -457,47 +457,41 @@ public class ScriptCreationDialog extends JDialog implements ActionListener,
 				deletePreviousInstance(newInfo);
 				scriptSupport.getAllMembers().add(newInfo);
 				Fugg.f.setFuggveny(newInfo.getName() + " : " + newInfo.getType(),"");
-				String alias = (PlatformSettings.getPlatformType() == PlatformType.NETLOGO || PlatformSettings.getPlatformType() == PlatformType.NETLOGO5) ? null : 
-							   newInfo.getName().endsWith("()") ? newInfo.getName().substring(0,newInfo.getName().length() - 2) : newInfo.getName();
+				String alias = (PlatformSettings.getPlatformType() == PlatformType.NETLOGO || PlatformSettings.getPlatformType() == PlatformType.NETLOGO5) ? null
+						: newInfo.getName().endsWith("()") ? newInfo.getName().substring(0, newInfo.getName().length() - 2) : newInfo.getName();
+
 				if (current instanceof IMultiColumnOperatorPlugin) {
 					// this is coming from a spinner, it cannot throw a NumberFormatException
-					/*int numColumns = Integer.valueOf(((IMultiColumnOperatorPlugin)current).getNumberOfColumns(operatorGUI.getInput())).intValue();
-					StringBuilder sbNewAlias = new StringBuilder(300);
-					for (int i = 0; i < numColumns-1; i++) {
-						sbNewAlias.append(alias);
-						sbNewAlias.append("_");
-						sbNewAlias.append(i);
-						sbNewAlias.append("\"");
-						sbNewAlias.append(SeparatedList.SEPARATOR);
-						sbNewAlias.append("\"");
-					}
-					sbNewAlias.append(alias);
-					sbNewAlias.append("_");
-					sbNewAlias.append(numColumns-1);
-					alias = sbNewAlias.toString();
+					/*
+					 * int numColumns = Integer.valueOf(((IMultiColumnOperatorPlugin)current).getNumberOfColumns(operatorGUI.getInput())).intValue();
+					 * StringBuilder sbNewAlias = new StringBuilder(300); for (int i = 0; i < numColumns-1; i++) { sbNewAlias.append(alias);
+					 * sbNewAlias.append("_"); sbNewAlias.append(i); sbNewAlias.append("\""); sbNewAlias.append(SeparatedList.SEPARATOR);
+					 * sbNewAlias.append("\""); } sbNewAlias.append(alias); sbNewAlias.append("_"); sbNewAlias.append(numColumns-1); alias =
+					 * sbNewAlias.toString(); } RecordableElement newElement = new RecordableElement(newInfo,alias);
+					 */
+					Object[] params = new Object[6];
+					params = ((IOperatorGUI) operatorGUI).getInput();
+
+					MultiColumnOperatorGeneratedMemberInfo multiColOperatorInfo = (MultiColumnOperatorGeneratedMemberInfo) new OperatorsInfoGenerator(
+							current).generateInfoObject((String) params[5], params);
+					multiColOperatorInfo.setGeneratorName("ai.aitia.meme.paramsweep.operatorPlugin.Operator_MultiColumnRecordable");
+					RecordableElement newElement = new RecordableElement(multiColOperatorInfo, (String) params[5]);
+
+					if (current.isRecordable(operatorGUI.getInput()))
+						scriptListModel.addElement(newElement);
+					else
+						nonRecordableScriptListModel.addElement(newElement);
 				}
-				RecordableElement newElement = new RecordableElement(newInfo,alias); */
-				Object[] params = new Object[6];
-				params = ((IOperatorGUI)operatorGUI).getInput();
 				
-				MultiColumnOperatorGeneratedMemberInfo multiColOperatorInfo = (MultiColumnOperatorGeneratedMemberInfo)new OperatorsInfoGenerator(current).generateInfoObject((String)params[5], params); 
-				multiColOperatorInfo.setGeneratorName("ai.aitia.meme.paramsweep.operatorPlugin.Operator_MultiColumnRecordable");
-				RecordableElement newElement = new RecordableElement(multiColOperatorInfo, (String)params[5]);
-				
-				if (current.isRecordable(operatorGUI.getInput()))
-					scriptListModel.addElement(newElement);
-				else
-					nonRecordableScriptListModel.addElement(newElement);
 				if (ParameterSweepWizard.getPreferences().closeAfterOneScript() || forceCloseAfterCreate)
 					setVisible(false);
 				else {
 					editMode = false;
-					warning(true,newInfo.getDisplayName() + " created.",MESSAGE,true);
+					warning(true, newInfo.getDisplayName() + " created.", MESSAGE, true);
 					I_availableOperators.clearSelection();
 					I_nameField.setText("");
 				}
 			}
-		}
 		}
 		else if (command.equals("CLOSE")) 
 			setVisible(false);
