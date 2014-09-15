@@ -170,21 +170,21 @@ public class RecordingHelper {
 	
 	protected static final Map<String, Class<?>> statisticsPluginNames = new HashMap<String, Class<?>>();
 	
-	protected List<RecorderInfo> recorders = new ArrayList<RecorderInfo>();
-	
 	private static int serial = 0;
 	
 	protected static final Map<String, IStatisticInfoGenerator> infoGenerators = new HashMap<String, IStatisticInfoGenerator>();
 	
 	protected static final Map<String, String> statisticsNames = new HashMap<String, String>();
 
+	private static OperatorsInfoGenerator operatorsInfoGenerator = new OperatorsInfoGenerator(new Operator_MultiColumnRecordable());
+	
+	private static InnerOperatorsInfoGenerator innerOperatorInfoGenerator = new InnerOperatorsInfoGenerator();
+	
+	protected List<RecorderInfo> recorders = new ArrayList<RecorderInfo>();
+
 	protected RecordersPage recordersPage = null;
 
 	private ObjectFactory objFactory = new ObjectFactory();
-
-	private static OperatorsInfoGenerator operatorsInfoGenerator = new OperatorsInfoGenerator(new Operator_MultiColumnRecordable());
-
-	private static InnerOperatorsInfoGenerator innerOperatorInfoGenerator = new InnerOperatorsInfoGenerator();
 
 	private Map<Class<?>, Set<RecordingInfo>> annotatedRecordables = new HashMap<Class<?>, Set<RecordingInfo>>();
 	
@@ -199,6 +199,8 @@ public class RecordingHelper {
 	protected IMasonGeneratedModel generatedModel;
 
 	private boolean writeSource = false;
+	
+	protected Thread shutdownThread;
 	
 	static {
 		try {
@@ -686,10 +688,10 @@ public class RecordingHelper {
 								member.setContent(field.getName());
 								member.setAlias(annotation.value() + info.getRecordingName());
 								recorder.getMember().add(member);
-
+								
 								addUsedRecorderSource(annotationValue, objectAccessor + fieldName);
 								checkUsedRecorderSources(annotationValue);
-}
+							}
 						} else { // this is a multi-column field
 							int collectionLength = annotation.collectionLength();
 							String collectionLengthMember = annotation.collectionLengthMember();
@@ -829,13 +831,15 @@ public class RecordingHelper {
 
 //			scheduleRecording(model);
 			
-			Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+			shutdownThread = new Thread(new Runnable() {
 				
 				@Override
 				public void run() {
 					closeRecorder();
 				}
-			}));
+			});
+			Runtime.getRuntime().addShutdownHook(shutdownThread);
+			
 		} catch (NotFoundException e) {
 			throw new IllegalStateException(e);
 		} catch (InstantiationException e) {
@@ -892,6 +896,13 @@ public class RecordingHelper {
 				
 				generatedModel.simulationStop();
 				generatedModel.aitiaGenerated_writeEnd();
+				generatedModel = null;
+			}
+			
+			// when called from tomcat (by PET), we need to unregister the shutdown hook to release all resources
+			if (shutdownThread != null){
+				Runtime.getRuntime().removeShutdownHook(shutdownThread);
+				shutdownThread = null;
 			}
 		}
 	}
@@ -1056,6 +1067,9 @@ public class RecordingHelper {
 		recordersPage.getScripts().getScript().add(script);
 
 		if (recorderInfo != null){
+//			addUsedRecorderSource(annotationValue, memberName);
+//			checkUsedRecorderSources(annotationValue);
+
 			Member member = new Member();
 			member.setAlias(recordableElement.getAlias());
 			member.setJavaType(operatorInfo.getJavaType().getCanonicalName());
@@ -1266,6 +1280,10 @@ public class RecordingHelper {
 		
 		recordersPage.getScripts().getScript().add(script);
 		
+//		addUsedRecorderSource(annotationValue, memberAccessor);
+//		checkUsedRecorderSources(annotationValue);
+
+		
 		Member member = new Member();
 		member.setAlias(recordableElement.getAlias());
 		member.setJavaType(scriptMemberInfo.getJavaType().getCanonicalName());
@@ -1283,7 +1301,8 @@ public class RecordingHelper {
 			}
 			stringBuffer.delete(stringBuffer.length() - 2, stringBuffer.length());
 			stringBuffer.append(")");
-			Logger.logWarning(stringBuffer.toString());
+//			Logger.logWarning(stringBuffer.toString());
+			throw new IllegalArgumentException(stringBuffer.toString());
 		}
 	}
 

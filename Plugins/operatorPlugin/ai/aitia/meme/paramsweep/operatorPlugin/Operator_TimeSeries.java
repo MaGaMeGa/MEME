@@ -39,7 +39,7 @@ public class Operator_TimeSeries implements IExtendedOperatorPlugin, IListOperat
 	//----------------------------------------------------------------------------------------------------
 	public String getName() { return "timeseries"; }
 	public String getLocalizedName() { return "Timeseries"; }
-	public int getNumberOfParameters() { return 1; }
+	public int getNumberOfParameters() { return 2; }
 	public OperatorGUIType getGUIType() { return OperatorGUIType.TIME_SERIES; }
 	public boolean isRecordable(final Object... actParams) { return false; }
 	public boolean isSupportedByPlatform(final PlatformType platform) { return true; }
@@ -59,11 +59,12 @@ public class Operator_TimeSeries implements IExtendedOperatorPlugin, IListOperat
 	//----------------------------------------------------------------------------------------------------
 	public String getCode(final Object... actParams) {
 		final MemberInfo member = (MemberInfo) actParams[0];
+		final int maxLength = (Integer)actParams[1];
 		switch (PlatformSettings.getPlatformType()) {
 		case REPAST		:
 		case MASON		:
 		case SIMPHONY2	:
-		case CUSTOM 	: return getJavaCode(member);
+		case CUSTOM 	: return getJavaCode(member, maxLength);
 		case NETLOGO5	:
 		case NETLOGO	: return getNetLogoCode(member);
 		default			: throw new UnsupportedPlatformException(PlatformSettings.getPlatformType().toString());		
@@ -84,6 +85,9 @@ public class Operator_TimeSeries implements IExtendedOperatorPlugin, IListOperat
 		final List<String> result = new ArrayList<String>();
 		if (!(actParams[0] instanceof MemberInfo))
 			result.add("Parameter #0 is not a MemberInfo instance.");
+		if (!(actParams[1] instanceof Integer)){
+			result.add("Parameter #1 is not an Integer");
+		}
 		return result;
 	}
 	
@@ -97,13 +101,14 @@ public class Operator_TimeSeries implements IExtendedOperatorPlugin, IListOperat
 		if (idx > 0)
 			throw new IllegalArgumentException("Only 1 assistant method exists.");
 		final MemberInfo member = (MemberInfo) actParams[0];
+		final int maxLength = (Integer)actParams[1];
 		switch (PlatformSettings.getPlatformType()) {
 		case REPAST		:
 		case MASON		:
 		case SIMPHONY2	:
-		case CUSTOM 	: return getAssistantJavaCode(member);
+		case CUSTOM 	: return getAssistantJavaCode(member, maxLength);
 		case NETLOGO5	:
-		case NETLOGO	: return getAssistantNetLogoCode(member);
+		case NETLOGO	: return getAssistantNetLogoCode(member, maxLength);
 		default			: throw new UnsupportedPlatformException(PlatformSettings.getPlatformType().toString());		
 		}
 		
@@ -113,30 +118,34 @@ public class Operator_TimeSeries implements IExtendedOperatorPlugin, IListOperat
 	// assistant methods
 	
 	//----------------------------------------------------------------------------------------------------
-	private String getJavaCode(final MemberInfo member) {
+	private String getJavaCode(final MemberInfo member, int maxLength) {
 		final StringBuilder code = new StringBuilder();
 		code.append("java.util.ArrayList list = (java.util.ArrayList) ").append(PlatformConstants.AITIA_GENERATED_VARIABLES).
 			 append(".get(\"").append(member.getName()).append("\");\n");
 		code.append("if (list == null) {\n");
-			code.append("list = new java.util.ArrayList();\n");
+			code.append("list = new java.util.ArrayList(" + maxLength + ");\n");
 		code.append("}\n");
 		code.append("return list;\n");
 		return code.toString();
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	private String getAssistantJavaCode(final MemberInfo member) {
+	private String getAssistantJavaCode(final MemberInfo member, int maxLength) {
 		final StringBuilder code = new StringBuilder();
 		code.append("java.util.ArrayList list = (java.util.ArrayList) ").append(PlatformConstants.AITIA_GENERATED_VARIABLES).append(".get(\"").
 			 append(member.getName()).append("\");\n");
 		code.append("if (list == null) {\n");
-			code.append("list = new java.util.ArrayList();\n");
+			code.append("list = new java.util.ArrayList(" + maxLength + ");\n");
 			code.append(PlatformConstants.AITIA_GENERATED_VARIABLES).append(".put(\"").append(member.getName()).append("\",list);\n");
 		code.append("}\n");
 		if (member.getJavaType().isPrimitive())
 			code.append("list.add(new ").append(boxingType(member.getJavaType()).getName()).append("(").append(member.getName()).append("));\n");
 		else
 			code.append("list.add(").append(member.getName()).append(");\n");
+		
+		code.append("if ( list.size() > " + maxLength + " ) {\n");
+		code.append("list.remove(0);\n");
+		code.append("}\n");
 		return code.toString();
 	}
 	
@@ -174,14 +183,16 @@ public class Operator_TimeSeries implements IExtendedOperatorPlugin, IListOperat
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	private String getAssistantNetLogoCode(final MemberInfo member) {
+	private String getAssistantNetLogoCode(final MemberInfo member, int maxLength) {
 		final StringBuilder code = new StringBuilder();
 		code.append("let _aitia_generated_list []\n");
 		code.append("if table").append(version()).append(":has-key? ").append(PlatformConstants.AITIA_GENERATED_VARIABLES).append(" \"").append(member.getName()).
 			 append("\"\n");
 			code.append("[ set _aitia_generated_list table").append(version()).append(":get ").append(PlatformConstants.AITIA_GENERATED_VARIABLES).append(" \"").
 				 append(member.getName()).append("\" ]\n");
-		code.append("let aitia_generated_new_list sentence _aitia_generated_list ").append(member.getName()).append("\n");
+//		code.append("let aitia_generated_new_list sentence _aitia_generated_list ").append(member.getName()).append("\n");
+		code.append("let aitia_generated_new_list lput ").append(member.getName()).append(" _aitia_generated_list ").append("\n");
+		code.append("if length aitia_generated_new_list > ").append(maxLength).append(" [ set aitia_generated_new_list but-first aitia_generated_new_list ]\n");
 		code.append("table").append(version()).append(":put ").append(PlatformConstants.AITIA_GENERATED_VARIABLES).append(" \"").append(member.getName()).
 			 append("\" aitia_generated_new_list\n");
 		return code.toString();

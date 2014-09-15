@@ -37,7 +37,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javassist.CtClass;
-import javassist.Loader;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -99,9 +98,11 @@ import ai.aitia.meme.paramsweep.plugin.IMultiColumnOperatorPlugin;
 import ai.aitia.meme.paramsweep.plugin.IOperatorPlugin;
 import ai.aitia.meme.paramsweep.plugin.IStatisticsPlugin;
 import ai.aitia.meme.paramsweep.plugin.gui.AnyTypeConstructOperatorGUI;
+import ai.aitia.meme.paramsweep.plugin.gui.AnyTypeConstructOperatorGUI.UseType;
 import ai.aitia.meme.paramsweep.plugin.gui.BinaryListConstructOperatorGUI;
 import ai.aitia.meme.paramsweep.plugin.gui.CollectionParameterGUI;
 import ai.aitia.meme.paramsweep.plugin.gui.ElementSelectionOperatorGUI;
+import ai.aitia.meme.paramsweep.plugin.gui.ElementSelectionOperatorGUI.SelectionType;
 import ai.aitia.meme.paramsweep.plugin.gui.FilterOperatorGUI;
 import ai.aitia.meme.paramsweep.plugin.gui.ForEachOperatorGUI;
 import ai.aitia.meme.paramsweep.plugin.gui.IMultiColumnOperatorGUI;
@@ -113,16 +114,14 @@ import ai.aitia.meme.paramsweep.plugin.gui.MemberSelectionOperatorGUI;
 import ai.aitia.meme.paramsweep.plugin.gui.MultiColumnRecordableOperatorGUI;
 import ai.aitia.meme.paramsweep.plugin.gui.NumberParameterGUI;
 import ai.aitia.meme.paramsweep.plugin.gui.RemoveOperatorGUI;
-import ai.aitia.meme.paramsweep.plugin.gui.AnyTypeConstructOperatorGUI.UseType;
-import ai.aitia.meme.paramsweep.plugin.gui.ElementSelectionOperatorGUI.SelectionType;
+import ai.aitia.meme.paramsweep.plugin.gui.TimeSeriesOperatorGUI;
 import ai.aitia.meme.paramsweep.utils.CannotLoadDataSourceForEditingException;
 import ai.aitia.meme.paramsweep.utils.ReturnTypeElement;
-import ai.aitia.meme.paramsweep.utils.SeparatedList;
 import ai.aitia.meme.paramsweep.utils.SortedListModel;
 import ai.aitia.meme.paramsweep.utils.UserDefinedVariable;
 import ai.aitia.meme.paramsweep.utils.Utilities;
-import ai.aitia.meme.pluginmanager.PluginInfo;
 import ai.aitia.meme.pluginmanager.PSPluginManager.PluginList;
+import ai.aitia.meme.pluginmanager.PluginInfo;
 import ai.aitia.meme.utils.FormsUtils;
 import ai.aitia.meme.utils.GUIUtils;
 import ai.aitia.meme.utils.Utils;
@@ -946,16 +945,18 @@ public class ScriptCreationDialog extends JDialog implements ActionListener,
 		
 		initializeReturnType();
 		initializeVariablesList();
-		final JScrollPane sp = new JScrollPane(content,JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		sp.setBorder(null);
-		this.setContentPane(sp);
+		// why did we put content into a scrollpane? there are other scrollpanes on inner content panes
+//		final JScrollPane sp = new JScrollPane(content,JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+//		sp.setBorder(null);
+//		this.setContentPane(sp);
+		this.setContentPane(content);
 		this.setPreferredSize(new Dimension(915,714));
 		this.pack();
 		Dimension oldD = this.getPreferredSize();
-		this.setPreferredSize(new Dimension(oldD.width + sp.getVerticalScrollBar().getWidth(), 
-										    oldD.height + sp.getHorizontalScrollBar().getHeight()));
-		sp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		sp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+//		this.setPreferredSize(new Dimension(oldD.width + sp.getVerticalScrollBar().getWidth(), 
+//										    oldD.height + sp.getHorizontalScrollBar().getHeight()));
+//		sp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+//		sp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		oldD = this.getPreferredSize();
 		final Dimension newD = GUIUtils.getPreferredSize(this);
 		if (!oldD.equals(newD)) 
@@ -1087,7 +1088,8 @@ public class ScriptCreationDialog extends JDialog implements ActionListener,
 		case LIST_UNION_INTERSECTION	: return new ListUnionIntersectionGUI(this,scriptSupport.getAllMembers());
 		case ANY_TYPE_CONSTRUCT			: return new AnyTypeConstructOperatorGUI(this,scriptSupport.getAllMembers(),UseType.PERMUTATION);
 		case SIZE						: return new AnyTypeConstructOperatorGUI(this,scriptSupport.getAllMembers(),UseType.SIZE);
-		case TIME_SERIES				: return new AnyTypeConstructOperatorGUI(this,scriptSupport.getAllMembers(),UseType.TIMESERIES); 
+//		case TIME_SERIES				: return new AnyTypeConstructOperatorGUI(this,scriptSupport.getAllMembers(),UseType.TIMESERIES); 
+		case TIME_SERIES				: return new TimeSeriesOperatorGUI(this,scriptSupport.getAllMembers()); 
 		case BINARY_LIST_CONSTRUCT		: return new BinaryListConstructOperatorGUI(this,scriptSupport.getAllMembers());
 		case REMOVE						: return new RemoveOperatorGUI(wizard,scriptSupport.getAllMembers());
 		case FOREACH					: return new ForEachOperatorGUI(wizard,scriptSupport.getAllMembers(),scriptSupport.getForeachMembers());

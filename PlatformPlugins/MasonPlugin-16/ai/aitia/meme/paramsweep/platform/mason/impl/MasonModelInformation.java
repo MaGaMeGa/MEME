@@ -657,9 +657,8 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * This method first calls the {@link RecordingHelper#newInstance(SimState)} method of the recording helper to create a new RecordingHelper -- the model might have
-	 * changed since the previous time due to sub-models. Then the {@link RecordingHelper#getRecorders(SimState)} method is called to retrieve the actual
-	 * recorders.
+	 * This method first initializes a {@link RecordingHelper} object. Then the {@link RecordingHelper#getRecorders(SimState)} method is called to
+	 * retrieve the actual recorders.
 	 * 
 	 * @return a lsit of recorders
 	 */
@@ -675,7 +674,7 @@ public class MasonModelInformation implements IHierarchicalModelInformation {
 
 			Method method = recordingClass.getMethod("getRecorders", SimState.class);
 			return (List<RecorderInfo>)method.invoke(null, model);
-} catch (final NoSuchMethodException e) {
+		} catch (final NoSuchMethodException e) {
 			throw new ModelInformationException(e);
 		} catch (final SecurityException e) {
 			throw new ModelInformationException(e);

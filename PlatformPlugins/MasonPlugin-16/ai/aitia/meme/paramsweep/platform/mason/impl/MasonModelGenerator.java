@@ -56,9 +56,12 @@ public class MasonModelGenerator {
 	//===============================================================================
 	// members
 	
+
 	/** Standard prefix of the names of generated members (except statistics and scripts). */  
 	public static final String memberPrefix = "aitiaGenerated";
 	
+	private static final String STOP_FLAG = memberPrefix + "StopFlag";
+
 	/** Standard suffix of the generated model name (it stands before the timestamp). */
 	public static final String modelSuffix = "BatchGenerated";
 	
@@ -240,6 +243,8 @@ public class MasonModelGenerator {
 				generateModelMember(model);
 			//}
 			
+			generateStopFlagDeclaration(model);
+				
 			generateAitiaGeneratedVariablesMapDeclaration(model);
 				
 			recorderFields = createRecorderFields(model);
@@ -364,6 +369,13 @@ public class MasonModelGenerator {
 		final CtMethod getModelMethod = CtNewMethod.make(src,model);
 		model.addMethod(getModelMethod);
 		source.append(src + "\n");
+	}
+
+	private void generateStopFlagDeclaration(final CtClass model) throws CannotCompileException {
+		String src = "boolean " + STOP_FLAG + " = false; \n";
+		CtField modelField = CtField.make(src,model);
+		model.addField(modelField);
+		source.append(src);
 	}
 
 	private CtMethod createEmptySimulationStopMethod(CtClass model) throws CannotCompileException {
@@ -599,9 +611,10 @@ public class MasonModelGenerator {
 	private CtMethod createIsStopMethod(final CtClass model) throws CannotCompileException {
 		final StringBuilder sb = new StringBuilder("public boolean " + memberPrefix + "_isStop() {\n");
 		if (!stopAfterFixInterval)
-			sb.append("return ((boolean) (" + stopData + "));\n");
+			sb.append("return ((boolean) (" + stopData + "))\n");
 		else
-			sb.append("return getCurrentTime() >= ").append(getFixValue()).append(";\n"); 
+			sb.append("return getCurrentTime() >= ").append(getFixValue()).append("\n");
+		sb.append(" || " + STOP_FLAG + ";");
 		sb.append("}\n");
 		final CtMethod stopIsMethod = CtNewMethod.make(sb.toString(),model);
 		source.append(sb.toString() + "\n");
@@ -703,6 +716,7 @@ public class MasonModelGenerator {
 //		sb.append("		}\n");
 //		sb.append("		stepEnded();");
 		sb.append("	}\n");
+		sb.append("Thread.currentThread().setName(\"finished simulation: \" + " + Util.GENERATED_MODEL_MODEL_FIELD_NAME + ".getClass().getName());\n");
 		sb.append("	" + Util.GENERATED_MODEL_MODEL_FIELD_NAME + ".finish();\n");
 		sb.append("return;\n");
 		sb.append("}\n");
@@ -893,7 +907,7 @@ public class MasonModelGenerator {
 	//----------------------------------------------------------------------------------------------------
 	private CtMethod overrideStepEndedMethod(final CtClass model) throws CannotCompileException {
 		final StringBuilder b = new StringBuilder("public void stepEnded() {\n");
-		b.append("boolean finish = ").append(memberPrefix).append("_isStop();\n");
+//		b.append("boolean finish = ").append(memberPrefix).append("_isStop();\n");
 		b.append(scheduleAssistantMethods());
 		for (final RecorderInfo rec : recorders) 
 			generateRecordingCode(rec,b,model);
@@ -902,9 +916,10 @@ public class MasonModelGenerator {
 		b.append("for (int i = 0;i < ").append(listenersField.getName()).append(".size();++i) {\n");
 		b.append("((IBatchListener)").append(listenersField.getName()).append(".get(i)).timeProgressed(event);\n");
 		b.append("}\n");
-		b.append("if (finish) {\n");
-		b.append("simulationStop();\n");
-		b.append("}\n}\n");
+//		b.append("if (finish) {\n");
+//		b.append("simulationStop();\n");
+//		b.append("}\n}\n");
+		b.append("}\n");
 		final CtMethod stepMethod = CtNewMethod.make(b.toString(),model);
 		source.append(b.toString() + "\n");
 		return stepMethod;
@@ -980,12 +995,13 @@ public class MasonModelGenerator {
 	//----------------------------------------------------------------------------------------------------
 	private CtMethod generateOwnSimulationStopMethod(final CtClass model) throws CannotCompileException {
 		final StringBuilder b = new StringBuilder("public void memeSimulationStop() {\n");
-		for (final RecorderInfo rec : recorders)
-			generateRecordingCodeAtTheEnd(rec,b,model);
-		b.append("    	Steppable killer = new MasonKiller();\n");
-//		//Integer.MAX_VALUE: to schedule kill() as the (hopefully) last action in the next step
-		b.append("		" + Util.GENERATED_MODEL_MODEL_FIELD_NAME + ".schedule.scheduleOnce(killer, Integer.MAX_VALUE);\n");
-		b.append("\n");
+//		for (final RecorderInfo rec : recorders)
+//			generateRecordingCodeAtTheEnd(rec,b,model);
+//		b.append("    	Steppable killer = new MasonKiller();\n");
+////		//Integer.MAX_VALUE: to schedule kill() as the (hopefully) last action in the next step
+//		b.append("		" + Util.GENERATED_MODEL_MODEL_FIELD_NAME + ".schedule.scheduleOnce(killer, Integer.MAX_VALUE);\n");
+//		b.append("\n");
+		b.append(STOP_FLAG + " = true;\n");
 		b.append("}\n");
 		final CtMethod simulationStopMethod = CtNewMethod.make(b.toString(),model);
 		source.append(b.toString() + "\n");

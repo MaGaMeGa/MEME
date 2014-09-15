@@ -124,7 +124,7 @@ public class Descriptive {
 	public static double standardDeviation(final DoubleArrayList data) {
 		final double sum = cern.jet.stat.Descriptive.sum(data);
 		final double sumOfSquares = cern.jet.stat.Descriptive.sumOfSquares(data);
-		final double variance = cern.jet.stat.Descriptive.variance(data.size(),sum,sumOfSquares);
+		final double variance = cern.jet.stat.Descriptive.sampleVariance(data.size(),sum,sumOfSquares);
 		return cern.jet.stat.Descriptive.standardDeviation(variance);
 	}
 	
