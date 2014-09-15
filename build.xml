@@ -288,7 +288,7 @@
 	<!-- ================================= 
           target: mason-recording-jar              
          ================================= -->
-	<target name="mason-recording-jar" depends="" description="creates a small jar to be included in Mason projects">
+	<target name="mason-recording-jar" depends="makeplugins" description="creates a small jar to be included in Mason projects">
 		<property name="paramsweepdir" value="ai/aitia/meme/paramsweep"/>
 		<delete file="${output}/mason-recording.jar" />
 		<jar destfile="${output}/mason-recording.jar" duplicate="preserve">

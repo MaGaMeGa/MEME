@@ -838,6 +838,7 @@ public class RecordingHelper {
 					closeRecorder();
 				}
 			});
+			shutdownThread.setName("Shutdown hook to close the recorder of " + model.getClass().getName());
 			Runtime.getRuntime().addShutdownHook(shutdownThread);
 			
 		} catch (NotFoundException e) {
