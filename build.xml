@@ -5,7 +5,7 @@
 	<tstamp />
 
 	<!-- set global properties for this build -->
-	<property name="bin" value="bin" />
+	<property name="bin" value="classes" />
 	<property name="settings" value="wizardsettings" />
 	<property name="src" value="src"/>
 	<property name="plugins" value="Plugins" />
@@ -167,8 +167,7 @@
 </target> -->
 
 <target name="compile" depends="clean">
-	<delete dir="${bin}"/>
-	<mkdir dir="${bin}" />
+	<mkdir dir="${bin}"/>
 	<javac destdir="${bin}" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" includeantruntime="false" source="1.6" target="1.6" encoding="utf-8">
 		<compilerclasspath>
 			<pathelement location="${libs}/ecj.jar"/>
