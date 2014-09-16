@@ -8,7 +8,8 @@
          index="true"
     >
       <fileset dir="${basedir}" defaultexcludes="yes"
-         excludes="**/*.java* .**/ .* **/*.bak **/*.jar **/*.zip **/inf.___ **/*.bat build.xml" />
+         excludes="**/*.java* .**/ .* **/*.bak **/*.jar **/*.zip **/inf.___ **/*.bat build.xml bin/" />
+		<fileset dir="${basedir}/bin" />
       <zipgroupfileset dir="${basedir}" includes="**/*.jar" />
 <!--
       <indexjars>
