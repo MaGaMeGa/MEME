@@ -7,7 +7,7 @@
        with a different ${basedir} but the same ${output}
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 	<property name="root" location=".."/>
-	<property name="bin" location="${root}/bin"/>
+	<property name="bin" location="${root}/classes"/>
 	<property name="libs" location="${root}/lib"/>
 	<property name="plugins" location="${root}/Plugins"/>
 	 
@@ -25,7 +25,7 @@
 	</path>
 	
 	 
-<target name="buildPlugins" depends="compile, compile-nlogo">
+<target name="buildPlugins">
     <property name="output" location="." />
     <property name="plspecbfname" value="build.xml" />
     <subant genericantfile="${ant.file}" target="buildOnePlugin" inheritall="true">
@@ -53,6 +53,22 @@
                                      else="generic-build" >
       <available file="${plspecbfname}" type="file" />
     </condition>
+	
+	<condition property="cpToUse" else="javac-classpath" value="javac-classpath-nlogo" >
+      <equals arg1="${pluginName}" arg2="NetLogoPlugin-4.1"/>
+    </condition>
+	
+	<mkdir dir="bin"/>
+	
+	<javac compiler="org.eclipse.jdt.core.JDTCompilerAdapter" srcdir="." 
+		destdir="bin" includeantruntime="false" source="1.7" target="1.7" encoding="utf-8">
+		<compilerclasspath>
+			<pathelement location="${libs}/ecj.jar"/>
+		</compilerclasspath>
+		<compilerarg value="-time" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" /> 
+		<classpath refid="${cpToUse}"/>
+	</javac>
+	
     <antcall target="${taskToCall}" />
   </target>
 
@@ -77,8 +93,9 @@
          index="true"
     >
       <fileset dir="${basedir}" defaultexcludes="yes"
-         excludes="**/*.java* .**/ .* **/*.bak **/*.jar **/*.zip **/inf.___ **/*.bat build.xml" />
+         excludes="**/*.java* .**/ .* **/*.bak **/*.jar **/*.zip **/inf.___ **/*.bat build.xml bin/" />
     	<fileset dir="${bin}" includes="ai/aitia/meme/Logger*.class"/>
+		<fileset dir="${basedir}/bin" />
       <zipgroupfileset dir="${basedir}" includes="**/*.jar" />
 <!--
       <indexjars>
@@ -87,35 +104,64 @@
 -->
     </jar>
 </target>
-	<target name="compile">
-	<javac compiler="org.eclipse.jdt.core.JDTCompilerAdapter" includeantruntime="false" source="1.7" target="1.7" encoding="utf-8">
-	<compilerclasspath>
-		<pathelement location="${libs}/ecj.jar"/>
-	</compilerclasspath>
-		<src>
-			<pathelement location="SimphonyPlugin-2" />
-			<pathelement location="SimphonyPlugin-1.1" />
-			<pathelement location="NetLogoPlugin-5.0.3" />
-			<pathelement location="MasonPlugin-16" />
-			<pathelement location="CustomJavaPlugin" />
-		</src>
-	<compilerarg value="-time" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" /> 
-	<classpath refid="javac-classpath"/>
-	</javac>
-</target>
 
-<target name="compile-nlogo">
-	<javac compiler="org.eclipse.jdt.core.JDTCompilerAdapter" includeantruntime="false" source="1.7" target="1.7" encoding="utf-8">
-	<compilerclasspath>
-		<pathelement location="${libs}/ecj.jar"/>
-	</compilerclasspath>
-		<src>
-			<pathelement location="NetLogoPlugin-4.1" />
-		</src>
-	<compilerarg value="-time" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" /> 
-	<classpath refid="javac-classpath-nlogo"/>
+<!-- 
+<target name="compile">
+	<javac compiler="org.eclipse.jdt.core.JDTCompilerAdapter" srcdir="SimphonyPlugin-2" 
+		destdir="SimphonyPlugin-2/bin" includeantruntime="false" source="1.7" target="1.7" encoding="utf-8">
+		<compilerclasspath>
+			<pathelement location="${libs}/ecj.jar"/>
+		</compilerclasspath>
+		<compilerarg value="-time" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" /> 
+		<classpath refid="javac-classpath"/>
+	</javac>
+	
+	<javac compiler="org.eclipse.jdt.core.JDTCompilerAdapter" srcdir="SimphonyPlugin-1.1" 
+		destdir="SimphonyPlugin-1.1/bin" includeantruntime="false" source="1.7" target="1.7" encoding="utf-8">
+		<compilerclasspath>
+			<pathelement location="${libs}/ecj.jar"/>
+		</compilerclasspath>
+		<compilerarg value="-time" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" /> 
+		<classpath refid="javac-classpath"/>
+	</javac>
+	
+	<javac compiler="org.eclipse.jdt.core.JDTCompilerAdapter" srcdir="NetLogoPlugin-5.0.3" 
+		destdir="NetLogoPlugin-5.0.3/bin" includeantruntime="false" source="1.7" target="1.7" encoding="utf-8">
+		<compilerclasspath>
+			<pathelement location="${libs}/ecj.jar"/>
+		</compilerclasspath>
+		<compilerarg value="-time" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" /> 
+		<classpath refid="javac-classpath"/>
+	</javac>
+	
+	<javac compiler="org.eclipse.jdt.core.JDTCompilerAdapter" srcdir="MasonPlugin-16" 
+		destdir="MasonPlugin-16/bin" includeantruntime="false" source="1.7" target="1.7" encoding="utf-8">
+		<compilerclasspath>
+			<pathelement location="${libs}/ecj.jar"/>
+		</compilerclasspath>
+		<compilerarg value="-time" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" /> 
+		<classpath refid="javac-classpath"/>
+	</javac>
+	
+	<javac compiler="org.eclipse.jdt.core.JDTCompilerAdapter" srcdir="CustomJavaPlugin" 
+		destdir="CustomJavaPlugin/bin" includeantruntime="false" source="1.7" target="1.7" encoding="utf-8">
+		<compilerclasspath>
+			<pathelement location="${libs}/ecj.jar"/>
+		</compilerclasspath>
+		<compilerarg value="-time" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" /> 
+		<classpath refid="javac-classpath"/>
+	</javac>
+		
+	<javac compiler="org.eclipse.jdt.core.JDTCompilerAdapter" srcdir="NetLogoPlugin-4.1" 
+		destdir="NetLogoPlugin-4.1/bin" includeantruntime="false" source="1.7" target="1.7" encoding="utf-8">
+		<compilerclasspath>
+			<pathelement location="${libs}/ecj.jar"/>
+		</compilerclasspath>
+		<compilerarg value="-time" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" /> 
+		<classpath refid="javac-classpath-nlogo"/>
 	</javac>
 </target>
+ -->
 
 <target name="compile-mason">
 	<javac includeantruntime="false" source="1.7" target="1.7" encoding="utf-8">

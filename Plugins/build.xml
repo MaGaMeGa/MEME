@@ -8,7 +8,7 @@
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 	 
 	<property name="root" location=".."/>
-	<property name="bin" location="${root}/bin"/>
+	<property name="bin" location="${root}/classes"/>
 	<property name="libs" location="${root}/lib"/>
 	
 	<path id="javac-classpath">
@@ -17,7 +17,7 @@
 		<fileset dir="${libs}" includes="**/*.jar" excludes="javassist.jar mason.16.jar MasonPlugin-16.jar"/>
 	</path>
 	
-  <target name="buildPlugins" depends="compile">
+  <target name="buildPlugins">
     <property name="output" location="." />
     <property name="plspecbfname" value="build.xml" />
     <subant genericantfile="${ant.file}" target="buildOnePlugin" inheritall="true">
@@ -28,7 +28,7 @@
     </delete>
   </target>
   
-	<target name="compile">
+<!-- 	<target name="compile">
 	<javac compiler="org.eclipse.jdt.core.JDTCompilerAdapter" includeantruntime="false" source="1.7" target="1.7" encoding="utf-8">
 	<compilerclasspath>
 		<pathelement location="${libs}/ecj.jar"/>
@@ -51,7 +51,7 @@
 	<compilerarg value="-time" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" /> 
 	<classpath refid="javac-classpath"/>
 	</javac>
-</target>
+</target> -->
 
 
   <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -65,6 +65,18 @@
                                      else="generic-build" >
       <available file="${plspecbfname}" type="file" />
     </condition>
+	
+	<mkdir dir="bin"/>
+	
+	<javac compiler="org.eclipse.jdt.core.JDTCompilerAdapter" srcdir="." 
+		destdir="bin" includeantruntime="false" source="1.7" target="1.7" encoding="utf-8">
+		<compilerclasspath>
+			<pathelement location="${libs}/ecj.jar"/>
+		</compilerclasspath>
+		<compilerarg value="-time" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" /> 
+		<classpath refid="javac-classpath"/>
+	</javac>
+	
     <antcall target="${taskToCall}" />
   </target>
 
@@ -89,7 +101,8 @@
          index="true"
     >
       <fileset dir="${basedir}" defaultexcludes="yes"
-         excludes="**/*.java* .**/ .* **/*.bak **/*.jar **/*.zip **/inf.___ **/*.bat build.xml" />
+         excludes="**/*.java* .**/ .* **/*.bak **/*.jar **/*.zip **/inf.___ **/*.bat build.xml bin/" />
+		 <fileset dir="${basedir}/bin" />
       <zipgroupfileset dir="${basedir}" includes="**/*.jar" />
 <!--
       <indexjars>
