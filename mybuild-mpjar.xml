@@ -2,7 +2,7 @@
 	
 	<property name="dist.home"  value="${basedir}"  />
 	<property name="src.home"   value="${basedir}/src"   />
-	<property name="build.home" value="${basedir}/bin" />
+	<property name="build.home" value="${basedir}/classes" />
 	
 	<path id="compile.classpath">
 		<fileset dir="lib">

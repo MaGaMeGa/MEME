@@ -68,7 +68,7 @@
 	
 	<mkdir dir="bin"/>
 	
-	<javac compiler="org.eclipse.jdt.core.JDTCompilerAdapter" srcdir="." 
+	<javac compiler="org.eclipse.jdt.core.JDTCompilerAdapter" srcdir="." debug="true" debuglevel="lines, vars, and source"
 		destdir="bin" includeantruntime="false" source="1.7" target="1.7" encoding="utf-8">
 		<compilerclasspath>
 			<pathelement location="${libs}/ecj.jar"/>
