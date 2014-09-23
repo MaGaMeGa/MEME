@@ -1,3 +1,10 @@
 /bin
+/PlatformPlugins/**/bin
+/Plugins/**/bin
 /classes
-/**/*.class
+*.class
+/tmp
+
+# ignore generated jars
+*.jar
+!**/lib/*.jar

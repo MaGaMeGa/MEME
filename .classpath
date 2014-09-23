@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" output="Plugins/IntelliResultProcessPlugin" path="Plugins/IntelliResultProcessPlugin"/>
-	<classpathentry kind="src" output="Plugins/TestImportPlugin" path="Plugins/TestImportPlugin"/>
-	<classpathentry kind="src" output="Plugins/TestExportPlugin" path="Plugins/TestExportPlugin"/>
-	<classpathentry kind="src" output="PlatformPlugins/CustomJavaPlugin" path="PlatformPlugins/CustomJavaPlugin"/>
-	<classpathentry kind="src" output="Plugins/BeanShell" path="Plugins/BeanShell"/>
-	<classpathentry kind="src" output="Plugins/coltPlugin" path="Plugins/coltPlugin"/>
-	<classpathentry kind="src" output="Plugins/CSVExportPlugin" path="Plugins/CSVExportPlugin"/>
-	<classpathentry kind="src" output="Plugins/CSVImportPlugin" path="Plugins/CSVImportPlugin"/>
-	<classpathentry kind="src" output="Plugins/intellisweepPlugin" path="Plugins/intellisweepPlugin"/>
-	<classpathentry kind="src" output="Plugins/mathPlugin" path="Plugins/mathPlugin"/>
-	<classpathentry kind="src" output="Plugins/NetLogoImportPlugin" path="Plugins/NetLogoImportPlugin"/>
-	<classpathentry kind="src" output="Plugins/operatorPlugin" path="Plugins/operatorPlugin"/>
-	<classpathentry kind="src" output="Plugins/RepastImportPlugin" path="Plugins/RepastImportPlugin"/>
-	<classpathentry kind="src" output="Plugins/VCPlugins" path="Plugins/VCPlugins"/>
+	<classpathentry excluding="bin/" kind="src" output="Plugins/IntelliResultProcessPlugin" path="Plugins/IntelliResultProcessPlugin"/>
+	<classpathentry excluding="bin/" kind="src" output="Plugins/TestImportPlugin" path="Plugins/TestImportPlugin"/>
+	<classpathentry excluding="bin/" kind="src" output="Plugins/TestExportPlugin" path="Plugins/TestExportPlugin"/>
+	<classpathentry excluding="bin/" kind="src" output="PlatformPlugins/CustomJavaPlugin" path="PlatformPlugins/CustomJavaPlugin"/>
+	<classpathentry excluding="bin/" kind="src" output="Plugins/BeanShell" path="Plugins/BeanShell"/>
+	<classpathentry excluding="bin/" kind="src" output="Plugins/coltPlugin" path="Plugins/coltPlugin"/>
+	<classpathentry excluding="bin/" kind="src" output="Plugins/CSVExportPlugin" path="Plugins/CSVExportPlugin"/>
+	<classpathentry excluding="bin/" kind="src" output="Plugins/CSVImportPlugin" path="Plugins/CSVImportPlugin"/>
+	<classpathentry excluding="bin/" kind="src" output="Plugins/intellisweepPlugin" path="Plugins/intellisweepPlugin"/>
+	<classpathentry excluding="bin/" kind="src" output="Plugins/mathPlugin" path="Plugins/mathPlugin"/>
+	<classpathentry excluding="bin/" kind="src" output="Plugins/NetLogoImportPlugin" path="Plugins/NetLogoImportPlugin"/>
+	<classpathentry excluding="bin/" kind="src" output="Plugins/operatorPlugin" path="Plugins/operatorPlugin"/>
+	<classpathentry excluding="bin/" kind="src" output="Plugins/RepastImportPlugin" path="Plugins/RepastImportPlugin"/>
+	<classpathentry excluding="bin/" kind="src" output="Plugins/VCPlugins" path="Plugins/VCPlugins"/>
 	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="lib" path="lib/colt.jar"/>
 	<classpathentry kind="lib" path="lib/dps_common.jar"/>
