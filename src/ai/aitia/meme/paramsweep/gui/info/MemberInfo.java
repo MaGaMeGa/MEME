@@ -17,10 +17,13 @@
 package ai.aitia.meme.paramsweep.gui.info;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 import _.unknown;
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.paramsweep.utils.Util;
 
 /** This class represents the relevant members (variables and methods too) of the model. */
@@ -154,7 +157,58 @@ public class MemberInfo extends NodeInfo {
 		}
 		return null;
 	}
-	
+
+	//-------------------------------------------------------------------------------
+	/** Returns <code>value</code> string as a value with type <code>type</code>. If
+	 *  <code>value</code> is not interpretable as a <code>type</code> value, it returns
+	 *  null. If <code>type</code> is a primitive type the the method uses its wrapper
+	 *  type instead.
+	 */
+	public static Object getValue(String value, Class<?> type) {
+		if (Byte.TYPE.equals(type) || Byte.class.equals(type))
+			return getByteValue(value.trim());
+		if (Short.TYPE.equals(type) || Short.class.equals(type))
+			return getShortValue(value.trim());
+		if (Integer.TYPE.equals(type) || Integer.class.equals(type))
+			return getIntegerValue(value.trim());
+		if (Long.TYPE.equals(type) || Long.class.equals(type))
+			return getLongValue(value.trim());
+		if (Float.TYPE.equals(type) || Float.class.equals(type))
+			return getFloatValue(value.trim());
+		if (Double.TYPE.equals(type) || Double.class.equals(type))
+			return getDoubleValue(value.trim());
+		if (Boolean.TYPE.equals(type) || Boolean.class.equals(type))
+			return new Boolean(value.trim());
+		if (String.class.isAssignableFrom(type))
+			return getStringValue(value.trim());
+		if (File.class.isAssignableFrom(type)) {
+			return new File(value.trim());
+		}
+		if (type.isEnum()){
+			try {
+				Object[] candidates = type.getEnumConstants();
+				for (Object candidate : candidates) {
+					Method nameMethod = type.getMethod("name");
+					if (nameMethod.invoke(candidate).equals(value)) {
+						return candidate;
+					}
+				}
+			} catch (NoSuchMethodException e){
+				Logger.logException("Could not infer the value (" + value + ") of enum type (" + type + ")", e, true);
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}
+
 	//===============================================================================
 	// private methods
 	
