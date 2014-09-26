@@ -49,6 +49,17 @@ public class IntelliSweepRepastResultParser implements IParameterSweepResultRead
 		file = recorders.get(0).getOutputFile();
 		delimiter = recorders.get(0).getDelimiter();
 	}
+
+	
+	/**
+	 * @param file
+	 * @param delimiter
+	 */
+	public IntelliSweepRepastResultParser(File file, String delimiter) {
+		super();
+		this.file = file;
+		this.delimiter = delimiter;
+	}
 	
 	//=========================================================================
 	// Public methods

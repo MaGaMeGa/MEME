@@ -716,6 +716,10 @@ public class MasonModelGenerator {
 //		sb.append("		}\n");
 //		sb.append("		stepEnded();");
 		sb.append("	}\n");
+
+		for (final RecorderInfo rec : recorders)
+		generateRecordingCodeAtTheEnd(rec,sb,model);
+
 		sb.append("Thread.currentThread().setName(\"finished simulation: \" + " + Util.GENERATED_MODEL_MODEL_FIELD_NAME + ".getClass().getName());\n");
 		sb.append("	" + Util.GENERATED_MODEL_MODEL_FIELD_NAME + ".finish();\n");
 		sb.append("return;\n");
@@ -1480,6 +1484,7 @@ public class MasonModelGenerator {
 		final String fieldStr = "private java.util.HashMap " + PlatformConstants.AITIA_GENERATED_VARIABLES + " = null;\n";
 		final CtField field = CtField.make(fieldStr,model);
 		model.addField(field);
+		source.append(fieldStr);
 	}
 	
 	//----------------------------------------------------------------------------------------------------
