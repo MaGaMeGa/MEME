@@ -395,6 +395,13 @@ public class RepastScriptSupport implements IScriptSupport {
 						}
 						script.appendChild(assistantMethodsElement);
 					}
+					if (ogmi instanceof MultiColumnOperatorGeneratedMemberInfo) {
+						MultiColumnOperatorGeneratedMemberInfo mcogmi = (MultiColumnOperatorGeneratedMemberInfo) ogmi;
+						Element lengthElement = document.createElement(WizardSettingsManager.MULTICOLUMN_LENGTH);
+						lengthElement.appendChild(document.createTextNode(mcogmi.getNumberOfColumns()));
+						script.appendChild(lengthElement);
+					}
+					
 				} else {
 					ScriptGeneratedMemberInfo sgmi = (ScriptGeneratedMemberInfo) gmi;
 					script.setAttribute(WizardSettingsManager.TYPE,SCRIPT_TYPE);

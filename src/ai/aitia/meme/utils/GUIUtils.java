@@ -559,7 +559,7 @@ public class GUIUtils {
 							Integer.TYPE);
 					m_pumpOneEvent.setAccessible(true);
 					
-					if (m_pumpOneEvent.getReturnType().equals(Void.TYPE)){
+					if (!m_pumpOneEvent.getReturnType().equals(Boolean.TYPE)){
 						m_pumpOneEvent = null;
 						continue;
 					}
@@ -578,7 +578,7 @@ public class GUIUtils {
 							Integer.TYPE);
 					m_pumpOneEvent.setAccessible(true);
 					
-					if (m_pumpOneEvent.getReturnType().equals(Void.TYPE)){
+					if (!m_pumpOneEvent.getReturnType().equals(Void.TYPE)){
 						m_pumpOneEvent = null;
 						continue;
 					}

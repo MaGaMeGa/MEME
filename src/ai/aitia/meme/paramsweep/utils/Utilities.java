@@ -518,7 +518,7 @@ public class Utilities {
 			throw new IllegalStateException();
 		}
 	}
-
+	
 	//------------------------------------------------------------------------------------
 	/** Decodes <code>encoded_password</code> and returns the decoded version.
 	 * @throws Exception if any problem occurs

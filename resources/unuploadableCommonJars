@@ -58,4 +58,13 @@ org.eclipse.emf.ecore_2.4.1.v200808251517.jar
 repast.simphony.bin_and_src.jar
 saf.core.runtime.jar
 
-// TODO: további jarok a többi platformhoz
+// mason-related jars
+mason-all-16.0.0-RELEASE.jar
+mason.16.jar
+mason-recording.jar
+meme-result-data.jar
+meme-wizard.jar
+MasonPlugin-16.jar
+MEME-FormsUtils.jar
+
+// TODO: tovÃ¡bbi jarok a tÃ¶bbi platformhoz

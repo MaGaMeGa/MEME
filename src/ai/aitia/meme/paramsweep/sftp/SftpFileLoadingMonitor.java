@@ -181,7 +181,7 @@ public class SftpFileLoadingMonitor extends JDialog implements SftpProgressMonit
 					case 6 :
 						mPumpOneEvent = dispatchThread.getClass().getDeclaredMethod("pumpOneEventForFilters",Integer.TYPE);
 						mPumpOneEvent.setAccessible(true);
-						if (mPumpOneEvent.getReturnType().equals(Void.TYPE)){
+						if (!mPumpOneEvent.getReturnType().equals(Boolean.TYPE)){
 							mPumpOneEvent = null;
 							continue;
 						}
@@ -199,7 +199,7 @@ public class SftpFileLoadingMonitor extends JDialog implements SftpProgressMonit
 								Integer.TYPE);
 						mPumpOneEvent.setAccessible(true);
 						
-						if (mPumpOneEvent.getReturnType().equals(Void.TYPE)){
+						if (!mPumpOneEvent.getReturnType().equals(Void.TYPE)){
 							mPumpOneEvent = null;
 							continue;
 						}

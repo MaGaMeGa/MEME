@@ -773,8 +773,12 @@ public class InfoConverter {
 			MemberInfo mi = null;
 			if (scriptSupport != null)
 				mi = scriptSupport.getDefinedScript(memberName);
+			else if ( memberName.endsWith("Multi()") )
+				mi = new MultiColumnOperatorGeneratedMemberInfo(memberName,javaTypeStr,javaType,"");
+			
 			if (mi == null)
 				mi = new MemberInfo(memberName,memberType,javaType);
+			
 			if (!mi.isNumeric() && !mi.isBoolean() && !mi.getType().equals("String") && !(mi instanceof MultiColumnOperatorGeneratedMemberInfo))
 				throw new WizardLoadingException(true,"invalid 'type' attribute at node: " + WizardSettingsManager.MEMBER);
 			String aliasName = memberElement.getAttribute(WizardSettingsManager.ALIAS);
