@@ -26,7 +26,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,6 +46,8 @@ public class ResultFileMerger {
 	private static final Logger logger =  Logger.getLogger(ResultFileMerger.class.getName());
 	private String delimiter = null;
 	private long previousRun = 0;
+	
+	private Map<String,File> header2file = new HashMap<String,File>(); 
 	
 	/**
 	 * For each output files in recorders searches in the working dir for 
@@ -75,6 +80,29 @@ public class ResultFileMerger {
 		return success;
 	}
 	
+//	//----------------------------------------------------------------------------------------------------
+//	public List<File> merge(final List<RecorderInfo> recorders, final List<String> suffixes, final File workingDir) {
+//		final List<File> result = new ArrayList<File>();
+//		File f;
+//		for (final RecorderInfo ri : recorders) { // each output file
+//			delimiter = ri.getDelimiter();
+//			f = ri.getOutputFile();
+//			final List<File> files = new ArrayList<File>();
+//			for (final String suffix : suffixes)
+//				files.add(new File(workingDir,f.getName() + suffix));
+//			try {
+//				previousRun = 0;
+//				File merged = new File(workingDir,f.getName());
+//				merge(files.toArray(new File[files.size()]),merged,false);
+//				result.add(merged);
+//			} catch (final PsSystemException e) {
+//				// report error, but proceed
+//				logger.log(Level.SEVERE,"Result file merging failed", e);
+//			}
+//		}
+//		return result;
+//	}
+	
 	//----------------------------------------------------------------------------------------------------
 	public List<File> merge(final List<RecorderInfo> recorders, final List<String> suffixes, final File workingDir) {
 		final List<File> result = new ArrayList<File>();
@@ -87,15 +115,68 @@ public class ResultFileMerger {
 				files.add(new File(workingDir,f.getName() + suffix));
 			try {
 				previousRun = 0;
-				File merged = new File(workingDir,f.getName());
-				merge(files.toArray(new File[files.size()]),merged,false);
-				result.add(merged);
+				result.addAll(mergeMulti(files.toArray(new File[files.size()]),workingDir,f.getName()));
 			} catch (final PsSystemException e) {
 				// report error, but proceed
 				logger.log(Level.SEVERE,"Result file merging failed", e);
 			}
 		}
 		return result;
+	}
+	
+	private List<File> mergeMulti(File[] parts, File workingDir, String prefix) throws PsSystemException {
+		if (parts == null || parts.length == 0) 
+			throw new PsSystemException("No parts for recorder " + prefix + " found");
+		
+		try {
+			BufferedReader br;
+			BufferedWriter bw = null;
+			List<File> result = new ArrayList<File>();
+			for (int i = 0;i < parts.length;i++) {
+				br = new BufferedReader(new FileReader(parts[i]));
+				String[] headers = readHeader(br);
+				
+				File resultFile = header2file.get(prefix + "__" + headers[0]);
+				if (resultFile == null)
+				{
+					resultFile = new File(workingDir,prefix + ".result_0");
+					int resultCounter = 0;
+					while (resultFile.exists()) 
+						resultFile = new File(workingDir,prefix + ".result_" + ++resultCounter);
+					
+					header2file.put(prefix + "__" + headers[0],resultFile);
+					
+					resultFile.createNewFile();
+					bw = new BufferedWriter(new FileWriter(resultFile));
+					bw.write(headers[1]);
+				} else {
+					bw = new BufferedWriter(new FileWriter(resultFile,true));
+				}
+				
+				writeBody(br,bw,false);
+				bw.close();
+				
+				if (i == parts.length - 1) { //last file
+					String footer = getFooter(br);
+					for (Entry<String,File> entry : header2file.entrySet()) {
+						if (entry.getKey().startsWith(prefix + "__")) {
+							result.add(entry.getValue());
+							bw = new BufferedWriter(new FileWriter(entry.getValue(),true));
+							bw.newLine();
+							bw.newLine();
+							bw.write(footer);
+							bw.close();
+						}
+					}
+					
+				}
+				br.close();
+			}
+			
+			return result;
+		} catch (IOException e) {
+			throw new PsSystemException(e);
+		}
 	}
 	
 	/**
@@ -127,7 +208,7 @@ public class ResultFileMerger {
 			
 			for (int i = 0;i < parts.length;i++) {
 				br = new BufferedReader(new FileReader(parts[i]));
-				writeBody(br,bw);
+				writeBody(br,bw,true);
 				if (i == parts.length - 1) 	// last file
 					writeFooter(br,bw);
 				br.close();
@@ -148,16 +229,32 @@ public class ResultFileMerger {
 		dst.newLine();
 	}
 	
+	private String[] readHeader(BufferedReader src) throws IOException {
+		String fullHeader = "";
+		String headerLine = null;;
+		
+		String line;
+		while (!(line = src.readLine()).startsWith("\"run")) {
+			fullHeader += line + "\n";
+		}
+		fullHeader += line + "\n";
+		headerLine = line;
+		
+		return new String[] { headerLine, fullHeader };
+	}
+	
 	/**
-	 * Skips header, then writes out body.
+	 * Skips header (if need to), then writes out body.
 	 * @param src
 	 * @param dst
-	 * @param index
+	 * @param skipHeader
 	 * @throws IOException
 	 */
-	private void writeBody(BufferedReader src, BufferedWriter dst)  throws IOException, PsSystemException {
+	private void writeBody(BufferedReader src, BufferedWriter dst, boolean skipHeader)  throws IOException, PsSystemException {
 		String line;
-		while (!(line = src.readLine()).startsWith("\"run")); // skip to body
+		if (skipHeader) {
+			while (!(line = src.readLine()).startsWith("\"run")); // skip to body
+		}
 		
 		long lastRun = 0;
 		while (!(line = src.readLine().trim()).equals("")) {
@@ -183,6 +280,15 @@ public class ResultFileMerger {
 		dst.newLine();
 		dst.newLine();
 		dst.write(prev);
+	}
+	
+	private String getFooter(BufferedReader src) throws IOException {
+		String line;
+		String prev = "";
+		while ((line = src.readLine()) != null) 
+			prev = line;
+		
+		return prev;
 	}
 	
 	//////////////////////////////////////////////
