@@ -560,14 +560,16 @@ public class ScriptCreationDialog extends JDialog implements ActionListener,
 				WARNING,true))
 				return;
 			// VI. body doesn't contain return statement 
-			String RETURN = PlatformSettings.getPlatformType() == PlatformType.NETLOGO ? "report" : "return"; 
+			String RETURN = PlatformSettings.getPlatformType() == PlatformType.NETLOGO || PlatformSettings.getPlatformType() == PlatformType.NETLOGO5
+					? "report" : "return"; 
 			if (warning(!II_bodyArea.getText().toLowerCase().contains(RETURN + " "),"Script body does not contain '" + RETURN + "' statement",WARNING,true))
 				return;
-			String _name = name + (PlatformSettings.getPlatformType() == PlatformType.NETLOGO ? "" : "()");
+			String _name = name + (PlatformSettings.getPlatformType() == PlatformType.NETLOGO || PlatformSettings.getPlatformType() == PlatformType.NETLOGO5
+					? "" : "()");
 			Class<?> returnType = ((ReturnTypeElement)II_returnType.getSelectedItem()).getJavaType();
 			ScriptGeneratedMemberInfo sgmi = new ScriptGeneratedMemberInfo(_name,returnType.getSimpleName(),returnType);
 			sgmi.setSource(II_bodyArea.getText());
-			if (PlatformSettings.getPlatformType() != PlatformType.NETLOGO) {
+			if (PlatformSettings.getPlatformType() != PlatformType.NETLOGO && PlatformSettings.getPlatformType() != PlatformType.NETLOGO5) {
 				SortedListModel model = (SortedListModel) II_importList.getModel();
 				for (int i = 0;i < model.size();++i)
 					sgmi.addImport(model.get(i).toString());
@@ -597,7 +599,7 @@ public class ScriptCreationDialog extends JDialog implements ActionListener,
 			}
 		
 		} else if (command.equals("START")) {
-			Fugg.f.javaFugg = PlatformSettings.getPlatformType() != PlatformType.NETLOGO;
+			Fugg.f.javaFugg = (PlatformSettings.getPlatformType() != PlatformType.NETLOGO && PlatformSettings.getPlatformType() != PlatformType.NETLOGO5 );
 			JDialogKeret jdk = new JDialogKeret(this);
 			String text = jdk.getSource();
 			if (!"".equals(text))
@@ -609,7 +611,7 @@ public class ScriptCreationDialog extends JDialog implements ActionListener,
 			II_bodyArea.insert(varName,idx);
 		} else if ("ADD_VARIABLE".equals(command)) {
 			final List<String> imports = new ArrayList<String>();
-			if (PlatformSettings.getPlatformType() != PlatformType.NETLOGO) {
+			if (PlatformSettings.getPlatformType() != PlatformType.NETLOGO && PlatformSettings.getPlatformType() != PlatformType.NETLOGO5) {
 				SortedListModel model = (SortedListModel) II_importList.getModel();
 				for (int i = 0;i < model.size();++i)
 					imports.add(model.get(i).toString());
@@ -623,7 +625,7 @@ public class ScriptCreationDialog extends JDialog implements ActionListener,
 			final boolean referenced = getReferencedForVariable(edited).size() > 0;
 			removeVariable(edited);
 			final List<String> imports = new ArrayList<String>();
-			if (PlatformSettings.getPlatformType() != PlatformType.NETLOGO) {
+			if (PlatformSettings.getPlatformType() != PlatformType.NETLOGO && PlatformSettings.getPlatformType() != PlatformType.NETLOGO5) {
 				SortedListModel model = (SortedListModel) II_importList.getModel();
 				for (int i = 0;i < model.size();++i)
 					imports.add(model.get(i).toString());
@@ -1132,6 +1134,7 @@ public class ScriptCreationDialog extends JDialog implements ActionListener,
 	
 	//------------------------------------------------------------------------------------
 	/** Initializes the combobox that contains the possible return types. */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void initializeReturnType() {
 		DefaultComboBoxModel model = new DefaultComboBoxModel();
 		model.addElement(new ReturnTypeElement("boolean","false",Boolean.TYPE));
@@ -1564,7 +1567,7 @@ public class ScriptCreationDialog extends JDialog implements ActionListener,
 		@Override public Component getListCellRendererComponent(final JList list, final Object value, final int index, final boolean isSelected,
 																final boolean cellHasFocus) {
 			final JLabel label = (JLabel) super.getListCellRendererComponent(list,value,index,isSelected,cellHasFocus);
-			if (PlatformSettings.getPlatformType() == PlatformType.NETLOGO) {
+			if (PlatformSettings.getPlatformType() == PlatformType.NETLOGO || PlatformSettings.getPlatformType() == PlatformType.NETLOGO5) {
 				final UserDefinedVariable variable = (UserDefinedVariable) value;
 				label.setText(variable.getName() + " : " + getNetLogoTypeName(variable.getType()));
 			}

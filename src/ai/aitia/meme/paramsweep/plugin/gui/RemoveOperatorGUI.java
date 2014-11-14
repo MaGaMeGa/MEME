@@ -147,7 +147,7 @@ public class RemoveOperatorGUI extends JPanel implements IOperatorGUI,
 		result.add(selectedItem);
 		try {
 			Class<?> clazz = null;
-			if (PlatformSettings.getPlatformType() == PlatformType.NETLOGO) 
+			if (PlatformSettings.getPlatformType() == PlatformType.NETLOGO || PlatformSettings.getPlatformType() == PlatformType.NETLOGO5) 
 				clazz = selectedItem.getInnerType();
 			else
 				clazz = forName(innerTypeField.getText().trim());

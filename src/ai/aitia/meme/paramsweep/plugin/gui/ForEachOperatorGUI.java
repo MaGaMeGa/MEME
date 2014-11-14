@@ -138,7 +138,7 @@ public class ForEachOperatorGUI extends JPanel implements IOperatorGUI,
 		}
 		Class<?> clazz = null;
 		try {
-			if (PlatformSettings.getPlatformType() == PlatformType.NETLOGO)
+			if (PlatformSettings.getPlatformType() == PlatformType.NETLOGO || PlatformSettings.getPlatformType() == PlatformType.NETLOGO5)
 				clazz = selectedItem.getInnerType();
 			else 
 				clazz = forName(innerTypeField.getText().trim());

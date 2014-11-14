@@ -264,7 +264,7 @@ public class ElementSelectionOperatorGUI extends JPanel implements IOperatorGUI,
 		case LIST :
 		case COLLECTION : {
 			Class<?> clazz = (Class<?>) buildBlock.get(1);
-			if (PlatformSettings.getPlatformType() == PlatformType.NETLOGO) {
+			if (PlatformSettings.getPlatformType() == PlatformType.NETLOGO || PlatformSettings.getPlatformType() == PlatformType.NETLOGO5) {
 				selectFromNetLogoTypeBox(memberInfo.getJavaType(),clazz);
 				return;
 			} else if (buildBlock.size() == 2) {
@@ -347,7 +347,7 @@ public class ElementSelectionOperatorGUI extends JPanel implements IOperatorGUI,
 			typeLabel.setText("Value type: ");
 			indexLabel.setText("Key: ");
 		}
-		if (PlatformSettings.getPlatformType() == PlatformType.NETLOGO || PlatformSettings.getPlatformType() == PlatformType.NETLOGO) {
+		if (PlatformSettings.getPlatformType() == PlatformType.NETLOGO || PlatformSettings.getPlatformType() == PlatformType.NETLOGO5) {
 			typeLabel.setText("Type: ");
 			netLogoTypeBox.setActionCommand("NETLOGO_TYPE");
 			netLogoTypeBox.addActionListener(this);
