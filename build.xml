@@ -28,6 +28,7 @@
 	<property name="distplugins" value="${dist}/Plugins" />
 	<property name="distresources" value="${dist}/resources" />
 	<property name="distplatforms" value="${dist}/PlatformPlugins" />
+	<property name="distusertoolpackages" value="${dist}/UserToolPackages" />
 	<property name="diststatic" value="dist_static"/>
 
 	<property name="snapshotprefix" value="memesnapshot-"/>
@@ -136,6 +137,8 @@
 		<copy todir="${distlib}">
 			<fileset dir="${libs}" includes="j3d* j3d/**/* vecmath.jar trass.jar linux/** mason.16.jar aspectjweaver.jar mysql-connector-java-5.1.6-bin.jar" defaultexcludes="yes" />
 		</copy>
+		
+		<mkdir dir="${distusertoolpackages}" />
 
 		<copy file="usertools_empty.xml" todir="${dist}" />
 		<rename dest="${dist}/usertools.xml" src="${dist}/usertools_empty.xml"/>
