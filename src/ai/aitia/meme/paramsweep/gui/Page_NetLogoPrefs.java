@@ -20,6 +20,9 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Properties;
 
 import javax.swing.JButton;
@@ -28,6 +31,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.gui.Preferences;
 import ai.aitia.meme.gui.PreferencesPage;
 import ai.aitia.meme.gui.Preferences.Button;
@@ -39,6 +43,7 @@ import ai.aitia.meme.paramsweep.utils.Utilities;
 import ai.aitia.meme.utils.FormsUtils;
 import ai.aitia.meme.utils.GUIUtils;
 import ai.aitia.meme.utils.FormsUtils.Separator;
+import ai.aitia.meme.utils.Utils;
 
 public class Page_NetLogoPrefs extends PreferencesPage implements IReinitalizeable, ActionListener {
 	//=====================================================================================
@@ -110,11 +115,17 @@ public class Page_NetLogoPrefs extends PreferencesPage implements IReinitalizeab
 				platformDirField.setText(ans.getAbsolutePath());
 		} else if ("REGISTER".equals(cmd)) {
 			final File dir = new File(platformDirField.getText().trim());
-			if (PlatformManager.registerPlatform(PlatformType.NETLOGO,dir.getAbsolutePath())) {
-				owner.warning(true,"Registration successful!",Preferences.MESSAGE,true);
-				deRegisterButton.setEnabled(true);
-			} else 
-				owner.warning(true,"Invalid platform directory.",Preferences.WARNING,false);
+			try {
+				copyTableExtension(dir);
+				if (PlatformManager.registerPlatform(PlatformType.NETLOGO,dir.getAbsolutePath())) {
+					owner.warning(true,"Registration successful!",Preferences.MESSAGE,true);
+					deRegisterButton.setEnabled(true);
+				} else 
+					owner.warning(true,"Invalid platform directory.",Preferences.WARNING,false);
+			} catch (IOException ex) {
+				Logger.logException(ex);
+				owner.warning(true,"Registration unsuccessful!.",Preferences.ERROR,false);
+			}
 		} else if ("DEREGISTER".equals(cmd)) {
 			int result = Utilities.askUser(owner,false,"Confirmation","Are you sure?");
 			if (result == 1) {
@@ -176,5 +187,20 @@ public class Page_NetLogoPrefs extends PreferencesPage implements IReinitalizeab
 		platformDirField.setName("fld_preferences_platformdir");
 		
 		GUIUtils.addActionListener(this,registerButton,deRegisterButton,browseButton);
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private void copyTableExtension(final File netlogoDir) throws IOException {
+		final File extensionDir = new File("extensions/table");
+		extensionDir.mkdirs();
+		
+		final File tableJar = new File(netlogoDir,"extensions/table/table.jar");
+		final FileInputStream is = new FileInputStream(tableJar);
+		final FileOutputStream os = new FileOutputStream(new File(extensionDir,"table.jar"));
+		try {
+			Utils.copyStream(is,os);
+		} finally {
+			os.close();
+		}
 	}
 }

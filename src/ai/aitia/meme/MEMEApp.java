@@ -71,7 +71,7 @@ import ai.aitia.visu.globalhandlers.UserBreakException;
 public class MEMEApp
 {
 	/** Current version of the application. */
-	public static final String		CURRENT_VERSION		= "2.1.30529";	// YMMDD
+	public static final String		CURRENT_VERSION		= "2.2.0";	
 
 	public static final int			EXIT_CODE_NORMAL		= 0;
 	public static final int			EXIT_CODE_CMDLINE_ERROR	= 1;
