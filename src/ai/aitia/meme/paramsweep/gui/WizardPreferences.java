@@ -109,7 +109,8 @@ public class WizardPreferences extends Preferences {
 	
 	private static final String DEFAULT_NO_OF_WORKERS	= "1";
 	
-	private static final String DEFAULT_VC_STRING = "modelexploration.aitia.ai";
+	private static final String DEFAULT_VC_STRING = "";
+	private static final String DEFAULT_VC_HOST = "modelexploration.aitia.ai";
 	private static final String DEFAULT_VC_RUN_OPTION = "leased";
 	private static final String DEFAULT_VC_NO_OF_WORKERS = "4";
 	private static final String DEFAULT_VC_PORT = "6000";
@@ -628,7 +629,7 @@ public class WizardPreferences extends Preferences {
 	//----------------------------------------------------------------------------------------------------
 	private Properties createDefaultVCloudConnectionSettings() {
 		final Properties p = new Properties();
-		p.setProperty(HOSTNAME,DEFAULT_VC_STRING);
+		p.setProperty(HOSTNAME,DEFAULT_VC_HOST);
 		p.setProperty(PORT,DEFAULT_VC_PORT);
 		return p;
 	}
