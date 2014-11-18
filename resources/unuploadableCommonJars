@@ -38,7 +38,6 @@ sunpkcs11.jar
 		
 // built-in plugins
 BeanShell.jar
-coltPlugin.jar
 CSVExportPlugin.jar
 CSVImportPlugin.jar
 NetLogoImportPlugin.jar
