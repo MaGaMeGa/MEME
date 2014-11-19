@@ -346,8 +346,13 @@ public class PlatformManager {
 					if (jarFiles != null && jarFiles.length > 0){
 						urlList.addAll(Arrays.asList(jarFiles));
 					}
+					
+//					File binDir = new File(f,"bin");
+//					if (binDir.exists())
+//						urlList.add(binDir);
 				}
 				urlList.add(f);
+				
 				URL[] urls = new URL[urlList.size()] ;
 				int index = 0;
 				for (File file2 : urlList) {

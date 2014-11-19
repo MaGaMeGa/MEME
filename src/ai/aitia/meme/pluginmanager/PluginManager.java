@@ -27,6 +27,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.zip.ZipFile;
 
@@ -163,11 +164,16 @@ public class PluginManager
 			// Open the zip file.
 
 			File f = new File(dir, files[i]);
+			File binDir = null;
 			try {
 				if (!MEMEApp.isDebugVersion())
 					zf = new ZipFile(f);	// the release version allows zipfile plugins only
-				else if (f.isDirectory() && f.exists())
-					zf = null;				// during development, allow subdirs only (skip .jar files) 
+				else if (f.isDirectory() && f.exists()) {
+					zf = null;				// during development, allow subdirs only (skip .jar files)
+					binDir = new File(f,"bin");
+					if (!binDir.exists())
+						binDir = null;
+				}
 				else
 					continue;
 			}
@@ -175,7 +181,12 @@ public class PluginManager
 				continue;  // Not a zip file.
 			}
 			try {
-				URLClassLoader pluginLoader = new URLClassLoader(new URL [] {f.toURL()}); 
+				List<URL> urlList = new ArrayList<URL>(2);
+				urlList.add(f.toURI().toURL());
+//				if (binDir != null)
+//					urlList.add(binDir.toURI().toURL());
+				
+				URLClassLoader pluginLoader = new URLClassLoader(urlList.toArray(new URL[0])); 
 
 				// Find the plugin directory file, and record any plugin classes.
 
