@@ -60,13 +60,13 @@ import ai.aitia.meme.paramsweep.gui.Page_ChooseMethod;
 import ai.aitia.meme.paramsweep.gui.Page_ChoosePlatform;
 import ai.aitia.meme.paramsweep.gui.Page_IntelliExtension;
 import ai.aitia.meme.paramsweep.gui.Page_LoadModel;
-import ai.aitia.meme.paramsweep.gui.Page_Parameters;
+import ai.aitia.meme.paramsweep.gui.Page_ParametersV2;
 import ai.aitia.meme.paramsweep.gui.Page_Recorders;
 import ai.aitia.meme.paramsweep.gui.WizardPreferences;
 import ai.aitia.meme.paramsweep.gui.info.ParameterInfo;
+import ai.aitia.meme.paramsweep.internal.platform.IGUIController.RunOption;
 import ai.aitia.meme.paramsweep.internal.platform.InfoConverter;
 import ai.aitia.meme.paramsweep.internal.platform.PlatformSettings;
-import ai.aitia.meme.paramsweep.internal.platform.IGUIController.RunOption;
 import ai.aitia.meme.paramsweep.platform.IPSWInformationProvider;
 import ai.aitia.meme.paramsweep.platform.PlatformManager;
 import ai.aitia.meme.paramsweep.platform.PlatformManager.PlatformType;
@@ -78,10 +78,10 @@ import ai.aitia.meme.paramsweep.utils.Util;
 import ai.aitia.meme.paramsweep.utils.Utilities;
 import ai.aitia.meme.paramsweep.utils.WizardLoadingException;
 import ai.aitia.meme.pluginmanager.IPlugin;
-import ai.aitia.meme.pluginmanager.PSPluginManager;
-import ai.aitia.meme.pluginmanager.PluginInfo;
 import ai.aitia.meme.pluginmanager.IPlugin.IOnPluginLoad;
+import ai.aitia.meme.pluginmanager.PSPluginManager;
 import ai.aitia.meme.pluginmanager.PSPluginManager.PluginList;
+import ai.aitia.meme.pluginmanager.PluginInfo;
 import ai.aitia.meme.utils.GUIUtils;
 import ai.aitia.meme.utils.Utils;
 
@@ -168,7 +168,7 @@ public class ParameterSweepWizard extends Wizard implements IPSWInformationProvi
 	private Page_LoadModel loadPage = null;
 	private Page_ChooseMethod methodChoosePage = null;
 	/** Parameters page. */
-	private Page_Parameters parametersPage = null;
+	private Page_ParametersV2 parametersPage = null;
 	/** Recorders page. */
 	private Page_Recorders recordersPage = null;
 	private Page_IntelliExtension intelliExtensionPage = null;
@@ -224,7 +224,7 @@ public class ParameterSweepWizard extends Wizard implements IPSWInformationProvi
 		platformPage = addPage(new Page_ChoosePlatform(this,mw));
 		loadPage = addPage(new Page_LoadModel(this,mw));
 		methodChoosePage = addPage(new Page_ChooseMethod(this));
-		parametersPage = addPage(new Page_Parameters(this));
+		parametersPage = addPage(new Page_ParametersV2(this));
  		recordersPage =  addPage(new Page_Recorders(this));
  		intelliExtensionPage = addPage(new Page_IntelliExtension(this));
 		gotoPage(4); //visiting the Recorders Page to have a side-effect of onPageChange
@@ -616,7 +616,7 @@ public class ParameterSweepWizard extends Wizard implements IPSWInformationProvi
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	public ParameterTree getPublicParameterTree() { return InfoConverter.node2ParameterTree(parametersPage.getParameterTreeRoot()); }
+	public ParameterTree getPublicParameterTree() { return InfoConverter.node2ParameterTree(parametersPage.createTreeFromParameterPage()); }
 	
 	//-------------------------------------------------------------------------------
 	/** Initializes the classpath (and the list model that displays that) from the
@@ -704,7 +704,7 @@ public class ParameterSweepWizard extends Wizard implements IPSWInformationProvi
 
 	//----------------------------------------------------------------------------------------------------
 	public DefaultMutableTreeNode getParameterTreeRoot() {
-		return parametersPage.getParameterTreeRoot();
+		return parametersPage.createTreeFromParameterPage();
 	}
 
 	//----------------------------------------------------------------------------------------------------
@@ -718,12 +718,12 @@ public class ParameterSweepWizard extends Wizard implements IPSWInformationProvi
 	//----------------------------------------------------------------------------------------------------
 	private boolean lastCheck() {
 		String problemName = "";
-		if ((problemName = parametersPage.checkConstants()) != null) {
-			Utilities.userAlert(this,"Invalid parameter tree: " + problemName + " is a constant parameter.","It cannot have children.");
-			gotoPage(3);
-			return false;
-		}
-		if (!isIntelliRun() && parametersPage.needTreeFormatWarning()) {
+//		if ((problemName = parametersPage.checkConstants()) != null) {
+//			Utilities.userAlert(this,"Invalid parameter tree: " + problemName + " is a constant parameter.","It cannot have children.");
+//			gotoPage(3);
+//			return false;
+//		}
+		if (!isIntelliRun() && parametersPage.needWarning()) {
 			int result = Utilities.askUser(this,false,"Warning","There are two or more non-constant parameters on the top level of the parameter" +
 										   " tree. Parameters","are unsynchronized: simulation may exit before all parameter values are assigned.",
 										   " ","To explore all possible combinations you must create only one branch in the tree from the " +
@@ -739,9 +739,11 @@ public class ParameterSweepWizard extends Wizard implements IPSWInformationProvi
 	
 	//----------------------------------------------------------------------------------------------------
 	private boolean prepare() {
+		final DefaultMutableTreeNode parameterTreeRoot = parametersPage.createTreeFromParameterPage();
+		
 		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.GLOBAL)
-			parametersPage.setGlobalRuns();
-		parametersPage.transformIncrementsIfNeed();
+			parametersPage.setGlobalRuns(parameterTreeRoot);
+		parametersPage.transformIncrementsIfNeed(parameterTreeRoot);
 		
 		if (g_Preferences.saveParameterTree()) {
 			// generating parameter file
@@ -752,7 +754,7 @@ public class ParameterSweepWizard extends Wizard implements IPSWInformationProvi
 			}
 			parameterFile = f;
 			try {
-				PlatformSettings.generateParameterFile(f,parametersPage.getParameterTreeRoot());
+				PlatformSettings.generateParameterFile(f,parameterTreeRoot);
 			} catch (IOException e) {
 				e.printStackTrace(getLogStream());
 				Utilities.userAlert(this,"Error while generating the parameter file: " + Util.getLocalizedMessage(e));

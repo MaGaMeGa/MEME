@@ -17,12 +17,12 @@
 	<classpathentry excluding="bin/" kind="src" output="Plugins/VCPlugins" path="Plugins/VCPlugins"/>
 	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="lib" path="lib/colt.jar"/>
-	<classpathentry kind="lib" path="lib/dps_common.jar"/>
+	<classpathentry kind="lib" path="lib/dps_common.jar" sourcepath="/DistributedParamSweep/src"/>
 	<classpathentry kind="lib" path="lib/fables.paramsweep.runtime.jar"/>
 	<classpathentry kind="lib" path="lib/forms-1.0.7.jar"/>
 	<classpathentry kind="lib" path="lib/Jama-1.0.2.jar"/>
 	<classpathentry kind="lib" path="lib/jdic.jar"/>
-	<classpathentry kind="lib" path="lib/jsch-0.1.33.jar" sourcepath="D:/users/ray/temp/jsch-0.1.33/src"/>
+	<classpathentry kind="lib" path="lib/jsch-0.1.33.jar" sourcepath="E:/RayStuff/Temp/jsch-0.1.33/src"/>
 	<classpathentry kind="lib" path="lib/jscience.jar"/>
 	<classpathentry kind="lib" path="lib/kepletszerkeszto.jar" sourcepath="/Kepletszerkeszto"/>
 	<classpathentry kind="lib" path="lib/MaskedShellFolderManager.jar"/>
@@ -67,5 +67,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/reflections-0.9.9-RC1.jar"/>
 	<classpathentry kind="lib" path="lib/eclipselink.jar" sourcepath="lib/eclipselink-src.zip"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/jgoodies-looks-2.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/jgoodies-common-1.8.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

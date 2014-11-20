@@ -16,7 +16,7 @@ class ParameterCombinationGUI {
 	// members
 	
 	private static final ImageIcon WARNING = new ImageIcon(new ImageIcon(Page_ParametersV2.class.getResource("icons/warning.png")).getImage().
-			 										getScaledInstance(Page_ParametersV2.ICON_WIDTH_AND_HEIGHT,Page_ParametersV2.ICON_WIDTH_AND_HEIGHT,Image.SCALE_SMOOTH));
+			 										getScaledInstance(Page_ParametersV2.ICON_WIDTH_AND_HEIGHT, Page_ParametersV2.ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
 
 
 	final JTree tree; 

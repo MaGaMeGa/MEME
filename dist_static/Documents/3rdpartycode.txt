@@ -102,30 +102,36 @@ BSD License
 https://forms.dev.java.net/
 http://www.opensource.org/osi3.0/licenses/bsd-license.php
 
-21. JGoodies Looks 2.6.0
+21. JGoodies Common 1.8.0
+Karsten Lentzsch
+BSD License
+http://www.jgoodies.com/freeware/libraries
+http://www.opensource.org/osi3.0/licenses/bsd-license.php
+
+22. JGoodies Looks 2.6.0
 Karsten Lentzsch
 BSD License
 http://www.jgoodies.com/freeware/libraries/looks/
 http://www.opensource.org/osi3.0/licenses/bsd-license.php
 
-22. BeanShell 2.0b4
+23. BeanShell 2.0b4
 http://www.beanshell.org/
 LGPL and SPL
 http://www.beanshell.org/license.html
 
-23. Jakarta Commons Logging (JCL) 1.1
+24. Jakarta Commons Logging (JCL) 1.1
 The Apache Software Foundation
 Apache License
 http://jakarta.apache.org/commons/logging/
 http://jakarta.apache.org/commons/license.html
 
-24. Bean Scripting Framework (BSF) 2.4
+25. Bean Scripting Framework (BSF) 2.4
 The Apache Software Foundation
 Apache License
 http://jakarta.apache.org/bsf/
 http://jakarta.apache.org/commons/license.html
 
-25. AspectJ 1.7
+26. AspectJ 1.7
 Copyright © 2013 The Eclipse Foundation. All Rights Reserved
 Eclipse Public License 1.0
 http://eclipse.org/legal/epl-v10.html 

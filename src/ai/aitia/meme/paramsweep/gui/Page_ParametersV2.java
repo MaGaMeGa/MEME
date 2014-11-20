@@ -1,39 +1,91 @@
 package ai.aitia.meme.paramsweep.gui;
 
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTree;
-import javax.swing.Popup;
+import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.ToolTipManager;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import ai.aitia.meme.Logger;
-import ai.aitia.meme.events.HybridAction;
 import ai.aitia.meme.gui.Wizard;
+import ai.aitia.meme.gui.Wizard.Button;
 import ai.aitia.meme.gui.Wizard.IArrowsInHeader;
 import ai.aitia.meme.gui.Wizard.IWizardPage;
 import ai.aitia.meme.paramsweep.ParameterSweepWizard;
+import ai.aitia.meme.paramsweep.batch.IModelInformation.ModelInformationException;
+import ai.aitia.meme.paramsweep.gui.info.AvailableParameter;
+import ai.aitia.meme.paramsweep.gui.info.MasonChooserParameterInfo;
+import ai.aitia.meme.paramsweep.gui.info.ParameterInATree;
 import ai.aitia.meme.paramsweep.gui.info.ParameterInfo;
+import ai.aitia.meme.paramsweep.internal.platform.IGUIController;
+import ai.aitia.meme.paramsweep.internal.platform.IGUIController.RunOption;
+import ai.aitia.meme.paramsweep.internal.platform.InfoConverter;
+import ai.aitia.meme.paramsweep.internal.platform.PlatformSettings;
 import ai.aitia.meme.paramsweep.plugin.IIntelliContext;
+import ai.aitia.meme.paramsweep.utils.ParameterEnumeration;
+import ai.aitia.meme.paramsweep.utils.Util;
+import ai.aitia.meme.paramsweep.utils.Utilities;
+import ai.aitia.meme.paramsweep.utils.WizardLoadingException;
+import ai.aitia.meme.utils.FormsUtils;
+import ai.aitia.meme.utils.FormsUtils.Separator;
+import ai.aitia.meme.utils.GUIUtils;
+
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.looks.common.RGBGrayFilter;
+import com.wordpress.tips4java.ListAction;
 
 /** This class provides a new version of Parameters page of the Parameter Sweep Wizard. */
-public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionListener {
+public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionListener, FocusListener {
 	
 	//====================================================================================================
 	// members
@@ -41,35 +93,35 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	static final int ICON_WIDTH_AND_HEIGHT = 25;
 	
 	private static final ImageIcon PARAMETER_ADD_ICON_DIS = new ImageIcon(new ImageIcon(Page_ParametersV2.class.getResource("icons/arrow_button_metal_silver_right.png")).
-															getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT,ICON_WIDTH_AND_HEIGHT,Image.SCALE_SMOOTH));
+															getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
 	private static final ImageIcon PARAMETER_ADD_ICON = new ImageIcon(new ImageIcon(Page_ParametersV2.class.getResource("icons/arrow_button_metal_green_right.png")).
-														getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT,ICON_WIDTH_AND_HEIGHT,Image.SCALE_SMOOTH));
+														getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
 	private static final ImageIcon PARAMETER_ADD_ICON_RO = new ImageIcon(new ImageIcon(Page_ParametersV2.class.getResource("icons/arrow_button_metal_red_right.png")).
-														   getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT,ICON_WIDTH_AND_HEIGHT,Image.SCALE_SMOOTH));
+														   getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
 	
 	private static final ImageIcon PARAMETER_REMOVE_ICON_DIS = new ImageIcon(new ImageIcon(Page_ParametersV2.class.getResource("icons/arrow_button_metal_silver_left.png")).
-														   	   getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT,ICON_WIDTH_AND_HEIGHT,Image.SCALE_SMOOTH));
+														   	   getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
 	private static final ImageIcon PARAMETER_REMOVE_ICON = new ImageIcon(new ImageIcon(Page_ParametersV2.class.getResource("icons/arrow_button_metal_green_left.png")).
-														   getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT,ICON_WIDTH_AND_HEIGHT,Image.SCALE_SMOOTH));
+														   getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
 	private static final ImageIcon PARAMETER_REMOVE_ICON_RO = new ImageIcon(new ImageIcon(Page_ParametersV2.class.getResource("icons/arrow_button_metal_red_left.png")).
-															  getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT,ICON_WIDTH_AND_HEIGHT,Image.SCALE_SMOOTH));
+															  getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
 		
 	private static final ImageIcon PARAMETER_UP_ICON_DIS = new ImageIcon(new ImageIcon(Page_ParametersV2.class.getResource("icons/arrow_button_metal_silver_up.png")).
-														   getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT,ICON_WIDTH_AND_HEIGHT,Image.SCALE_SMOOTH));
+														   getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
 	private static final ImageIcon PARAMETER_UP_ICON = new ImageIcon(new ImageIcon(Page_ParametersV2.class.getResource("icons/arrow_button_metal_green_up.png")).
-													   getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT,ICON_WIDTH_AND_HEIGHT,Image.SCALE_SMOOTH));
+													   getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
 	private static final ImageIcon PARAMETER_UP_ICON_RO = new ImageIcon(new ImageIcon(Page_ParametersV2.class.getResource("icons/arrow_button_metal_red_up.png")).
-														  getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT,ICON_WIDTH_AND_HEIGHT,Image.SCALE_SMOOTH));
+														  getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
 																																				
 	private static final ImageIcon PARAMETER_DOWN_ICON_DIS = new ImageIcon(new ImageIcon(Page_ParametersV2.class.getResource("icons/arrow_button_metal_silver_down.png")).
-															 getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT,ICON_WIDTH_AND_HEIGHT,Image.SCALE_SMOOTH));
+															 getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
 	private static final ImageIcon PARAMETER_DOWN_ICON = new ImageIcon(new ImageIcon(Page_ParametersV2.class.getResource("icons/arrow_button_metal_green_down.png")).
-														 getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT,ICON_WIDTH_AND_HEIGHT,Image.SCALE_SMOOTH));
+														 getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
 	private static final ImageIcon PARAMETER_DOWN_ICON_RO = new ImageIcon(new ImageIcon(Page_ParametersV2.class.getResource("icons/arrow_button_metal_red_down.png")).
-															getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT,ICON_WIDTH_AND_HEIGHT,Image.SCALE_SMOOTH));
+															getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
 
 	private static final ImageIcon PARAMETER_BOX_REMOVE = new ImageIcon(new ImageIcon(Page_ParametersV2.class.getResource("icons/remove_box.png")).getImage().
-														  getScaledInstance(ICON_WIDTH_AND_HEIGHT,ICON_WIDTH_AND_HEIGHT,Image.SCALE_SMOOTH));
+														  getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
 	
 	private static final String ACTIONCOMMAND_ADD_PARAM = "ADD_PARAM",
 								ACTIONCOMMAND_REMOVE_PARAM = "REMOVE_PARAM",
@@ -99,12 +151,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	private boolean modelInformationException = false;
 
 	private final Container container;
-	private JScrollPane parametersScrollPane;
 	
-	private DefaultMutableTreeNode parameterValueComponentTree = new DefaultMutableTreeNode(); //TODO: ???
-
-	private Popup errorPopup;
-
 	private JLabel runsLabel = new JLabel("Runs: ");
 	private JTextField runsField = new JTextField("");
 	private JRadioButton constDef;
@@ -115,28 +162,25 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	private JTextField incrStartValueField;
 	private JTextField incrEndValueField;
 	private JTextField incrStepField;
-	private JComboBox enumDefBox;
+	private JComboBox<Object> enumDefBox;
 	private JButton cancelButton;
 	private JButton modifyButton;
 	private JTextField fileTextField;
 	private JButton browseFileButton = new JButton(FileSystemView.getFileSystemView().getSystemIcon(new File(".")));
 
 	private JLabel editedParameterText;
-	private JPanel sweepPanel;
-	private JPanel rightMiddle; //TODO: ???
+	private JPanel rightMiddle;
 
-	private JList parameterList;
+	private JList<AvailableParameter> parameterList;
 	
 	private DefaultMutableTreeNode editedNode;
 	private JTree editedTree; 
 	private List<ParameterCombinationGUI> parameterTreeBranches = new ArrayList<ParameterCombinationGUI>(5);
-	private List<ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?>> batchParameters; //TODO: ???
+	private List<ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?>> batchParameters;
 
 	private JPanel combinationsPanel;
 	private JScrollPane combinationsScrPane;
 
-	protected String currentDirectory = "";
-	
 	//====================================================================================================
 	// methods
 
@@ -166,46 +210,16 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	}
 
 	//----------------------------------------------------------------------------------------------------
+	@SuppressWarnings("serial")
 	private Container initContainer() {
 		
-		// create the scroll pane for the simple parameter setting page
-		JLabel label = null;
-		label = new JLabel(new ImageIcon(new ImageIcon(getClass().getResource(DECORATION_IMAGE)).getImage().getScaledInstance(DECORATION_IMAGE_WIDTH, -1, Image.SCALE_SMOOTH)));
-		Style.registerCssClasses(label, Dashboard.CSS_CLASS_COMMON_PANEL);
-		parametersScrollPane = new JScrollPane(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		parametersScrollPane.setBorder(null);
-		parametersScrollPane.setViewportBorder(null);
-		singleRunParametersPanel = new ScrollableJPanel(new GridLayout(1,0,5,0),dashboard,parametersScrollPane,tabbedPane);
-		parametersScrollPane.setViewportView(singleRunParametersPanel);
-
-		final JPanel simpleForm = FormsUtils.build("p ~ p:g", 
-				"01 t:p",  
-				label, parametersScrollPane).getPanel();
-		Style.registerCssClasses(simpleForm, Dashboard.CSS_CLASS_COMMON_PANEL);
-		
-		tabbedPane.add("Single run", simpleForm);
-
-		// create the form for the parameter sweep setting page
-		tabbedPane.add("Parameter sweep", createParamsweepGUI());
-		
-		gaSearchHandler = new GASearchHandler(currentModelHandler);
-		gaSearchPanel = new GASearchPanel(gaSearchHandler,this);
-		tabbedPane.add("Genetic Algorithm Search", gaSearchPanel);
-		
-		return tabbedPane;
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	@SuppressWarnings("serial")
-	private JPanel createParamsweepGUI() {
-		
 		// left
-		parameterList = new JList();
+		parameterList = new JList<AvailableParameter>();
 		parameterList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-		new ListAction(parameterList,new AbstractAction() {
+		new ListAction<AvailableParameter>(parameterList,new AbstractAction() {
          public void actionPerformed(final ActionEvent event) {
-				final AvailableParameter selectedParameter = (AvailableParameter) parameterList.getSelectedValue();
-				addParameterToTree(new AvailableParameter[] { selectedParameter },parameterTreeBranches.get(0));
+				final AvailableParameter selectedParameter = parameterList.getSelectedValue();
+				addParameterToTree(Collections.singletonList(selectedParameter), parameterTreeBranches.get(0));
 				enableDisableParameterCombinationButtons();
 			}
 		});
@@ -219,7 +233,6 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 					if (success) {
 						cancelAllSelectionBut(parameterList);
 						resetSettings();
-						updateDescriptionField(parameterList.getSelectedValues());
 						enableDisableParameterCombinationButtons();
 					} else
 						parameterList.clearSelection();
@@ -228,35 +241,21 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		});
 		
 		final JScrollPane parameterListPane = new JScrollPane(parameterList);
-		parameterListPane.setBorder(BorderFactory.createTitledBorder("")); // for rounded border
-		parameterListPane.setPreferredSize(new Dimension(300,300));
+		parameterListPane.setBorder(BorderFactory.createTitledBorder("")); 
+		parameterListPane.setPreferredSize(new Dimension(300, 300)); //TODO: check sizes
 		
-		final JPanel parametersPanel = FormsUtils.build("p ' p:g",
-										  "[DialogBorder]00||" + 
-														"12||" +
-														"34||" +
-//														"56||" + 
-														"55||" +
-														"66 f:p:g",
-														new Separator("<html><b>General parameters</b></html>"),
-														NUMBER_OF_TURNS_LABEL_TEXT,numberOfTurnsFieldPSW,
-														NUMBER_OF_TIMESTEPS_TO_IGNORE_LABEL_TEXT,numberTimestepsIgnoredPSW,
-//														UPDATE_CHARTS_LABEL_TEXT,onLineChartsCheckBoxPSW,
+		final JPanel parametersPanel = FormsUtils.build("p:g",
+										  "[DialogBorder]0||" + 
+														"1 f:p:g||" +
+														"2 p",
 														new Separator("<html><b>Model parameters</b></html>"),
-														parameterListPane).getPanel();
+														parameterListPane,
+														new JButton("TODO: new parameters")).getPanel(); //TODO: new parameters
 		
-		combinationsPanel = new JPanel(new GridLayout(0,1,5,5)); 
-		combinationsScrPane = new JScrollPane(combinationsPanel,ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		combinationsPanel = new JPanel(new GridLayout(0, 1, 5, 5)); 
+		combinationsScrPane = new JScrollPane(combinationsPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		combinationsScrPane.setBorder(null);
-		combinationsScrPane.setPreferredSize(new Dimension(550,500));
-
-		parameterDescriptionLabel = new JXLabel();
-		parameterDescriptionLabel.setLineWrap(true);
-		parameterDescriptionLabel.setVerticalAlignment(SwingConstants.TOP);
-		final JScrollPane descriptionScrollPane = new JScrollPane(parameterDescriptionLabel);
-		descriptionScrollPane.setBorder(BorderFactory.createTitledBorder(null,"Description",TitledBorder.LEADING,TitledBorder.BELOW_TOP));
-		descriptionScrollPane.setPreferredSize(new Dimension(PARAMETER_DESCRIPTION_LABEL_WIDTH, PARAMETER_DESCRIPTION_LABEL_HEIGHT));
-		descriptionScrollPane.setViewportBorder(null);
+		combinationsScrPane.setPreferredSize(new Dimension(550, 500)); //TODO: check sizes
 		
 		final JButton addNewBoxButton = new JButton("Add new combination"); 
 		addNewBoxButton.setActionCommand(ACTIONCOMMAND_ADD_BOX);
@@ -266,45 +265,49 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 				 "0_2 p",
 				 parametersPanel,combinationsScrPane,
 				 addNewBoxButton).getPanel();
-		left.setBorder(BorderFactory.createTitledBorder(null,"Specify parameter combinations",TitledBorder.LEADING,TitledBorder.BELOW_TOP));
-		Style.registerCssClasses(left, Dashboard.CSS_CLASS_COMMON_PANEL);
-		
-		final JPanel leftAndDesc = new JPanel(new BorderLayout());
-		leftAndDesc.add(left,BorderLayout.CENTER);
-		leftAndDesc.add(descriptionScrollPane,BorderLayout.SOUTH);
-		Style.registerCssClasses(leftAndDesc,Dashboard.CSS_CLASS_COMMON_PANEL);
+		left.setBorder(BorderFactory.createTitledBorder(null, "Specify parameter combinations", TitledBorder.LEADING, TitledBorder.BELOW_TOP));
+//		Style.registerCssClasses(left, Dashboard.CSS_CLASS_COMMON_PANEL); //TODO: check
 		
 		// right
 		editedParameterText = new JLabel(ORIGINAL_TEXT);
-		editedParameterText.setPreferredSize(new Dimension(280,40));
+		editedParameterText.setPreferredSize(new Dimension(280, 40)); //TODO: check size
+		
+		runsField = new JTextField();
+		runsField.setActionCommand("RUNS_FIELD");
+		runsField.addFocusListener(this);
+		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.GLOBAL)
+			runsField.setEnabled(true);
+		
 		constDef = new JRadioButton("Constant");
 		listDef = new JRadioButton("List");
 		incrDef = new JRadioButton("Increment");
 		
-		final JPanel rightTop = FormsUtils.build("p:g",
-				   "[DialogBorder]0||" +
-						   		 "1||" + 
-					             "2||" +
-					             "3",
+		final JPanel rightTop = FormsUtils.build("p ' p:g",
+				   "[DialogBorder]00||" +
+						   		 "12||" + 
+					             "33||" +
+					             "44||" + 
+					             "55",
 	                editedParameterText,
+	                runsLabel, runsField,
 					constDef,
 					listDef,
 					incrDef).getPanel();
 		
-		Style.registerCssClasses(rightTop, Dashboard.CSS_CLASS_COMMON_PANEL);
+//		Style.registerCssClasses(rightTop, Dashboard.CSS_CLASS_COMMON_PANEL); //TODO
 		
 		constDefField = new JTextField();
 		final JPanel constDefPanel = FormsUtils.build("p ~ p:g",
 								 "[DialogBorder]01 p",
-								 "Constant value: ",CellConstraints.TOP,constDefField).getPanel();
+								 "Constant value: ", CellConstraints.TOP,constDefField).getPanel();
 		
 		listDefArea = new JTextArea();
-		final JScrollPane listDefScr = new JScrollPane(listDefArea,ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		final JScrollPane listDefScr = new JScrollPane(listDefArea, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		final JPanel listDefPanel = FormsUtils.build("p ~ p:g",
 								"[DialogBorder]01|" +
 								              "_1 f:p:g||" +
 								              "_2 p",
-								"Value list: ",listDefScr,
+								"Value list: ", listDefScr,
 								"(Separate values with spaces!)").getPanel();
 		
 		incrStartValueField = new JTextField();
@@ -315,19 +318,16 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 								"[DialogBorder]01||" +
 											  "23||" +
 											  "45",
-											  "Start value: ",incrStartValueField,
-											  "End value: ",incrEndValueField,
-											  "Step: ",incrStepField).getPanel();
+											  "Start value: ", incrStartValueField,
+											  "End value: ", incrEndValueField,
+											  "Step: ", incrStepField).getPanel();
 		
-		enumDefBox = new JComboBox(new DefaultComboBoxModel());
+		enumDefBox = new JComboBox<Object>(new DefaultComboBoxModel<Object>());
 		final JPanel enumDefPanel = FormsUtils.build("p ~ p:g", 
 								"[DialogBorder]01 p", 
 								"Constant value:", CellConstraints.TOP, enumDefBox).getPanel();
 		
-		submodelTypeBox = new JComboBox();
-		final JPanel submodelTypePanel = FormsUtils.build("p ~ p:g",
-											"[DialogBorder]01",
-											"Constant value:", CellConstraints.TOP,submodelTypeBox).getPanel();
+		//TODO: enum list
 		
 		fileTextField = new JTextField();
 		fileTextField.addKeyListener(new KeyAdapter() {
@@ -337,68 +337,65 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 				fileTextField.setToolTipText(file.getAbsolutePath());
 			}
 		});
-		fileBrowseButton = new JButton(BROWSE_BUTTON_TEXT);
-		fileBrowseButton.setActionCommand(ACTIONCOMMAND_BROWSE);
+		browseFileButton.setActionCommand(ACTIONCOMMAND_BROWSE);
 		final JPanel fileDefPanel = FormsUtils.build("p ~ p:g ~p",
 									   "[DialogBorder]012",
-									   "File:",fileTextField,fileBrowseButton).getPanel();
+									   "File:", fileTextField, browseFileButton).getPanel();
 		
 		constDefPanel.setName("CONST");
 		listDefPanel.setName("LIST");
 		incrDefPanel.setName("INCREMENT");
 		enumDefPanel.setName("ENUM");
-		submodelTypePanel.setName("SUBMODEL");
 		fileDefPanel.setName("FILE");
-		
-		Style.registerCssClasses(constDefPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
-		Style.registerCssClasses(listDefPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
-		Style.registerCssClasses(incrDefPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
-		Style.registerCssClasses(enumDefPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
-		Style.registerCssClasses(submodelTypePanel,Dashboard.CSS_CLASS_COMMON_PANEL);
-		Style.registerCssClasses(fileDefPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
+
+		//TODO
+//		Style.registerCssClasses(constDefPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
+//		Style.registerCssClasses(listDefPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
+//		Style.registerCssClasses(incrDefPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
+//		Style.registerCssClasses(enumDefPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
+//		Style.registerCssClasses(fileDefPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
 		
 		rightMiddle = new JPanel(new CardLayout());
-		Style.registerCssClasses(rightMiddle, Dashboard.CSS_CLASS_COMMON_PANEL);
-		rightMiddle.add(constDefPanel,constDefPanel.getName());
-		rightMiddle.add(listDefPanel,listDefPanel.getName());
-		rightMiddle.add(incrDefPanel,incrDefPanel.getName());
+//		Style.registerCssClasses(rightMiddle, Dashboard.CSS_CLASS_COMMON_PANEL); //TODO
+		rightMiddle.add(constDefPanel, constDefPanel.getName());
+		rightMiddle.add(listDefPanel, listDefPanel.getName());
+		rightMiddle.add(incrDefPanel, incrDefPanel.getName());
 		rightMiddle.add(enumDefPanel, enumDefPanel.getName());
-		rightMiddle.add(submodelTypePanel,submodelTypePanel.getName());
-		rightMiddle.add(fileDefPanel,fileDefPanel.getName());
+		rightMiddle.add(fileDefPanel, fileDefPanel.getName());
 		
 		modifyButton = new JButton("Modify");
 		cancelButton = new JButton("Cancel");
 		
 		final JPanel rightBottom = FormsUtils.build("p:g p ~ p ~ p:g",
 							  "[DialogBorder]_01_ p",
-							  modifyButton,cancelButton).getPanel();
+							  modifyButton, cancelButton).getPanel();
 		
-		Style.registerCssClasses(rightBottom, Dashboard.CSS_CLASS_COMMON_PANEL);
+//		Style.registerCssClasses(rightBottom, Dashboard.CSS_CLASS_COMMON_PANEL); //TODO
 		
 		final JPanel right = new JPanel(new BorderLayout());
-		right.add(rightTop,BorderLayout.NORTH);
-		right.add(rightMiddle,BorderLayout.CENTER);
-		right.add(rightBottom,BorderLayout.SOUTH);
-		right.setBorder(BorderFactory.createTitledBorder(null,"Parameter settings",TitledBorder.LEADING,TitledBorder.BELOW_TOP));
+		right.add(rightTop, BorderLayout.NORTH);
+		right.add(rightMiddle, BorderLayout.CENTER);
+		right.add(rightBottom, BorderLayout.SOUTH);
+		right.setBorder(BorderFactory.createTitledBorder(null, "Parameter settings", TitledBorder.LEADING, TitledBorder.BELOW_TOP));
 
-		Style.registerCssClasses(right, Dashboard.CSS_CLASS_COMMON_PANEL);
+//		Style.registerCssClasses(right, Dashboard.CSS_CLASS_COMMON_PANEL); //TODO
 
 		// the whole paramsweep panel
 		
 		final JPanel content = FormsUtils.build("p:g p",
 								   "01 f:p:g",
-								   leftAndDesc,right).getPanel();
-		Style.registerCssClasses(content, Dashboard.CSS_CLASS_COMMON_PANEL);
+								   left, right).getPanel();
+//		Style.registerCssClasses(content, Dashboard.CSS_CLASS_COMMON_PANEL); //TODO
 		
-		sweepPanel = new JPanel();
-		Style.registerCssClasses(sweepPanel, Dashboard.CSS_CLASS_COMMON_PANEL);
+		JPanel sweepPanel = new JPanel();
+//		Style.registerCssClasses(sweepPanel, Dashboard.CSS_CLASS_COMMON_PANEL); //TODO
 		sweepPanel.setLayout(new BorderLayout());
 		final JScrollPane sp = new JScrollPane(content);
 		sp.setBorder(null);
 		sp.setViewportBorder(null);
-		sweepPanel.add(sp,BorderLayout.CENTER);
+		sweepPanel.add(sp,  BorderLayout.CENTER);
 		
-		GUIUtils.createButtonGroup(constDef,listDef,incrDef);
+		GUIUtils.createButtonGroup(constDef, listDef, incrDef);
 		constDef.setSelected(true);
 		constDef.setActionCommand("CONST");
 		listDef.setActionCommand("LIST");
@@ -414,10 +411,10 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		
 		listDefArea.setLineWrap(true);
 		listDefArea.setWrapStyleWord(true);
-		listDefScr.setPreferredSize(new Dimension(100,200));
+		listDefScr.setPreferredSize(new Dimension(100, 200)); //TODO: check size
 		
-		GUIUtils.addActionListener(this,modifyButton,cancelButton,constDef,listDef,incrDef,constDefField,incrStartValueField,incrEndValueField,incrStepField,
-								   addNewBoxButton,submodelTypeBox,fileBrowseButton);
+		GUIUtils.addActionListener(this, modifyButton, cancelButton, constDef, listDef, incrDef, constDefField, incrStartValueField, incrEndValueField, incrStepField,
+								   addNewBoxButton, browseFileButton);
 		
 		return sweepPanel;
 	}
@@ -436,7 +433,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	    if (!first) {
 		    closeButton.setRolloverIcon(PARAMETER_BOX_REMOVE);
 		    closeButton.setRolloverEnabled(true);
-		    closeButton.setIcon(RGBGrayFilter.getDisabledIcon(closeButton,PARAMETER_BOX_REMOVE));
+		    closeButton.setIcon(RGBGrayFilter.getDisabledIcon(closeButton, PARAMETER_BOX_REMOVE));
 		    closeButton.setActionCommand(ACTIONCOMMAND_REMOVE_BOX);
 	    }
 	    
@@ -476,13 +473,8 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 								editedNode = null;
 								editedTree = null;
 							}
-							
-							updateDescriptionField(userObj);
-						} else
-							updateDescriptionField();
-						
-					} else
-						updateDescriptionField();
+						} 
+					} 
 					
 					enableDisableParameterCombinationButtons();
 				} else {
@@ -499,7 +491,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	    treeScrPane.setViewportView(tree);
 	    treeScrPane.setBorder(null);
 	    treeScrPane.setViewportBorder(null);
-		treeScrPane.setPreferredSize(new Dimension(450,250));
+		treeScrPane.setPreferredSize(new Dimension(450, 250)); //TODO: check size
 	    
 		final JButton upButton = new JButton();
 		upButton.setOpaque(false);
@@ -529,7 +521,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 												  "445||" +
 												  "446||" + 
 												  "44_ f:p:g",
-												  runLabel,first ? "" : warningLabel,first ? warningLabel : closeButton,
+												  runLabel,first ? "" : warningLabel, first ? warningLabel : closeButton,
 												  new Separator(""),
 												  treeScrPane,
 												  upButton,
@@ -567,9 +559,9 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 											   addButton,
 											   removeButton).getPanel();
 		
-		Style.registerCssClasses(result,Dashboard.CSS_CLASS_COMMON_PANEL);
+//		Style.registerCssClasses(result,Dashboard.CSS_CLASS_COMMON_PANEL); //TODO:
 		
-		final ParameterCombinationGUI pcGUI = new ParameterCombinationGUI(tree,treeRoot,runLabel,warningLabel,addButton,removeButton,upButton,downButton);
+		final ParameterCombinationGUI pcGUI = new ParameterCombinationGUI(tree, treeRoot, runLabel, warningLabel, addButton, removeButton, upButton, downButton);
 		parameterTreeBranches.add(pcGUI);
 		
 		final ActionListener boxActionListener = new ActionListener() {
@@ -595,11 +587,9 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 
 			//----------------------------------------------------------------------------------------------------
 			private void handleAddParameter(final ParameterCombinationGUI pcGUI) {
-				final Object[] selectedValues = parameterList.getSelectedValues();
-				if (selectedValues != null && selectedValues.length > 0) {
-					final AvailableParameter[] params = new AvailableParameter[selectedValues.length];
-					System.arraycopy(selectedValues,0,params,0,selectedValues.length);
-					addParameterToTree(params,pcGUI);
+				final List<AvailableParameter> selectedValues = parameterList.getSelectedValuesList();
+				if (selectedValues != null && selectedValues.size() > 0) {
+					addParameterToTree(selectedValues, pcGUI);
 					enableDisableParameterCombinationButtons();
 				}
 			}
@@ -614,7 +604,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 					if (!node.isRoot()) {
 						final DefaultMutableTreeNode parentNode = (DefaultMutableTreeNode) node.getParent();
 						if (parentNode.isRoot()) { 
-							removeParameter(tree,node,parentNode);
+							removeParameter(tree, node, parentNode);
 							enableDisableParameterCombinationButtons();
 						}
 					}
@@ -623,9 +613,9 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 			
 			//----------------------------------------------------------------------------------------------------
 			private void handleRemoveBox(final JTree tree) {
-				final int answer = Utilities.askUser(dashboard,false,"Comfirmation","This operation deletes the combination.", 
-																			  		"All related parameter returns back to the list on the left side.",
-																			  		"Are you sure?");
+				final int answer = Utilities.askUser(owner,false,"Comfirmation","This operation deletes the combination.", 
+																			  	"All related parameter returns back to the list on the left side.",
+																			  	"Are you sure?");
 				if (answer == 1) {
 					final DefaultTreeModel treeModel = (DefaultTreeModel) tree.getModel();
 
@@ -637,9 +627,9 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 					}
 					
 					final DefaultMutableTreeNode root = (DefaultMutableTreeNode) treeModel.getRoot();
-					for (int i = 0;i < root.getChildCount();++i) {
+					for (int i = 0; i < root.getChildCount(); ++i) {
 						final DefaultMutableTreeNode node = (DefaultMutableTreeNode) root.getChildAt(i);
-						removeParameter(tree,node,root);
+						removeParameter(tree, node, root);
 					}
 					
 					enableDisableParameterCombinationButtons();
@@ -657,7 +647,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 				final ParameterInATree userObj = (ParameterInATree) node.getUserObject();
 				final ParameterInfo originalInfo = findOriginalInfo(userObj.info);
 				if (originalInfo != null) {
-					final DefaultListModel model = (DefaultListModel) parameterList.getModel();
+					final DefaultListModel<AvailableParameter> model = (DefaultListModel<AvailableParameter>) parameterList.getModel();
 					model.addElement(new AvailableParameter(originalInfo));
 					final DefaultTreeModel treeModel = (DefaultTreeModel) tree.getModel();
 					treeModel.removeNodeFromParent(node);
@@ -688,7 +678,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 						final int index = parent.getIndex(node);
 						final DefaultTreeModel treemodel = (DefaultTreeModel) tree.getModel();
 						treemodel.removeNodeFromParent(node);
-						treemodel.insertNodeInto(node,parent,index - 1);
+						treemodel.insertNodeInto(node, parent, index - 1);
 						tree.setSelectionPath(new TreePath(node.getPath()));
 					}
 
@@ -716,26 +706,26 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 						final int index = parent.getIndex(node);
 						final DefaultTreeModel treemodel = (DefaultTreeModel) tree.getModel();
 						treemodel.removeNodeFromParent(node);
-						treemodel.insertNodeInto(node,parent,index + 1);
+						treemodel.insertNodeInto(node, parent, index + 1);
 						tree.setSelectionPath(new TreePath(node.getPath()));
 					}
 				}
 			}
 		};
 		
-		GUIUtils.addActionListener(boxActionListener,closeButton,upButton,downButton,addButton,removeButton);
+		GUIUtils.addActionListener(boxActionListener, closeButton, upButton, downButton, addButton, removeButton);
 		
-		result.setPreferredSize(new Dimension(500,250));
+		result.setPreferredSize(new Dimension(500,250)); //TODO: check size
 		enableDisableParameterCombinationButtons();
 		
-		Style.apply(result, dashboard.getCssStyle());
+//		Style.apply(result, dashboard.getCssStyle()); //TODO
 
 		return result;
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	private void addParameterToTree(final AvailableParameter[] parameters, final ParameterCombinationGUI pcGUI) {
-		final DefaultListModel listModel = (DefaultListModel) parameterList.getModel();
+	private void addParameterToTree(final List<AvailableParameter> parameters, final ParameterCombinationGUI pcGUI) {
+		final DefaultListModel<AvailableParameter> listModel = (DefaultListModel<AvailableParameter>) parameterList.getModel();
 		final DefaultTreeModel treeModel = (DefaultTreeModel) pcGUI.tree.getModel();
 		final DefaultMutableTreeNode root = (DefaultMutableTreeNode) treeModel.getRoot();
 		
@@ -743,13 +733,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 			listModel.removeElement(parameter);
 			final ParameterInfo selectedInfo = parameter.info;
 			final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(new ParameterInATree(selectedInfo));
-			treeModel.insertNodeInto(newNode,root,root.getChildCount());
-			
-			if (selectedInfo instanceof SubmodelInfo) {
-				final SubmodelInfo sInfo = (SubmodelInfo) selectedInfo;
-				if (sInfo.getActualType() != null)
-					addSubParametersToTree(sInfo,pcGUI.tree,newNode);
-			}
+			treeModel.insertNodeInto(newNode, root, root.getChildCount());
 		}
 
 		updateNumberOfRuns();
@@ -760,6 +744,8 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	//----------------------------------------------------------------------------------------------------
 	public void resetParamsweepGUI(){
 		changeText(null, null);
+		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.LOCAL)
+			runsField.setText(""); 
 		constDef.setSelected(true);
 		constDefField.setText(null);
 		incrStartValueField.setText(null);
@@ -778,763 +764,83 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	/** {@inheritDoc} 
 	 */
 	@Override
-	public boolean isEnabled(final Button button) {
-		switch (button){
-		case BACK:
-			return true;
-			
-		case NEXT:
-			return true;
-			
-		case CANCEL: // this is the charts page
-			return true;
-			
-		case FINISH:
-			return false;
-			
-		case CUSTOM:
-			return false;
+	public boolean isEnabled(final Button b) {
+		if (modelInformationException && (b == Button.NEXT || b == Button.FINISH)) return false;
+		return PlatformSettings.isEnabledForPageParameters(owner,b);
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	/** {@inheritDoc} 
+	 */
+	public boolean onButtonPress(final Button b) { 
+		boolean enabled = isEnabled(b);
+		if (enabled) {
+			if (b == Button.CANCEL || editedNode == null || modify()) return true;
 		}
 		return false;
 	}
 
 	//----------------------------------------------------------------------------------------------------
-	/** {@inheritDoc} 
-	 */
-	@Override
-	public boolean onButtonPress(final Button button) {
-		if (Button.NEXT.equals(button)) {
-			ParameterTree parameterTree = null;
-			if (tabbedPane.getSelectedIndex() == SINGLE_RUN_GUI_TABINDEX) {
-				currentModelHandler.setIntelliMethodPlugin(null);
-				parameterTree = new ParameterTree();
-				final Set<ParameterInfo> invalids = new HashSet<ParameterInfo>();
-				
-				@SuppressWarnings("rawtypes")
-				final Enumeration treeValues = parameterValueComponentTree.breadthFirstEnumeration();
-				treeValues.nextElement(); // root element
-				while (treeValues.hasMoreElements()) {
-					final DefaultMutableTreeNode node = (DefaultMutableTreeNode) treeValues.nextElement();
-					@SuppressWarnings("unchecked")
-					final Pair<ParameterInfo,JComponent> userData = (Pair<ParameterInfo,JComponent>) node.getUserObject();
-					final ParameterInfo parameterInfo = userData.getFirst();
-					final JComponent valueContainer = userData.getSecond();
-					
-					if (parameterInfo instanceof ISubmodelGUIInfo) {
-						final ISubmodelGUIInfo sgi = (ISubmodelGUIInfo) parameterInfo;
-						if (sgi.getParent() != null) {
-							final DefaultMutableTreeNode parentNode = (DefaultMutableTreeNode) node.getParent();
-							@SuppressWarnings("unchecked")
-							final Pair<ParameterInfo,JComponent> parentUserData = (Pair<ParameterInfo,JComponent>) parentNode.getUserObject();
-							final SubmodelInfo parentParameterInfo = (SubmodelInfo) parentUserData.getFirst();
-							if (invalids.contains(parentParameterInfo) || !classEquals(parentParameterInfo.getActualType(),sgi.getParentValue())) {
-								invalids.add(parameterInfo);
-								continue;
-							}
-						}
-					}
-					
-					if (parameterInfo.isBoolean()){
-						final JCheckBox checkBox = (JCheckBox) valueContainer;
-						parameterInfo.setValue(checkBox.isSelected());
-					} else if (parameterInfo.isEnum()) {
-						final JComboBox comboBox = (JComboBox) valueContainer;
-						parameterInfo.setValue(comboBox.getSelectedItem());
-					} else if (parameterInfo instanceof MasonChooserParameterInfo) {
-						final JComboBox comboBox = (JComboBox) valueContainer;
-						parameterInfo.setValue(comboBox.getSelectedIndex());
-					} else if (parameterInfo instanceof SubmodelInfo) {
-						// we don't need the SubmodelInfo parameters anymore (all descendant parameters are in the tree too)
-						// but we need to check that an actual type is provided
-						final SubmodelInfo smi = (SubmodelInfo) parameterInfo;
-						final JComboBox comboBox = (JComboBox) valueContainer;
-						final ClassElement selected = (ClassElement) comboBox.getSelectedItem();
-						smi.setActualType(selected.clazz);
-						
-						if (smi.getActualType() == null) {
-							final String errorMsg = "Please select a type from the dropdown list of " + smi.getName().replaceAll("([A-Z])"," $1");
-							JOptionPane.showMessageDialog(wizard, new JLabel(errorMsg), "Error", JOptionPane.ERROR_MESSAGE);
-							return false;
-						}
-						
-						continue;
-					} else if (parameterInfo.isFile()) {
-						final JTextField textField = (JTextField) valueContainer.getComponent(0);
-						if (textField.getText().trim().isEmpty())
-							log.warn("Empty string was specified as file parameter " + parameterInfo.getName().replaceAll("([A-Z])"," $1"));
-						
-						final File file = new File(textField.getToolTipText());
-						if (!file.exists()) {
-							final String errorMsg = "Please specify an existing file parameter " + parameterInfo.getName().replaceAll("([A-Z])"," $1");
-							JOptionPane.showMessageDialog(wizard,new JLabel(errorMsg),"Error",JOptionPane.ERROR_MESSAGE);
-							return false;
-						}
-						
-						parameterInfo.setValue(ParameterInfo.getValue(textField.getToolTipText(),parameterInfo.getType()));
-					} else if (parameterInfo instanceof MasonIntervalParameterInfo) {
-						final JTextField textField = (JTextField) valueContainer.getComponent(0);
-						parameterInfo.setValue(ParameterInfo.getValue(textField.getText().trim(),parameterInfo.getType()));
-					} else {
-						final JTextField textField = (JTextField) valueContainer;
-						parameterInfo.setValue(ParameterInfo.getValue(textField.getText(),parameterInfo.getType()));
-						if ("String".equals(parameterInfo.getType()) && parameterInfo.getValue() == null)
-							parameterInfo.setValue(textField.getText().trim());
-					}
-					
-					final AbstractParameterInfo<?> batchParameterInfo = InfoConverter.parameterInfo2ParameterInfo(parameterInfo);
-					parameterTree.addNode(batchParameterInfo);
-				}
-				
-				dashboard.setOnLineCharts(onLineChartsCheckBox.isSelected());
-				dashboard.setDisplayAdvancedCharts(advancedChartsCheckBox.isSelected());
-			}
-			
-			if (tabbedPane.getSelectedIndex() == PARAMSWEEP_GUI_TABINDEX) {
-				currentModelHandler.setIntelliMethodPlugin(null);
-				boolean success = true;
-				if (editedNode != null) 
-					success = modify();
-				
-				if (success) {
-					String invalidInfoName = checkInfos(true); 
-					if (invalidInfoName != null) {
-						Utilities.userAlert(sweepPanel,"Please select a type from the dropdown list of " + invalidInfoName);
-						return false;
-					}
-					
-					invalidInfoName = checkInfos(false);
-					if (invalidInfoName != null) {
-						Utilities.userAlert(sweepPanel,"Please specify a file for parameter " + invalidInfoName);
-						return false;
-					}
-					
-					if (needWarning()) {
-						final int result = Utilities.askUser(sweepPanel,false,"Warning","There are two or more combination boxes that contains non-constant parameters." +
-													   " Parameters are unsynchronized:", "simulation may exit before all parameter values are assigned.",
-													   " ","To explore all possible combinations you must use only one combination box.",
-													   " ","Do you want to run simulation with these parameter settings?");  
-						if (result == 0) {
-							return false;
-						}
-					}
-					
-					try {
-							parameterTree = createParameterTreeFromParamSweepGUI();
-							
-							final ParameterNode rootNode = parameterTree.getRoot();
-							dumpParameterTree(rootNode);
-							
-	//						dashboard.setOnLineCharts(onLineChartsCheckBoxPSW.isSelected());
-					} catch (final ModelInformationException e) {
-						JOptionPane.showMessageDialog(wizard, new JLabel(e.getMessage()), "Error while creating runs", JOptionPane.ERROR_MESSAGE);
-						e.printStackTrace();
-						return false;
-					}
-				} else return false;
-			}
-			
-			if (tabbedPane.getSelectedIndex() == GASEARCH_GUI_TABINDEX) {
-				final IIntelliDynamicMethodPlugin gaPlugin = (IIntelliDynamicMethodPlugin)gaSearchHandler;
-				currentModelHandler.setIntelliMethodPlugin(gaPlugin);
-				boolean success = gaSearchPanel.closeActiveModification();
-				
-				if (success) {
-					String invalidInfoName = checkInfosInGeneTree(); 
-					if (invalidInfoName != null) {
-						Utilities.userAlert(sweepPanel,"Please select a type from the dropdown list of " + invalidInfoName);
-						return false;
-					} 
-					
-					final String[] errors = gaSearchHandler.checkGAModel();
-					if (errors != null) {
-						Utilities.userAlert(sweepPanel,(Object[])errors);
-						return false;
-					}
-					
-					final DefaultMutableTreeNode parameterTreeRootNode = new DefaultMutableTreeNode();
-					final IIntelliContext ctx = new DashboardIntelliContext(parameterTreeRootNode,gaSearchHandler.getChromosomeTree());
-					gaPlugin.alterParameterTree(ctx);
-					parameterTree = InfoConverter.node2ParameterTree(parameterTreeRootNode);
-					dashboard.setOptimizationDirection(gaSearchHandler.getFitnessFunctionDirection());
-					
-				} else return false;
-			}
-
-			currentModelHandler.setParameters(parameterTree);
-		}
-		
-		return true;
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	public Model saveConfiguration() throws IOException {
-		final ObjectFactory factory = new ObjectFactory();
-		
-		final Model result = factory.createModel();
-		result.setClazz(currentModelHandler.getModelClass().getName());
-		
-		if (tabbedPane.getSelectedIndex() == SINGLE_RUN_GUI_TABINDEX) {
-			result.setRunStrategy(ModelType.SINGLE);
-			
-			final List<GeneralParameter> generalParameters = result.getGeneralParameterList();
-			
-			GeneralParameter gp = factory.createGeneralParameter();
-			gp.setName(ParameterTreeUtils.NUMBER_OF_TURNS_XML_NAME);
-			gp.setValue(numberOfTurnsField.getText());
-			generalParameters.add(gp);
-			
-			gp = factory.createGeneralParameter();
-			gp.setName(ParameterTreeUtils.NUMBER_OF_TIMESTEPS_TO_IGNORE_XML_NAME);
-			gp.setValue(numberTimestepsIgnored.getText());
-			generalParameters.add(gp);
-			
-			gp = factory.createGeneralParameter();
-			gp.setName(ParameterTreeUtils.UPDATE_CHARTS_XML_NAME);
-			gp.setValue(String.valueOf(onLineChartsCheckBox.isSelected()));
-			generalParameters.add(gp);
-			
-			gp = factory.createGeneralParameter();
-			gp.setName(ParameterTreeUtils.DISPLAY_ADVANCED_CHARTS_XML_NAME);
-			gp.setValue(String.valueOf(advancedChartsCheckBox.isSelected()));
-			generalParameters.add(gp);
-			
-			final Set<ParameterInfo> invalids = new HashSet<ParameterInfo>();
-			
-			final List<Parameter> parameterList = result.getParameterList();
-			final List<SubmodelParameter> submodelParameterList = result.getSubmodelParameterList();
-			
-			@SuppressWarnings("rawtypes")
-			final Enumeration firstLevelParameters = parameterValueComponentTree.children();
-			saveSubTree(firstLevelParameters,parameterList,submodelParameterList,invalids);
-		} else if (tabbedPane.getSelectedIndex() == PARAMSWEEP_GUI_TABINDEX) {
-			result.setRunStrategy(ModelType.PARAMETER_SWEEP);
-			
-			//calculate the number of runs, which is the minimum of the number of runs in the parameter combination boxes
-			int validMin = Integer.MAX_VALUE;
-			for (final ParameterCombinationGUI pGUI : parameterTreeBranches) {
-				final int run = Page_Parameters.calculateNumberOfRuns(pGUI.combinationRoot);
-				if (run> 1 && run< validMin)
-					validMin = run;
-			}
-			
-			result.setNumberOfRuns(validMin);
-			
-			final List<GeneralParameter> generalParameters = result.getGeneralParameterList();
-			
-			GeneralParameter gp = factory.createGeneralParameter();
-			gp.setName(ParameterTreeUtils.NUMBER_OF_TURNS_XML_NAME);
-			gp.setValue(numberOfTurnsFieldPSW.getText());
-			generalParameters.add(gp);
-			
-			gp = factory.createGeneralParameter();
-			gp.setName(ParameterTreeUtils.NUMBER_OF_TIMESTEPS_TO_IGNORE_XML_NAME);
-			gp.setValue(numberTimestepsIgnoredPSW.getText());
-			generalParameters.add(gp);
-			
-			savePSParameterList(factory,result);
-			
-			for (int i = 0;i < parameterTreeBranches.size();++i) 
-				savePSBranch(factory,result,parameterTreeBranches.get(i),i + 1);
-		} else {
-			result.setRunStrategy(ModelType.GA);
-			gaSearchHandler.saveConfiguration(factory,result);
-		}
-		
-		return result;
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	private void saveSubTree(@SuppressWarnings("rawtypes") final Enumeration children, final List<Parameter> parameterList,
-							 final List<SubmodelParameter> submodelParameterList, final Set<ParameterInfo> invalids) throws IOException {
-		
-		final ObjectFactory factory = new ObjectFactory();
-		while (children.hasMoreElements()) {
-			final DefaultMutableTreeNode node = (DefaultMutableTreeNode) children.nextElement();
-			
-			@SuppressWarnings("unchecked")
-			final Pair<ParameterInfo,JComponent> userData = (Pair<ParameterInfo,JComponent>) node.getUserObject();
-			final ParameterInfo parameterInfo = userData.getFirst();
-			final JComponent valueContainer = userData.getSecond();
-			
-			Parameter parameter = null;
-			SubmodelParameter submodelParameter = null;
-			if (parameterInfo instanceof ISubmodelGUIInfo) {
-				final ISubmodelGUIInfo sgi = (ISubmodelGUIInfo) parameterInfo;
-				if (sgi.getParent() != null) {
-					final DefaultMutableTreeNode parentNode = (DefaultMutableTreeNode) node.getParent();
-					@SuppressWarnings("unchecked")
-					final Pair<ParameterInfo,JComponent> parentUserData = (Pair<ParameterInfo,JComponent>) parentNode.getUserObject();
-					final SubmodelInfo parentParameterInfo = (SubmodelInfo) parentUserData.getFirst();
-					if (invalids.contains(parentParameterInfo) || !classEquals(parentParameterInfo.getActualType(),sgi.getParentValue())) {
-						invalids.add(parameterInfo);
-						continue;
-					}
-				}
-			}
-			
-			if (parameterInfo instanceof SubmodelInfo) {
-				submodelParameter = factory.createSubmodelParameter();
-				submodelParameter.setName(parameterInfo.getName());
-			} else {
-				parameter = factory.createParameter();
-				parameter.setName(parameterInfo.getName());
-			}
-			
-			if (parameterInfo.isBoolean()){
-				final JCheckBox checkBox = (JCheckBox) valueContainer;
-				parameter.getContent().add(String.valueOf(checkBox.isSelected()));
-			} else if (parameterInfo.isEnum()) {
-				final JComboBox comboBox = (JComboBox) valueContainer;
-				parameter.getContent().add(String.valueOf(comboBox.getSelectedItem()));
-			} else if (parameterInfo instanceof MasonChooserParameterInfo) {
-				final JComboBox comboBox = (JComboBox) valueContainer;
-				parameter.getContent().add(String.valueOf(comboBox.getSelectedIndex()));
-			} else if (parameterInfo instanceof SubmodelInfo) {
-				final JComboBox comboBox = (JComboBox) valueContainer;
-				final ClassElement selectedElement = (ClassElement) comboBox.getSelectedItem();
-				
-				if (selectedElement.clazz == null)
-					throw new IOException("No type is selected for parameter " + parameterInfo.getName().replaceAll("([A-Z])", " $1") + ".");
-				
-				submodelParameter.setType(selectedElement.clazz.getName());
-				saveSubTree(node.children(),submodelParameter.getParameterList(),submodelParameter.getSubmodelParameterList(),invalids);
-			} else if (parameterInfo.isFile()) {
-				final JTextField textField = (JTextField) valueContainer.getComponent(0);
-				parameter.getContent().add(textField.getToolTipText());
-			} else if (parameterInfo instanceof MasonIntervalParameterInfo) {
-				final JTextField textField = (JTextField) valueContainer.getComponent(0);
-				parameter.getContent().add(textField.getText().trim());
-			} else {
-				final JTextField textField = (JTextField) valueContainer;
-				String text = String.valueOf(ParameterInfo.getValue(textField.getText(),parameterInfo.getType()));
-				if ("String".equals(parameterInfo.getType()) && parameterInfo.getValue() == null)
-					text = textField.getText().trim();
-				parameter.getContent().add(text);
-			}
-			
-			if (parameter != null)
-				parameterList.add(parameter);
-			else if (submodelParameter != null)
-				submodelParameterList.add(submodelParameter);
-		}
-	}
+	public void focusGained(FocusEvent e) {}
 	
 	//----------------------------------------------------------------------------------------------------
-	private void savePSParameterList(final ObjectFactory factory, final Model model) {
-		final DefaultListModel listModel = (DefaultListModel) parameterList.getModel();
-		
-		if (!listModel.isEmpty()) {
-			for (int i = 0;i < listModel.getSize();++i) {
-				final AvailableParameter availableParameter = (AvailableParameter) listModel.get(i);
-				
-				final DefaultParameter defaultParameter = factory.createDefaultParameter();
-				defaultParameter.setName(availableParameter.info.getName());
-				model.getDefaultParameterList().add(defaultParameter);
-			}
-		}
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private void savePSBranch(final ObjectFactory factory, final Model model, final ParameterCombinationGUI combinationGUI, final int position) {
-		final Combination combination = factory.createCombination();
-		combination.setPosition(BigInteger.valueOf(position));
-		model.getCombination().add(combination);
-		
-		int pPosition = 1;
-		@SuppressWarnings("rawtypes")
-		final Enumeration paramNodes = combinationGUI.combinationRoot.children();
-		while (paramNodes.hasMoreElements()) {
-			final DefaultMutableTreeNode node = (DefaultMutableTreeNode) paramNodes.nextElement();
-			savePSParameter(node,factory,combination,pPosition++);
-		}
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private void savePSParameter(final DefaultMutableTreeNode node, final ObjectFactory factory, final Object parent, final int position) {
-		final ParameterInATree userObj = (ParameterInATree) node.getUserObject();
-		final ParameterInfo info = userObj.info;
-		
-		if (info instanceof SubmodelInfo) {
-			final SubmodelInfo sInfo = (SubmodelInfo) info;
-			
-			final SubmodelParameter parameter = factory.createSubmodelParameter();
-			parameter.setName(info.getName());
-			parameter.setType(sInfo.getActualType() == null ? "null" : sInfo.getActualType().getName());
-			parameter.setPosition(BigInteger.valueOf(position));
-			
-			if (parent instanceof Combination) {
-				final Combination combination = (Combination) parent;
-				combination.getSubmodelParameterList().add(parameter);
-			} else if (parent instanceof SubmodelParameter) {
-				final SubmodelParameter submodelParameter = (SubmodelParameter) parent;
-				submodelParameter.getSubmodelParameterList().add(parameter);
-			}
-			
-			if (node.getChildCount() > 0) {
-				@SuppressWarnings("rawtypes")
-				final Enumeration childNodes = node.children();
-				int childPosition = 1;
-				while (childNodes.hasMoreElements()) {
-					final DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) childNodes.nextElement();
-					savePSParameter(childNode,factory,parameter,childPosition++);
- 				}
-			}
-		} else {
-			final Parameter parameter = factory.createParameter();
-			parameter.setName(info.getName());
-			parameter.setPosition(BigInteger.valueOf(position));
-			
-			switch (info.getDefinitionType()) {
-			case ParameterInfo.CONST_DEF:	
-				parameter.setParameterType(ParameterType.CONSTANT);
-				parameter.getContent().add(info.getValue().toString());
-				break;
-				
-			case ParameterInfo.LIST_DEF:
-				parameter.setParameterType(ParameterType.LIST);
-				savePSListParameter(info,parameter,factory);
-				break;
-			
-			case ParameterInfo.INCR_DEF:
-				parameter.setParameterType(ParameterType.INCREMENT);
-				savePSIncrementParameter(info,parameter,factory);
-				break;
-			}
-			
-			if (parent instanceof Combination) {
-				final Combination combination = (Combination) parent;
-				combination.getParameterList().add(parameter);
-			} else if (parent instanceof SubmodelParameter) {
-				final SubmodelParameter submodelParameter = (SubmodelParameter) parent;
-				submodelParameter.getParameterList().add(parameter);
-			}
-		}
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	private void savePSListParameter(final ParameterInfo info, final Parameter parameter, final ObjectFactory factory) {
-		for (final Object listElement : info.getValues()) {
-			final JAXBElement<String> element = factory.createParameterParameterValue(listElement.toString());
-			parameter.getContent().add(element);
-		}
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private void savePSIncrementParameter(final ParameterInfo info, final Parameter parameter, final ObjectFactory factory) {
-		JAXBElement<String> element = factory.createParameterStartValue(info.getStartValue().toString());
-		parameter.getContent().add(element);
-		element = factory.createParameterEndValue(info.getEndValue().toString());
-		parameter.getContent().add(element);
-		element = factory.createParameterStepValue(info.getStep().toString());
-		parameter.getContent().add(element);
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	public void loadConfiguration(final Model model) {
-		try {
-			currentModelHandler = dashboard.getModelHandler();
-			singleRunParametersPanel.removeAll();
-			
-			parameterValueComponentTree = new DefaultMutableTreeNode();
-			possibleTypesCache.clear();
-			batchParameters = currentModelHandler.getParameters();
-			
-			final ModelType runStrategy = model.getRunStrategy();
-
-			if (ModelType.SINGLE == runStrategy)
-				fillParameterValueComponentTree(model);
-				
-			final List<ParameterInfo> modelParameters = createAndDisplayAParameterPanel(batchParameters,"Model parameters",null,true);
-
-			parametersScrollPane.setViewportView(singleRunParametersPanel);
-			singleRunParametersPanel.revalidate();
-			
-
-			if (ModelType.SINGLE == runStrategy) {
-				tabbedPane.setSelectedIndex(SINGLE_RUN_GUI_TABINDEX);
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						numberOfTurnsField.grabFocus();
-					}
-				});
-			}
-				
-			// initialize paramsweep panel
-			Collections.sort(modelParameters);
-			enableDisableSettings(false);
-			modifyButton.setEnabled(false);
-			resetParamsweepGUI();
-			
-			if (ModelType.PARAMETER_SWEEP == runStrategy) {
-				fillParameterSweepPage(model);
-				tabbedPane.setSelectedIndex(PARAMSWEEP_GUI_TABINDEX);
-			} else 
-				createDefaultParameterList(modelParameters);
-			
+	public void focusLost(FocusEvent e) {
+		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.GLOBAL)
 			updateNumberOfRuns();
-			
-			// initialize the GA seach panel
-			gaSearchHandler.init(currentModelHandler);
-			gaSearchHandler.removeAllFitnessFunctions();
-			final List<RecordableInfo> recordables = dashboard.getModelHandler().getRecorders().get(0).getRecordables();
-			for (final RecordableInfo recordableInfo : recordables) {
-				if (gaSearchHandler.canBeFitnessFunction(recordableInfo))
-					gaSearchHandler.addFitnessFunction(recordableInfo);
-			}
-			
-			if (ModelType.GA == runStrategy) {
-				gaSearchHandler.loadConfiguration(model,modelParameters);
-				tabbedPane.setSelectedIndex(GASEARCH_GUI_TABINDEX);
-//				gaSearchPanel.setSelectedFitnessFunction(gaSearchHandler); this is handled by gaSearchPanel.reset()
-			}
-			
-			gaSearchPanel.reset(gaSearchHandler);
-		} catch (final ModelInformationException e) {
-			JOptionPane.showMessageDialog(wizard, new JLabel(e.getMessage()), "Error while analyizing model and/or configuration file", JOptionPane.ERROR_MESSAGE);
-			e.printStackTrace();
-		}
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private void fillParameterValueComponentTree(final Model model) throws ModelInformationException {
-		final List<GeneralParameter> generalParameters = model.getGeneralParameterList();
-		for (final GeneralParameter gp : generalParameters) {
-			if (NUMBER_OF_TURNS_LABEL_TEXT.equals(gp.getName()))
-				numberOfTurnsField.setText(gp.getValue());
-			else if (NUMBER_OF_TIMESTEPS_TO_IGNORE_LABEL_TEXT.equals(gp.getName()))
-				numberTimestepsIgnored.setText(gp.getValue());
-			else if (UPDATE_CHARTS_LABEL_TEXT.equals(gp.getName())) {
-				final boolean selected = Boolean.parseBoolean(gp.getValue());
-				onLineChartsCheckBox.setSelected(selected);
-			} else if (DISPLAY_ADVANCED_CHARTS_LABEL_TEXT.equals(gp.getName())) {
-				final boolean selected = Boolean.parseBoolean(gp.getValue());
-				advancedChartsCheckBox.setSelected(selected);
-			}
-		}
-		
-		final DefaultMutableTreeNode infoValueTree = ParameterTreeUtils.loadSingleRunParameterIntoInfoValueTree(model,batchParameters,currentModelHandler);
-		parameterValueComponentTree = convertInfoValueTreeToInfoComponentTree(infoValueTree);
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private DefaultMutableTreeNode convertInfoValueTreeToInfoComponentTree(DefaultMutableTreeNode infoValueTree) throws ModelInformationException {
-		@SuppressWarnings("rawtypes")
-		final Enumeration nodes = infoValueTree.breadthFirstEnumeration();
-		nodes.nextElement(); // root
-		
-		while (nodes.hasMoreElements()) {
-			final DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes.nextElement();
-			if (node.getUserObject() != null) {
-				@SuppressWarnings("unchecked")
-				final Pair<ParameterInfo,String> userObj = (Pair<ParameterInfo,String>) node.getUserObject();
-				final JComponent component = convertStringToComponent(userObj.getKey(),userObj.getValue());
-				final Pair<ParameterInfo,JComponent> newUserObj = new Pair<ParameterInfo,JComponent>(userObj.getKey(),component);
-				node.setUserObject(newUserObj);
-			}
-		}
-		
-		return infoValueTree;
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	private JComponent convertStringToComponent(final ParameterInfo info, final String value) throws ModelInformationException {
-		if (info instanceof SubmodelInfo)
-			return initializeJComponentForSubmodelParameter(value,(SubmodelInfo)info);
-		
-		return initializeJComponentForParameter(value,info);
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	@SuppressWarnings("unchecked")
-	private JComponent initializeJComponentForParameter(final String strValue, final ParameterInfo info) throws ModelInformationException {
-		JComponent field = null;
-		
-		if (info.isBoolean()){
-			field = new JCheckBox();
-			boolean value = Boolean.parseBoolean(strValue); 
-			((JCheckBox)field).setSelected(value);
-		} else if (info.isEnum() || info instanceof MasonChooserParameterInfo) {
-			Object[] elements = null;
-			if (info.isEnum()){
-				final Class<Enum<?>> type = (Class<Enum<?>>) info.getJavaType();
-				elements = type.getEnumConstants();
-			} else {
-				final MasonChooserParameterInfo chooserInfo = (MasonChooserParameterInfo) info;
-				elements = chooserInfo.getValidStrings();
-			}
-			final JComboBox list = new JComboBox(elements);
-
-			if (info.isEnum()) {
-				try {
-					@SuppressWarnings("rawtypes")
-					final Object value = Enum.valueOf((Class<? extends Enum>)info.getJavaType(),strValue);
-					list.setSelectedItem(value);
-				} catch (final IllegalArgumentException e) {
-					throw new ModelInformationException(e.getMessage() + " for parameter: " + info.getName() + ".");
-				}
-			} else {
-				try {
-					final int value = Integer.parseInt(strValue);
-					list.setSelectedIndex(value);
-				} catch (final NumberFormatException e) {
-					throw new ModelInformationException("Invalid value for parameter " + info.getName() + " (not a number).");
-				}
-			}
-			field = list;
-		} else if (info.isFile()) {
-			field = new JPanel();
-			final JTextField textField = new JTextField();
-			
-			if (!strValue.isEmpty()) {
-				final File file = new File(strValue);
-				textField.setText(file.getName());
-				textField.setToolTipText(file.getAbsolutePath());
-			}
-			
-			field.add(textField);
-		} else if (info instanceof MasonIntervalParameterInfo) {
-			field = new JPanel();
-			final JTextField textField = new JTextField(strValue);
-			field.add(textField);
-		} else {
-			field = new JTextField(strValue);
-		}
-		
-		return field;
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private JComponent initializeJComponentForSubmodelParameter(final String type, final SubmodelInfo submodelInfo) throws ModelInformationException {
-		try {
-			final Class<?> clazz = Class.forName(type,true,currentModelHandler.getCustomClassLoader());
-			final Object value = new ClassElement(clazz);
-			submodelInfo.setActualType(clazz);
-			final Object[] elements = new Object[] { value }; 
-			final JComboBox list = new JComboBox(elements);
-			list.setSelectedIndex(0);
-			
-			return list;
-		} catch (final ClassNotFoundException e) {
-			throw new ModelInformationException("Invalid actual type " + type + " for submodel parameter: " + submodelInfo.getName(),e);
-		}
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private void fillParameterSweepPage(final Model model) throws ModelInformationException {
-		final List<GeneralParameter> generalParameters = model.getGeneralParameterList();
-		for (final GeneralParameter gp : generalParameters) {
-			if (NUMBER_OF_TURNS_LABEL_TEXT.equals(gp.getName()))
-				numberOfTurnsFieldPSW.setText(gp.getValue());
-			else if (NUMBER_OF_TIMESTEPS_TO_IGNORE_LABEL_TEXT.equals(gp.getName()))
-				numberTimestepsIgnoredPSW.setText(gp.getValue());
-		}
-		
-		final DefaultListModel listModel = new DefaultListModel();
-		final List<DefaultParameter> defaultParameters = model.getDefaultParameterList();
-		ParameterTreeUtils.loadPSDefaultParameters(listModel,defaultParameters,batchParameters);
-		parameterList.setModel(listModel);
-		
-		// creating combination boxes
-		for (int i = 0;i < model.getCombination().size() - 1;addBox(),++i);
-		
-		final List<Combination> sortedCombinations = new ArrayList<Combination>(model.getCombination());
-		Collections.sort(sortedCombinations,new Comparator<Combination>(){
-			public int compare(final Combination o1, final Combination o2) {
-				return o1.getPosition().compareTo(o2.getPosition());
-			}
-		});
-		
-		for (int i = 0;i < sortedCombinations.size();++i) {
-			final ParameterCombinationGUI pGUI = parameterTreeBranches.get(i);
-			final DefaultTreeModel treeModel = (DefaultTreeModel) pGUI.tree.getModel();
-			final DefaultMutableTreeNode combinationRoot = pGUI.combinationRoot;
-			ParameterTreeUtils.loadAPSCombinationTree(treeModel,combinationRoot,batchParameters,currentModelHandler,sortedCombinations.get(i));
-			
-			for (int j = 0;j < pGUI.tree.getRowCount();++j) 
-		         pGUI.tree.expandRow(j);
-		}
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	private void dumpParameterTree(final ParameterNode rootNode) {
-		dumpParameterTreeBranch(rootNode, "");
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private void dumpParameterTreeBranch(final ParameterNode node, final String prefix){
-		@SuppressWarnings("unchecked")
-		final Enumeration<ParameterNode> children = node.children();
-		
-		while (children.hasMoreElements()) {
-			final ParameterNode child = children.nextElement();
-			final ai.aitia.meme.paramsweep.batch.param.AbstractParameterInfo<?> info = (ai.aitia.meme.paramsweep.batch.param.AbstractParameterInfo<?>) child.getUserObject();
-			if (info instanceof IncrementalParameterInfo<?>) {
-				final IncrementalParameterInfo<?> incrementalInfo = (IncrementalParameterInfo<?>) info;
-				log.debug(prefix + info.getName() + ": start = " + incrementalInfo.getStart() + "; end = " + incrementalInfo.getEnd() + "; increment = " + incrementalInfo.getIncrement() + "; run = " + incrementalInfo.getRunNumber());
-			} else if (info instanceof ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?>) {
-				final ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?> simpleInfo = (ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?>) info;
-				log.debug(prefix + info.getName() + ": " + simpleInfo.getValues() + "; run = " + simpleInfo.getRunNumber());
-			} else {
-				throw new IllegalStateException("Trying to dump unknown parameterinfo: " + info);
-			}
-			
-			if (info.getMultiplicity() > 1) {
-				dumpParameterTreeBranch(child, prefix + "\t");
-			}
-		}
 	}
 
 	//----------------------------------------------------------------------------------------------------
 	/** {@inheritDoc} 
 	 */
-	@Override
-	public void onPageChange(final boolean show) {
-		if (show){
-			dashboard.getSaveConfigMenuItem().setEnabled(true);
-
-			try {
-				if (parameterValueComponentTree.getChildCount() == 0 || currentModelHandler == null || !currentModelHandler.equals(dashboard.getModelHandler())){
-					currentModelHandler = dashboard.getModelHandler();
-					
-					parameterValueComponentTree = new DefaultMutableTreeNode();
-					possibleTypesCache.clear();
-					singleRunParametersPanel.removeAll();
-					batchParameters = currentModelHandler.getParameters();
-					final List<ParameterInfo> modelParameters = createAndDisplayAParameterPanel(batchParameters,"Model parameters",null,false);
-
-//					parametersScrollPane.setViewportView(singleRunParametersPanel);
-
-					singleRunParametersPanel.revalidate();
-					
-					// initialize paramsweep panel
-					Collections.sort(modelParameters);
-					createDefaultParameterList(modelParameters);
-					enableDisableSettings(false);
-					modifyButton.setEnabled(false);
-					updateNumberOfRuns();
-					resetParamsweepGUI();
-					
-					// initialize the GA seach panel
-					gaSearchHandler.init(currentModelHandler);
-					gaSearchPanel.reset(gaSearchHandler);
-					gaSearchHandler.removeAllFitnessFunctions();
-					final List<RecordableInfo> recordables = dashboard.getModelHandler().getRecorders().get(0).getRecordables();
-					for (final RecordableInfo recordableInfo : recordables) {
-						if (gaSearchHandler.canBeFitnessFunction(recordableInfo))
-							gaSearchHandler.addFitnessFunction(recordableInfo);
-					}
-					
-					gaSearchHandler.removeAllParameters();
-					for (final ParameterInfo parameterInfo : modelParameters) 
-						gaSearchHandler.addParameter(new ParameterOrGene(parameterInfo));
-				}
-			} catch (final ModelInformationException e) {
-				JOptionPane.showMessageDialog(wizard, new JLabel(e.getMessage()), "Error while analyizing model", JOptionPane.ERROR_MESSAGE);
-				e.printStackTrace();
+	public void onPageChange(boolean show) { //TODO: reimplement 
+		if (show) {
+			if (owner.getModelState() == ParameterSweepWizard.ERROR) return;
+			initializePageForPlatform();
+			if (owner.getModelState() == ParameterSweepWizard.NEW_MODEL) {
+				modelInformationException = false;
+				resetParamsweepGUI();
+				parameters = createParameters();
+				if (parameters == null) return;
+				if (owner.getParameterFile() != null && owner.getParameterFile().exists()) {
+					//TODO: do this
+//					try {
+//						root = PlatformSettings.parseParameterFile(parameters,owner.getParameterFile());
+//						root.setUserObject(new String(owner.getParameterFile().getName()));
+//						setGlobalRunsField();
+//						outputTree.setModel(new DefaultTreeModel(root));
+//						outputTree.expandRow(0);
+//					} catch (ParameterParserException e) {
+//						Utilities.userAlert(owner,"Cannot initialize from the defined parameter file.","Reason: " + Util.getLocalizedMessage(e));
+//						e.printStackTrace(ParameterSweepWizard.getLogStream());
+//						createDefaultTree();
+//					}
+				} else
+					createDefaultParameterList(parameters);
+				enableDisableSettings(false);
+				modifyButton.setEnabled(false);
+				owner.setModelState(ParameterSweepWizard.NEW_RECORDERS);
 			}
-		} else { // this should only run when moving onto Page_Run
+			if (owner.getParameterFile() != null && owner.isParameterFileChanged()) { 
+				if (owner.getModelState() != ParameterSweepWizard.NEW_MODEL && owner.getParameterFile().exists()) {
+					//TODO: do this
+//					try {
+//						root = PlatformSettings.parseParameterFile(parameters,owner.getParameterFile());
+//						root.setUserObject(new String(owner.getParameterFile().getName()));
+//						setGlobalRunsField();
+//						outputTree.setModel(new DefaultTreeModel(root));
+//						outputTree.expandRow(0);
+//					} catch (ParameterParserException e) {
+//						Utilities.userAlert(owner,"Cannot initialize from the defined parameter file.","Reason: " + Util.getLocalizedMessage(e));
+//						e.printStackTrace(ParameterSweepWizard.getLogStream());
+//					}
+				}
+			}
+			owner.setParameterFileChanged(false);
+			updateNumberOfRuns();
+		} else {
+			if (cancelButton.isEnabled())
+				cancelButton.doClick();
 		}
-
 	}
 
 	//----------------------------------------------------------------------------------------------------
@@ -1542,407 +848,88 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	public String getTitle() {
 		return TITLE;
 	}
-
+	
+	//-------------------------------------------------------------------------------
+	/** Loads the page-related model settings from the XML element <code>element</code>. This
+	 *  method is part of the model settings retrieving performed by {@link ai.aitia.meme.paramsweep.generator.WizardSettingsManager 
+	 *  WizardSettingsManager}.
+	 * @throws WizardLoadingException if the XML document is invalid
+	 */
+	public void load(Element element) throws WizardLoadingException { 
+		//TODO:
+	}
+	
+	//-------------------------------------------------------------------------------
+	/** Saves the page-related model settings to the XML node <code>node</code>. This
+	 *  method is part of the model settings storing performed by {@link ai.aitia.meme.paramsweep.generator.WizardSettingsManager 
+	 *  WizardSettingsManager}.
+	 * @throws TransformerException 
+	 * @throws ParserConfigurationException 
+	 */
+	public void save(Node node) throws ParserConfigurationException, TransformerException {
+		//TODO:
+	}
+	
 	//----------------------------------------------------------------------------------------------------
+	public String[] getInitParamResult() { return initParamResult; }
+	public List<ParameterInfo> getNewParametersList() { return newParameters; }
+	public List<ParameterInfo> getParameters() { return parameters; }
+
+	//------------------------------------------------------------------------------
+    public IIntelliContext getIntelliContext(){
+		if (intelliContext == null)
+			intelliContext = new IntelliContext();
+		return intelliContext;
+	}
+	
+	//------------------------------------------------------------------------------
+	/** Creates the list of information objects of parameters. */
 	@SuppressWarnings("unchecked")
-	private List<ParameterInfo> createAndDisplayAParameterPanel(final List<ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?>> batchParameters, final String title,
-																final SubmodelInfo parent, final boolean submodelSelectionWithoutNotify) {
-		// initialize single run form
-		final DefaultFormBuilder formBuilder = FormsUtils.build("p ~ p:g", "");
-							
-		if (parent == null) {
-			SwingUtilities.invokeLater(new Runnable() {
-				
-				@Override
-				public void run() {
-					numberOfTurnsField.grabFocus();
-				}
-			});
-			
-			formBuilder.appendSeparator("<html><b>General parameters</b></html>");
-			formBuilder.append(NUMBER_OF_TURNS_LABEL_TEXT, numberOfTurnsField);
-			formBuilder.append(NUMBER_OF_TIMESTEPS_TO_IGNORE_LABEL_TEXT, numberTimestepsIgnored);					
-			formBuilder.append(UPDATE_CHARTS_LABEL_TEXT, onLineChartsCheckBox);
-			formBuilder.append(DISPLAY_ADVANCED_CHARTS_LABEL_TEXT, advancedChartsCheckBox);
-		} 
-		formBuilder.appendSeparator("<html><b>" + title + "</b></html>");
-		
-		final DefaultMutableTreeNode parentNode = parent == null ? parameterValueComponentTree : findParameterInfoNode(parent,false);
-		
-		final List<ParameterInfo> info = new ArrayList<ParameterInfo>();
-		for (final ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?> batchParameterInfo : batchParameters) {
-			final ParameterInfo parameterInfo = InfoConverter.parameterInfo2ParameterInfo(batchParameterInfo);
-			if (parent != null && parameterInfo instanceof ISubmodelGUIInfo) {
-				final ISubmodelGUIInfo sgi = (ISubmodelGUIInfo) parameterInfo;
-				sgi.setParentValue(parent.getActualType());
-			}
-			
-			final JComponent field;
-			final DefaultMutableTreeNode oldNode = findParameterInfoNode(parameterInfo,true);
-			Pair<ParameterInfo,JComponent> userData = null;
-			JComponent oldField = null;
-			if (oldNode != null) {
-				userData = (Pair<ParameterInfo,JComponent>) oldNode.getUserObject();
-				oldField = userData.getSecond();
-			}
-			
-			if (parameterInfo.isBoolean()) {
-				field = new JCheckBox();
-				boolean value = oldField != null ? ((JCheckBox)oldField).isSelected()
-												 : ((Boolean)batchParameterInfo.getDefaultValue()).booleanValue(); 
-				((JCheckBox)field).setSelected(value);
-			} else if (parameterInfo.isEnum() || parameterInfo instanceof MasonChooserParameterInfo) {
-				Object[] elements = null;
-				if (parameterInfo.isEnum()) {
-					final Class<Enum<?>> type = (Class<Enum<?>>) parameterInfo.getJavaType();
-					elements = type.getEnumConstants();
-				} else {
-					final MasonChooserParameterInfo chooserInfo = (MasonChooserParameterInfo)parameterInfo;
-					elements = chooserInfo.getValidStrings();
-				}
-				final JComboBox list = new JComboBox(elements);
-
-				if (parameterInfo.isEnum()) {
-					final Object value = oldField != null ? ((JComboBox)oldField).getSelectedItem()
-														  : parameterInfo.getValue();
-					list.setSelectedItem(value);
-				} else {
-					final int value = oldField != null ? ((JComboBox)oldField).getSelectedIndex()
-													   : (Integer) parameterInfo.getValue();
-					list.setSelectedIndex(value);
-				}
-				
-				field = list;
-			} else if (parameterInfo instanceof SubmodelInfo) {
-				final SubmodelInfo submodelInfo = (SubmodelInfo) parameterInfo;
-				final Object[] elements = new Object[] { "Loading class information..." }; 
-				final JComboBox list = new JComboBox(elements);
-//				field = list;
-				
-				final Object value = oldField != null ? ((JComboBox)((JPanel)oldField).getComponent(0)).getSelectedItem()
-													  : new ClassElement(submodelInfo.getActualType());
-				
-				new ClassCollector(this,list,submodelInfo,value,submodelSelectionWithoutNotify).execute();
-				
-				
-				final JButton rightButton = new JButton();
-				rightButton.setOpaque(false);
-				rightButton.setRolloverEnabled(true);
-				rightButton.setIcon(SHOW_SUBMODEL_ICON);
-				rightButton.setRolloverIcon(SHOW_SUBMODEL_ICON_RO);
-				rightButton.setDisabledIcon(SHOW_SUBMODEL_ICON_DIS);
-				rightButton.setBorder(null);
-				rightButton.setToolTipText("Display submodel parameters");
-				rightButton.setActionCommand(ACTIONCOMMAND_SHOW_SUBMODEL);
-				rightButton.addActionListener(new ActionListener() {
-					
-					@Override
-					public void actionPerformed(ActionEvent arg0) {
-						showHideSubparameters(list, (SubmodelInfo)parameterInfo);
-					}
-				});
-				
-				field = new JPanel(new BorderLayout());
-				field.add(list, BorderLayout.CENTER);
-				field.add(rightButton, BorderLayout.EAST);
-			} else if (File.class.isAssignableFrom(parameterInfo.getJavaType())){
-				field = new JPanel(new BorderLayout());
-				
-				String oldName = "";
-				String oldPath = "";
-				if (oldField != null) {
-					final JTextField oldTextField = (JTextField) oldField.getComponent(0);
-					oldName = oldTextField.getText();
-					oldPath = oldTextField.getToolTipText();
-				} else if (parameterInfo.getValue() != null) {
-					final File file = (File) parameterInfo.getValue();
-					oldName = file.getName();
-					oldPath = file.getAbsolutePath();
-				}
-				
-				final JTextField textField = new JTextField(oldName);
-				textField.setToolTipText(oldPath);
-				textField.setInputVerifier(new InputVerifier() {
-					
-					@Override
-					public boolean verify(final JComponent input) {
-						final JTextField inputField = (JTextField) input;
-						if (inputField.getText() == null || inputField.getText().isEmpty()) {
-							final File file = new File("");
-							inputField.setToolTipText(file.getAbsolutePath());
-							hideError();
-							return true;
-						}
-						
-						final File oldFile = new File(inputField.getToolTipText());
-						if (oldFile.exists() && oldFile.getName().equals(inputField.getText().trim())) {
-							hideError();
-							return true;
-						}
-						
-						inputField.setToolTipText("");
-						final File file = new File(inputField.getText().trim());
-						if (file.exists()) {
-							inputField.setToolTipText(file.getAbsolutePath());
-							inputField.setText(file.getName());
-							hideError();
-							return true;
-						} else {
-							final PopupFactory popupFactory = PopupFactory.getSharedInstance();
-							final Point locationOnScreen = inputField.getLocationOnScreen();
-							final JLabel message = new JLabel("Please specify an existing file!");
-							message.setBorder(new LineBorder(Color.RED, 2, true));
-							if (errorPopup != null)
-								errorPopup.hide();
-							errorPopup = popupFactory.getPopup(inputField,message,locationOnScreen.x - 10,locationOnScreen.y - 30);
-							errorPopup.show();
-							return false;
-						}
-					}
-				});
-				
-				final JButton browseButton = new JButton(BROWSE_BUTTON_TEXT);
-				browseButton.addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						final JFileChooser fileDialog = new JFileChooser(!"".equals(textField.getToolTipText()) ? textField.getToolTipText() : currentDirectory);
-						if (!"".equals(textField.getToolTipText()))
-							fileDialog.setSelectedFile(new File(textField.getToolTipText()));
-						int dialogResult = fileDialog.showOpenDialog(dashboard);
-						if (dialogResult == JFileChooser.APPROVE_OPTION) {
-							final File selectedFile = fileDialog.getSelectedFile();
-							if (selectedFile != null) {
-								currentDirectory = selectedFile.getAbsoluteFile().getParent();
-								textField.setText(selectedFile.getName());
-								textField.setToolTipText(selectedFile.getAbsolutePath());
-							}
-						}
-					}
-				});
-				
-				field.add(textField,BorderLayout.CENTER);
-				field.add(browseButton,BorderLayout.EAST);
-			} else if (parameterInfo instanceof MasonIntervalParameterInfo) {
-				final MasonIntervalParameterInfo intervalInfo = (MasonIntervalParameterInfo) parameterInfo;
-				
-				field = new JPanel(new BorderLayout());
-				
-				String oldValueStr = String.valueOf(parameterInfo.getValue());
-				if (oldField != null) {
-					final JTextField oldTextField = (JTextField) oldField.getComponent(0);
-					oldValueStr = oldTextField.getText();
-				}
-				
-				final JTextField textField = new JTextField(oldValueStr);
-				
-				PercentJSlider tempSlider =  null;
-				if (intervalInfo.isDoubleInterval())
-					tempSlider = new PercentJSlider(intervalInfo.getIntervalMin().doubleValue(),intervalInfo.getIntervalMax().doubleValue(),
-													Double.parseDouble(oldValueStr));
-				else
-					tempSlider = new PercentJSlider(intervalInfo.getIntervalMin().longValue(),intervalInfo.getIntervalMax().longValue(),
-													Long.parseLong(oldValueStr));
-					
-				final PercentJSlider slider = tempSlider;
-				slider.setMajorTickSpacing(100);
-				slider.setMinorTickSpacing(10);
-				slider.setPaintTicks(true);
-				slider.setPaintLabels(true);
-				slider.addChangeListener(new ChangeListener() {
-					public void stateChanged(final ChangeEvent _) {
-						if (slider.hasFocus()) {
-							final String value = intervalInfo.isDoubleInterval() ? String.valueOf(slider.getDoubleValue()) :
-																				   String.valueOf(slider.getLongValue());
-							textField.setText(value);
-							slider.setToolTipText(value);
-						}
-					}
-				});
-				
-				textField.setInputVerifier(new InputVerifier() {
-					public boolean verify(JComponent input) {
-						final JTextField inputField = (JTextField) input;
-						
-						try {
-							hideError();
-							final String valueStr = inputField.getText().trim();
-							if (intervalInfo.isDoubleInterval()) {
-								final double value = Double.parseDouble(valueStr);
-								if (intervalInfo.isValidValue(valueStr)) {
-									slider.setValue(value);
-									return true;
-								} else 
-									showError("Please specify a value between " + intervalInfo.getIntervalMin() + " and " + intervalInfo.getIntervalMax() + ".",
-											  inputField);
-									return false;
-							} else {
-								final long value = Long.parseLong(valueStr);
-								if (intervalInfo.isValidValue(valueStr)) {
-									slider.setValue(value);
-									return true;
-								} else {
-									showError("Please specify an integer value between " + intervalInfo.getIntervalMin() + " and " + intervalInfo.getIntervalMax() +
-											  ".",inputField);
-									return false;
-								}
-							}
-						} catch (final NumberFormatException _) {
-							final String message = "The specified value is not a" + (intervalInfo.isDoubleInterval() ? "" : "n integer") + " number.";
-							showError(message,inputField);
-							return false;
-						}
-						
-					}
-				});
-				
-				textField.getDocument().addDocumentListener(new DocumentListener() {
-//					private Popup errorPopup;
-					
-					public void removeUpdate(final DocumentEvent _) {
-						textFieldChanged();
-					}
-					
-					public void insertUpdate(final DocumentEvent _) {
-						textFieldChanged();
-					}
-					
-					public void changedUpdate(final DocumentEvent _) {
-						textFieldChanged();
-					}
-					
-					private void textFieldChanged() {
-						if (!textField.hasFocus()) {
-							hideError();
-							return;
-						}
-						
-						try {
-							hideError();
-							final String valueStr = textField.getText().trim();
-							if (intervalInfo.isDoubleInterval()) {
-								final double value = Double.parseDouble(valueStr);
-								if (intervalInfo.isValidValue(valueStr))
-									slider.setValue(value);
-								else 
-									showError("Please specify a value between " + intervalInfo.getIntervalMin() + " and " + intervalInfo.getIntervalMax() + ".",
-											  textField);
-							} else {
-								final long value = Long.parseLong(valueStr);
-								if (intervalInfo.isValidValue(valueStr))
-									slider.setValue(value);
-								else 
-									showError("Please specify an integer value between " + intervalInfo.getIntervalMin() + " and " + intervalInfo.getIntervalMax() +
-											  ".",textField);
-							}
-						} catch (final NumberFormatException _) {
-							final String message = "The specified value is not a" + (intervalInfo.isDoubleInterval() ? "" : "n integer") + " number.";
-							showError(message,textField);
-						}
-					}
-				});
-
-				field.add(textField,BorderLayout.CENTER);
-				field.add(slider,BorderLayout.SOUTH);
-			} else {
-				final Object value = oldField != null ? ((JTextField)oldField).getText()
-													  : parameterInfo.getValue();
-				field = new JTextField(value.toString());
-				((JTextField)field).addActionListener(new ActionListener() {
-					
-					@Override
-					public void actionPerformed(final ActionEvent e) {
-						wizard.clickDefaultButton();
-					}
-				});
-			}
-			
-			final JLabel parameterLabel = new JLabel(parameterInfo.getName().replaceAll("([A-Z])", " $1"));
-			final String description = parameterInfo.getDescription();
-			if (description != null && !description.isEmpty()){
-				parameterLabel.addMouseListener(new MouseAdapter() {
-					
-					@Override
-					public void mouseEntered(final MouseEvent e) {
-						final DescriptionPopupFactory popupFactory = DescriptionPopupFactory.getInstance();
-						
-						final Popup parameterDescriptionPopup = popupFactory.getPopup(parameterLabel, description, dashboard.getCssStyle());
-						
-						parameterDescriptionPopup.show();
-					}
-					
-				});
-			}
-			
-			if (oldNode != null) 
-				userData.setSecond(field);
-			else {
-				final Pair<ParameterInfo,JComponent> pair = new Pair<ParameterInfo,JComponent>(parameterInfo,field);
-				final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(pair);
-				parentNode.add(newNode);
-			}
-			formBuilder.append(parameterLabel, field);
-			final CellConstraints constraints = formBuilder.getLayout().getConstraints(parameterLabel);
-			constraints.vAlign = CellConstraints.TOP;
-			constraints.insets = new Insets(5,0,0,0);
-			formBuilder.getLayout().setConstraints(parameterLabel,constraints);
-			
-			// prepare the parameterInfo for the param sweeps
-			parameterInfo.setRuns(0);
-			parameterInfo.setDefinitionType(ParameterInfo.CONST_DEF);
-			parameterInfo.setValue(batchParameterInfo.getDefaultValue());
-			info.add(parameterInfo);
+	private List<ParameterInfo> createParameters() { 
+		try {
+			batchParameters = owner.getModelInformation().getParameters();
+		} catch (ModelInformationException e) {
+			Utilities.userAlert(owner,"Identification of parameters is failed:", Util.getLocalizedMessage(e));
+			modelInformationException = true;
+			owner.enableDisableButtons();
+			owner.setModelState(ParameterSweepWizard.ERROR);
+			e.printStackTrace(ParameterSweepWizard.getLogStream());
+			return null;
 		}
-
-		final JPanel panel = formBuilder.getPanel();
-		singleRunParametersPanel.add(panel);
-
-		if (singleRunParametersPanel.getComponentCount() > 1) 
-			panel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0,1,0,0,Color.GRAY),BorderFactory.createEmptyBorder(0,5,0,0)));
-		
-		Style.apply(panel, dashboard.getCssStyle());
-		
+		originalInitParamResult = new String[batchParameters.size()];
+		for (int i = 0;i < batchParameters.size();++i)
+			originalInitParamResult[i] = batchParameters.get(i).getName();
+		List<ParameterInfo> info = new ArrayList<ParameterInfo>();
+		for (ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?> parameter : batchParameters) {
+			ParameterInfo pi = InfoConverter.parameterInfo2ParameterInfo(parameter);
+			if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.LOCAL)
+				pi.setRuns(1);
+			pi.setDefinitionType(ParameterInfo.CONST_DEF);
+			pi.setValue(parameter.getDefaultValue());
+			info.add(pi);
+			
+		}
+		if (newParameters != null) { 
+			initParamResult = new String[originalInitParamResult.length + newParameters.size()];
+			for (int i = 0;i < originalInitParamResult.length;++i)
+				initParamResult[i] = originalInitParamResult[i];
+			for (int i = 0;i < newParameters.size();++i) {
+				String name = newParameters.get(i).getName();
+				initParamResult[originalInitParamResult.length + i] = name;
+				newParameters.get(i).setName(Util.capitalize(name));
+			}
+			info.addAll(newParameters);
+		} else 
+			initParamResult = originalInitParamResult;
+		Collections.sort(info);
 		return info;
 	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private DefaultMutableTreeNode findParameterInfoNode(final ParameterInfo info, final boolean checkParentValue) {
-		if (info == null) return null;
-		
-		@SuppressWarnings("rawtypes")
-		final Enumeration treeValues = parameterValueComponentTree.breadthFirstEnumeration();
-		treeValues.nextElement(); // root node
-		
-		while (treeValues.hasMoreElements()) {
-			final DefaultMutableTreeNode node = (DefaultMutableTreeNode) treeValues.nextElement();
-			@SuppressWarnings("unchecked")
-			final Pair<ParameterInfo,JComponent> userData = (Pair<ParameterInfo,JComponent>) node.getUserObject();
-			final ParameterInfo parameterInfo = userData.getFirst();
-			
-			if (checkParentValue && info instanceof ISubmodelGUIInfo && parameterInfo instanceof ISubmodelGUIInfo) {
-				final ISubmodelGUIInfo sgi = (ISubmodelGUIInfo) info;
-				final ISubmodelGUIInfo otherSgi = (ISubmodelGUIInfo) parameterInfo;
-				if (info.equals(parameterInfo) && classEquals(sgi.getParentValue(),otherSgi.getParentValue()))
-					return node;
-			} else if (info.equals(parameterInfo)) 
-				return node;
-		}
-		
-		return null;
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	boolean classEquals(final Class<?> class1, final Class<?> class2) {
-		if (class1 == class2) return true;
-		
-		if (class1 == null) return false;
-		
-		return class1.equals(class2);
-	}
 
+	
 	//------------------------------------------------------------------------------
 	/** Builds the parameter list on the gui from the <code>parameters</code> list. */
 	private void createDefaultParameterList(final List<ParameterInfo> parameters) {
-		final DefaultListModel model = new DefaultListModel();
+		final DefaultListModel<AvailableParameter> model = new DefaultListModel<>();
 		for (final ParameterInfo parameterInfo : parameters) 
 			model.addElement(new AvailableParameter(parameterInfo));
 		parameterList.setModel(model); 
@@ -1952,106 +939,73 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	/** Edits the information object <code>info</code> so this method fills the appropriate
 	 *  components with the informations of <code>info</code>.
 	 */
+	//TODO: check
 	private void edit(final ParameterInfo info) { 
-		changeText(info.getName(),info.getType());
-		if (info instanceof SubmodelInfo) {
-			final SubmodelInfo sInfo = (SubmodelInfo) info;
-			editSubmodelInfo(sInfo);
-		} else {
-			String view = null;
-			switch (info.getDefinitionType()) {
-			case ParameterInfo.CONST_DEF : {
-				if (info.isEnum() || info instanceof MasonChooserParameterInfo) {
-					view = "ENUM";
-					constDef.setSelected(true);
-					incrDef.setEnabled(false);
-					listDef.setEnabled(false);
-					Object[] elements = null;
-					if (info.isEnum()){
-						@SuppressWarnings("unchecked")
-						final
-						Class<Enum<?>> type = (Class<Enum<?>>) info.getJavaType();
-						elements = type.getEnumConstants();
-					} else {
-						final MasonChooserParameterInfo chooserInfo = (MasonChooserParameterInfo) info;
-						elements = chooserInfo.getValidStrings();
-					}
-					final DefaultComboBoxModel model = (DefaultComboBoxModel)enumDefBox.getModel();
-					model.removeAllElements();
-					for (final Object object : elements) {
-						model.addElement(object);
-					}
-					if (info.isEnum())
-						enumDefBox.setSelectedItem(info.getValue());
-					else 
-						enumDefBox.setSelectedIndex((Integer)info.getValue());
-				} else if (info.isFile()) {
-					view = "FILE";
-					constDef.setSelected(true);
-					final File file = (File) info.getValue();
-					if (file != null) {
-						fileTextField.setText(file.getName());
-						fileTextField.setToolTipText(file.getAbsolutePath());
-					}
-				} else {
-					view = "CONST";
-					constDef.setSelected(true);
-					constDefField.setText(info.valuesToString());
-				}
-				break;
-			}
-			case ParameterInfo.LIST_DEF  : view = "LIST";
-				listDef.setSelected(true);
-				listDefArea.setText(info.valuesToString());
-				break;
-			case ParameterInfo.INCR_DEF  : view = "INCREMENT";
-				incrDef.setSelected(true);
-				incrStartValueField.setText(info.startToString());
-				incrEndValueField.setText(info.endToString());
-				incrStepField.setText(info.stepToString());
-			}
-			
-			final CardLayout cl = (CardLayout) rightMiddle.getLayout();
-			cl.show(rightMiddle,view);
-			enableDisableSettings(true);
-			if (!info.isNumeric()) 
-				incrDef.setEnabled(false);
-			if (info.isEnum() || info instanceof MasonChooserParameterInfo || info.isFile()) { 
+		changeText(info.getName(), info.getType());
+		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.LOCAL)
+			runsField.setText(String.valueOf(info.getRuns()));
+		String view = null;
+		switch (info.getDefinitionType()) {
+		case ParameterInfo.CONST_DEF : {
+			if (info.isEnum() || info instanceof MasonChooserParameterInfo) {
+				view = "ENUM";
+				constDef.setSelected(true);
 				incrDef.setEnabled(false);
 				listDef.setEnabled(false);
+				Object[] elements = null;
+				if (info.isEnum()){
+					@SuppressWarnings("unchecked")
+					final Class<Enum<?>> type = (Class<Enum<?>>) info.getJavaType();
+					elements = type.getEnumConstants();
+				} else {
+					final MasonChooserParameterInfo chooserInfo = (MasonChooserParameterInfo) info;
+					elements = chooserInfo.getValidStrings();
+				}
+				final DefaultComboBoxModel<Object> model = (DefaultComboBoxModel<Object>) enumDefBox.getModel();
+				model.removeAllElements();
+				for (final Object object : elements) {
+					model.addElement(object);
+				}
+				if (info.isEnum())
+					enumDefBox.setSelectedItem(info.getValue());
+				else 
+					enumDefBox.setSelectedIndex((Integer)info.getValue());
+			} else if (info.isFile()) {
+				view = "FILE";
+				constDef.setSelected(true);
+				final File file = (File) info.getValue();
+				if (file != null) {
+					fileTextField.setText(file.getName());
+					fileTextField.setToolTipText(file.getAbsolutePath());
+				}
+			} else {
+				view = "CONST";
+				constDef.setSelected(true);
+				constDefField.setText(info.valuesToString());
 			}
-			modifyButton.setEnabled(true);
+			break;
 		}
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	private void editSubmodelInfo(final SubmodelInfo sInfo) {
-		constDef.setSelected(true);
-		incrDef.setEnabled(false);
-		listDef.setEnabled(false);
-		cancelButton.setEnabled(true);
-		final DefaultComboBoxModel model = (DefaultComboBoxModel) submodelTypeBox.getModel();
-		model.removeAllElements();
-		model.addElement("Loading class information...");
-		final CardLayout cl = (CardLayout) rightMiddle.getLayout();
-		cl.show(rightMiddle,"SUBMODEL");
+		case ParameterInfo.LIST_DEF  : view = "LIST";
+			listDef.setSelected(true);
+			listDefArea.setText(info.valuesToString());
+			break;
+		case ParameterInfo.INCR_DEF  : view = "INCREMENT";
+			incrDef.setSelected(true);
+			incrStartValueField.setText(info.startToString());
+			incrEndValueField.setText(info.endToString());
+			incrStepField.setText(info.stepToString());
+		}
 		
-		try {
-			final ClassElement[] elements = fetchPossibleTypes(sInfo);
-			model.removeAllElements();
-			for (final ClassElement classElement : elements) 
-				model.addElement(classElement);
-			
-			if (sInfo.getActualType() != null)
-				submodelTypeBox.setSelectedItem(new ClassElement(sInfo.getActualType()));
-			submodelTypeBox.setEnabled(true);
-			modifyButton.setEnabled(true);
-		} catch (final ComboBoxIsTooFullException e) {
-			String errorMsg = "Too much possibilities for " + sInfo.getName() + ". Please narrow down the domain by " + 
-					  		  "defining the possible classes in the @Submodel annotation.";
-			JOptionPane.showMessageDialog(wizard,new JLabel(errorMsg),"Error while analyizing model",JOptionPane.ERROR_MESSAGE);
-			cancelButton.doClick();
+		final CardLayout cl = (CardLayout) rightMiddle.getLayout();
+		cl.show(rightMiddle,view);
+		enableDisableSettings(true);
+		if (!info.isNumeric()) 
+			incrDef.setEnabled(false);
+		if (info.isEnum() || info instanceof MasonChooserParameterInfo || info.isFile()) { 
+			incrDef.setEnabled(false);
+			listDef.setEnabled(false);
 		}
+		modifyButton.setEnabled(true);
 	}
 
 	//------------------------------------------------------------------------------
@@ -2071,44 +1025,19 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	}
 
 	//----------------------------------------------------------------------------------------------------
-	private boolean checkNumberOfTurnsField(final boolean singleRun) {
-		try {
-			final String value = singleRun ? numberOfTurnsField.getText() : numberOfTurnsFieldPSW.getText(); 
-			Double.parseDouble(value);
-			return true;
-		} catch (final NumberFormatException _) {
-			return false;
-		}
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	private boolean checkNumberTimestepsIgnored(final boolean singleRun) {
-		try {
-			final String value = singleRun ? numberTimestepsIgnored.getText() : numberTimestepsIgnoredPSW.getText();
-			Double.parseDouble(value);
-			return true;
-		} catch (final NumberFormatException _) {
-			return false;
-		}
-	}
-
-	//----------------------------------------------------------------------------------------------------
 	private boolean modify() {
 		final ParameterInATree userObj = (ParameterInATree) editedNode.getUserObject();
 		
 		final String[] errors = checkInput(userObj.info);
 		if (errors != null && errors.length != 0) {
-			Utilities.userAlert(sweepPanel,(Object)errors);
+			Utilities.userAlert(container,(Object)errors);
 			return false;
 		} else {
 			modifyParameterInfo(userObj.info);
 			resetSettings();
 			modifyButton.setEnabled(false);
-			
-			if (!(userObj.info instanceof SubmodelInfo)) {
-				final DefaultTreeModel model = (DefaultTreeModel) editedTree.getModel();
-				model.nodeStructureChanged(editedNode);
-			}
+			final DefaultTreeModel model = (DefaultTreeModel) editedTree.getModel();
+			model.nodeStructureChanged(editedNode);
 			
 			editedNode = null;
 			editedTree = null;
@@ -2129,18 +1058,9 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		if (constDef.isSelected()) {
 			if (info.isEnum() || info instanceof MasonChooserParameterInfo) { 
 				// well, the combo box must contain a valid value
-			} else if (info instanceof SubmodelInfo) {
-				final Object selectedObject = submodelTypeBox.getSelectedItem();
-				if (!(selectedObject instanceof ClassElement))
-					errors.add("Invalid type is selected for parameter " + info.getName());
-				else {
-					final ClassElement selectedElement = (ClassElement) selectedObject;
-					if (selectedElement.clazz == null)
-						errors.add("'Constant value' cannot be empty. Please select a type.");
-				}
 			} else if (info.isFile()) {
 				if (fileTextField.getText().trim().isEmpty())
-					log.warn("Empty string was specified as file parameter " + info.getName().replaceAll("([A-Z])"," $1"));
+					Logger.logWarning("Empty string was specified as file parameter " + info.getName().replaceAll("([A-Z])"," $1"));
 
 				final File file = new File(fileTextField.getToolTipText());
 				if (!file.exists()) 
@@ -2148,10 +1068,10 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 			} else if (constDefField.getText().trim().equals(""))
 				errors.add("'Constant value' cannot be empty.");
 			else {
-				final boolean valid = ParameterInfo.isValid(constDefField.getText().trim(),info.getType());
+				final boolean valid = ParameterInfo.isValid(constDefField.getText().trim(), info.getType());
 				if (!valid)
 					errors.add("'Constant value' must be a valid " + getTypeText(info.getType()));
-				errors.addAll(PlatformSettings.additionalParameterCheck(info,new String[] { constDefField.getText().trim() },ParameterInfo.CONST_DEF));
+				errors.addAll(PlatformSettings.additionalParameterCheck(info, new String[] { constDefField.getText().trim() }, ParameterInfo.CONST_DEF));
 			}
 		} else if (listDef.isSelected()) {
 			String text = listDefArea.getText().trim();
@@ -2162,25 +1082,10 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 				final String[] elements = text.split(" ");
 				boolean goodList = true;
 				for (final String element : elements)
-					goodList = goodList && ParameterInfo.isValid(element.trim(),info.getType());
+					goodList = goodList && ParameterInfo.isValid(element.trim(), info.getType());
 				if (!goodList)
 					errors.add("All elements of the list must be a valid " + getTypeText(info.getType()));
-//				else {
-//					final Set<String> previous = new HashSet<String>(elements.length);
-//					for (final String element : elements) {
-//						if (previous.contains(element)) {
-//							goodList = false;
-//							break;
-//						}
-//						previous.add(element);
-//					}
-//					if (!goodList) {
-//						final int result = Utilities.askUser(wizard,false,"Warning", "The list contains repetitive element(s).\nAre you sure?");
-//						if (result == 0 && errors.size() == 0) // this doesn't work
-//							return new String[0];
-//					}
-//				}
-				errors.addAll(PlatformSettings.additionalParameterCheck(info,elements,ParameterInfo.LIST_DEF));
+				errors.addAll(PlatformSettings.additionalParameterCheck(info, elements, ParameterInfo.LIST_DEF));
 			}
 		} else {
 			boolean s = false, e = false, st = false; 
@@ -2188,7 +1093,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 				errors.add("'Start value' cannot be empty.");
 				s = true;
 			} else {
-				final boolean valid = ParameterInfo.isValid(incrStartValueField.getText().trim(),info.getType());
+				final boolean valid = ParameterInfo.isValid(incrStartValueField.getText().trim(), info.getType());
 				if (!valid)
 					errors.add("'Start value' must be a valid " + getTypeText(info.getType()));
 			}
@@ -2196,7 +1101,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 				errors.add("'End value' cannot be empty.");
 				e = true;
 			} else {
-				final boolean valid = ParameterInfo.isValid(incrEndValueField.getText().trim(),info.getType());
+				final boolean valid = ParameterInfo.isValid(incrEndValueField.getText().trim(), info.getType());
 				if (!valid)
 					errors.add("'End value' must be a valid " + getTypeText(info.getType()));
 			}
@@ -2208,7 +1113,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 				if (d == 0)
 					errors.add("'Step' cannot be zero.");
 				else {
-					final boolean valid = ParameterInfo.isValid(incrStepField.getText().trim(),info.getType());
+					final boolean valid = ParameterInfo.isValid(incrStepField.getText().trim(), info.getType());
 					if (!valid)
 						errors.add("'Step' must be a valid " + getTypeText(info.getType()));
 				}
@@ -2216,9 +1121,9 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 			if (!(s || e || st))
 				errors.addAll(PlatformSettings.additionalParameterCheck(info,new String[] { incrStartValueField.getText().trim(), 
 																							incrEndValueField.getText().trim(), 
-																							incrStepField.getText().trim() },ParameterInfo.INCR_DEF));
+																							incrStepField.getText().trim() }, ParameterInfo.INCR_DEF));
 		}
-		return errors.size()== 0 ? null : errors.toArray(new String[0]);
+		return errors.size() == 0 ? null : errors.toArray(new String[0]);
 	}
 
 	//------------------------------------------------------------------------------
@@ -2240,7 +1145,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	private void updateNumberOfRuns() {
 		final List<Integer> runNumbers = new ArrayList<Integer>(parameterTreeBranches.size());
 		for (final ParameterCombinationGUI pGUI : parameterTreeBranches) {
-			final int run = Page_Parameters.calculateNumberOfRuns(pGUI.combinationRoot);
+			final int run = calculateNumberOfRuns(pGUI.combinationRoot);
 			pGUI.updateRunDisplay(run);
 			runNumbers.add(run);
 		}
@@ -2251,7 +1156,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 				validMin = runNumber;
 		}
 		
-		for (int i = 0;i < parameterTreeBranches.size();++i) {
+		for (int i = 0; i < parameterTreeBranches.size(); ++i) {
 			final int runNumber = runNumbers.get(i);
 			parameterTreeBranches.get(i).setWarning(runNumber > 1 && runNumber != validMin);
 		}
@@ -2274,6 +1179,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	 *  the value of <code>enabled</code>.
 	 */
 	private void enableDisableSettings(final boolean enabled) {
+		runsField.setEnabled(enabled || PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.GLOBAL);
 		constDef.setEnabled(enabled);
 		listDef.setEnabled(enabled);
 		incrDef.setEnabled(enabled);
@@ -2283,9 +1189,8 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		incrEndValueField.setEnabled(enabled);
 		incrStepField.setEnabled(enabled);
 		enumDefBox.setEnabled(enabled);
-		submodelTypeBox.setEnabled(enabled);
 		fileTextField.setEnabled(enabled);
-		fileBrowseButton.setEnabled(enabled);
+		browseFileButton.setEnabled(enabled);
 		cancelButton.setEnabled(enabled);
 	}
 
@@ -2293,6 +1198,8 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	/** Resets the parameter editing related components. */
 	private void resetSettings() { 
 		changeText(null,null);
+		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.LOCAL)
+			runsField.setText(""); 
 		constDefField.setText("");
 		listDefArea.setText("");
 		incrStartValueField.setText("");
@@ -2307,7 +1214,6 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	}
 
 	//------------------------------------------------------------------------------
-	// Pre-condition : all input are valid
 	/** Modifies the information object from the contents of the editing components of the page.<br>
 	 *  Pre-condition: all input values are valid.
 	 */
@@ -2325,13 +1231,10 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 				info.setValue(enumDefBox.getSelectedItem());
 			} else if (info instanceof MasonChooserParameterInfo) {
 				info.setValue(enumDefBox.getSelectedIndex()); 
-			} else if (info instanceof SubmodelInfo) {
-				final SubmodelInfo sInfo = (SubmodelInfo) info;
-				modifySubmodelParameterInfo(sInfo);
 			} else if (info.isFile()) {
-				info.setValue(ParameterInfo.getValue(fileTextField.getToolTipText(),info.getType()));
+				info.setValue(ParameterInfo.getValue(fileTextField.getToolTipText(), info.getType()));
 			} else {
-				info.setValue(ParameterInfo.getValue(constDefField.getText().trim(),info.getType()));
+				info.setValue(ParameterInfo.getValue(constDefField.getText().trim(), info.getType()));
 			}
 			
 			break;
@@ -2341,82 +1244,14 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 									   final String[] elements = text.split(" ");
 									   final List<Object> list = new ArrayList<Object>(elements.length);
 									   for (final String element : elements) 
-										  list.add(ParameterInfo.getValue(element,info.getType()));
+										  list.add(ParameterInfo.getValue(element, info.getType()));
 									   info.setValues(list);
 									   break;
-		case ParameterInfo.INCR_DEF  : info.setStartValue((Number)ParameterInfo.getValue(incrStartValueField.getText().trim(),info.getType()));
-									   info.setEndValue((Number)ParameterInfo.getValue(incrEndValueField.getText().trim(),info.getType()));
-									   info.setStep((Number)ParameterInfo.getValue(incrStepField.getText().trim(),info.getType()));
+		case ParameterInfo.INCR_DEF  : info.setStartValue((Number)ParameterInfo.getValue(incrStartValueField.getText().trim(), info.getType()));
+									   info.setEndValue((Number)ParameterInfo.getValue(incrEndValueField.getText().trim(), info.getType()));
+									   info.setStep((Number)ParameterInfo.getValue(incrStepField.getText().trim(), info.getType()));
 									   break;
 		}
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	private void modifySubmodelParameterInfo(final SubmodelInfo sInfo) {
-		final Class<?> newActualType = ((ClassElement)submodelTypeBox.getSelectedItem()).clazz;
-		
-		if (!newActualType.equals(sInfo.getActualType())) {
-			sInfo.setActualType(newActualType);
-			addSubParametersToTree(sInfo,editedTree,editedNode);
-		} // else do nothing
-		
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private void addSubParametersToTree(final SubmodelInfo sInfo, final JTree tree, final DefaultMutableTreeNode node) {
-		try {
-			final List<ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?>> subparameters = ParameterTreeUtils.fetchSubparameters(currentModelHandler,sInfo);
-			
-			final List<ParameterInfo> convertedSubparameters = new ArrayList<ParameterInfo>(subparameters.size());
-			for (ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?> parameterInfo : subparameters) {
-				final ParameterInfo converted = InfoConverter.parameterInfo2ParameterInfo(parameterInfo);
-				converted.setRuns(0);
-				convertedSubparameters.add(converted);
-			}
-			Collections.sort(convertedSubparameters);
-			
-			final DefaultTreeModel treeModel = (DefaultTreeModel) tree.getModel();
-			
-			if (node.getChildCount() > 0) {
-				node.removeAllChildren();
-				treeModel.nodeStructureChanged(node);
-			}
-			
-			for (final ParameterInfo pInfo : convertedSubparameters) {
-				final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(new ParameterInATree(pInfo));
-				treeModel.insertNodeInto(newNode,node,node.getChildCount());
-			}
-
-			tree.expandPath(new TreePath(treeModel.getPathToRoot(node)));
-		} catch (final ModelInformationException e) {
-			sInfo.setActualType(null);
-			JOptionPane.showMessageDialog(wizard, new JLabel(e.getMessage()), "Error while analyizing model", JOptionPane.ERROR_MESSAGE);
-			e.printStackTrace();
-			submodelTypeBox.setSelectedIndex(0);
-		}
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	/**
-	 * @return the numberOfTurnsField
-	 */
-	public double getNumberOfRequestedTurns() {
-		if (tabbedPane.getSelectedIndex() == SINGLE_RUN_GUI_TABINDEX) 
-			return Double.parseDouble(numberOfTurnsField.getText());
-		else if (tabbedPane.getSelectedIndex() == PARAMSWEEP_GUI_TABINDEX) 
-			return Double.parseDouble(numberOfTurnsFieldPSW.getText());
-		else
-			return gaSearchPanel.getNumberOfRequestedTurns();
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	public double getNumberTimestepsToIgnore() {
-		if (tabbedPane.getSelectedIndex() == SINGLE_RUN_GUI_TABINDEX){
-			return Double.parseDouble(numberTimestepsIgnored.getText());
-		} else if (tabbedPane.getSelectedIndex() == PARAMSWEEP_GUI_TABINDEX) {
-			return Double.parseDouble(numberTimestepsIgnoredPSW.getText());
-		} else
-			return 0.;
 	}
 	
 	//----------------------------------------------------------------------------------------------------
@@ -2466,23 +1301,20 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	
 	//----------------------------------------------------------------------------------------------------
 	private void chooseFile() {
-		final JFileChooser fileDialog = new JFileChooser(!"".equals(fileTextField.getToolTipText()) ? fileTextField.getToolTipText() : currentDirectory);
+		final JFileChooser fileDialog = new JFileChooser(!"".equals(fileTextField.getToolTipText()) ? fileTextField.getToolTipText() : 
+																									  ParameterSweepWizard.getLastDir().getPath());
 		if (!"".equals(fileTextField.getToolTipText()))
 			fileDialog.setSelectedFile(new File(fileTextField.getToolTipText()));
-		int dialogResult = fileDialog.showOpenDialog(dashboard);
+		int dialogResult = fileDialog.showOpenDialog(container);
 		if (dialogResult == JFileChooser.APPROVE_OPTION) {
 			final File selectedFile = fileDialog.getSelectedFile();
 			if (selectedFile != null) {
-				currentDirectory = selectedFile.getAbsoluteFile().getParent();
+				ParameterSweepWizard.setLastDir(selectedFile.getAbsoluteFile().getParentFile());
 				fileTextField.setText(selectedFile.getName());
 				fileTextField.setToolTipText(selectedFile.getAbsolutePath());
 			}
 		}
 	}
-	
-	//----------------------------------------------------------------------------------------------------
-	String getCurrentDirectory() { return currentDirectory; }
-	void setCurrentDirectory(final String currentDirectory) { this.currentDirectory = currentDirectory; }
 		
 	//----------------------------------------------------------------------------------------------------
 	private void cancelAllSelectionBut(JComponent exception) {
@@ -2496,72 +1328,11 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	private void updateDescriptionField(final Object... selectedValues) {
-		if (selectedValues.length == 0) 
-			parameterDescriptionLabel.setText("");
-		else if (selectedValues.length == 1) {
-			parameterDescriptionLabel.setText(selectedValues[0] != null ? ((AvailableParameter)selectedValues[0]).info.getDescription() : "");
-		} else {
-			String text = "";
-			for (final Object selectedValue : selectedValues) {
-				final AvailableParameter selectedParameter = (AvailableParameter) selectedValue;
-				if (selectedParameter.info.getDescription() != null && !selectedParameter.info.getDescription().trim().isEmpty()) {
-					final String humanName = selectedParameter.info.getName().replaceAll("([A-Z])", " $1");
-					text += humanName + " -- " + selectedParameter.info.getDescription() + "\n\n";
-				}
-			}
-			parameterDescriptionLabel.setText(text);
-		}
-		
-		parameterDescriptionLabel.revalidate();
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	void showHideSubparameters(final JComboBox combobox, final SubmodelInfo info) {
-		final ClassElement classElement = (ClassElement) combobox.getSelectedItem();
-		
-		info.setActualType(classElement.clazz);
-		final int level = calculateParameterLevel(info);
-		for (int i = singleRunParametersPanel.getComponentCount() - 1;i >= level + 1;--i) 
-			singleRunParametersPanel.remove(i);
-		
-		if (classElement.clazz != null) {
-			try {
-				final List<ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?>> subparameters = ParameterTreeUtils.fetchSubparameters(currentModelHandler,info);
-				String title = "Parameters of " + info.getName().replaceAll("([A-Z])"," $1");
-				createAndDisplayAParameterPanel(subparameters,title,info,false);
-			} catch (final ModelInformationException e) {
-				info.setActualType(null);
-				JOptionPane.showMessageDialog(wizard, new JLabel(e.getMessage()), "Error while analyizing model", JOptionPane.ERROR_MESSAGE);
-				e.printStackTrace();
-				combobox.setSelectedIndex(0);
-			}
-		}
-		
-		parametersScrollPane.invalidate();
-		parametersScrollPane.validate();
-//		final JScrollBar horizontalScrollBar = parametersScrollPane.getHorizontalScrollBar();
-//		horizontalScrollBar.setValue(horizontalScrollBar.getMaximum());
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	private int calculateParameterLevel(final SubmodelInfo info) {
-		SubmodelInfo _info = info;
-		int level = 0;
-		while (_info.getParent() != null) {
-			level++;
-			_info = _info.getParent();
-		}
-		
-		return level;
-	}
-	
-	//----------------------------------------------------------------------------------------------------
 	private ParameterInfo findOriginalInfo(final ParameterInfo info) {
 		for (final ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?> pInfo : batchParameters) {
 			final ParameterInfo converted = InfoConverter.parameterInfo2ParameterInfo(pInfo);
 			if (info.equals(converted)) {
-				converted.setRuns(0);
+				converted.setRuns(1); //TODO: global run?
 				return converted;
 			}
 		}
@@ -2587,78 +1358,11 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	DWizard getWizard() { return wizard; }
-	IModelHandler getCurrentModelHandler() { return currentModelHandler; }
-	Dashboard getDashboard() { return dashboard; }
-	
-	//----------------------------------------------------------------------------------------------------
-	ClassElement[] fetchPossibleTypes(final SubmodelInfo parameterInfo) throws ComboBoxIsTooFullException {
-		List<Class<?>> possibleTypes = possibleTypesCache.get(parameterInfo.getName()); 
-		
-		if (possibleTypes == null)
-			possibleTypes = parameterInfo.getPossibleTypes();
-		if (possibleTypes == null || possibleTypes.isEmpty()) {
-			possibleTypes = new ArrayList<Class<?>>();
-			possibleTypes.add(parameterInfo.getJavaType());
-			
-			possibleTypes.addAll(getSubtypes(parameterInfo.getJavaType()));
-			
-			// delete all interfaces and abstract classes
-			for (final Iterator<Class<?>> iter = possibleTypes.iterator();iter.hasNext();) {
-				final Class<?> clazz = iter.next();
-				if (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers()))
-					iter.remove();
-			}
-		}
-		
-		possibleTypesCache.put(parameterInfo.getName(),possibleTypes);
-		Collections.sort(possibleTypes,new Comparator<Class<?>>() {
-			public int compare(final Class<?> class1, final Class<?> class2) {
-				return class1.getName().compareTo(class2.getName());
-			}
-			
-		});
-		
-		final ClassElement[] result = new ClassElement[possibleTypes.size() + 1];
-		result[0] = new ClassElement(null);
-		
-		for (int i = 0;i < possibleTypes.size();++i)
-			result[i + 1] = new ClassElement(possibleTypes.get(i));
-		
-		return result;
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private Set<Class<?>> getSubtypes(final Class<?> type) throws ComboBoxIsTooFullException {
-		final ClassLoader[] classloaders = new ClassLoader[] { currentModelHandler.getCustomClassLoader(),
-															   currentModelHandler.getCustomClassLoader().getParent() };
-		final ConfigurationBuilder builder = new ConfigurationBuilder().
-				addUrls(ClasspathHelper.forClassLoader(currentModelHandler.getCustomClassLoader())). 
-				addClassLoaders(classloaders).
-				setScanners(new SubTypesScanner(false));
-		final Reflections ref = new Reflections(builder);
-		final Set<Class<?>> result = new HashSet<Class<?>>();
-		final Set<String> subTypesStr = ref.getStore().getSubTypesOf(type.getName());
-		if (subTypesStr.size() > MAX_SIZE_OF_SUBPARAMETER_COMBOBOX)
-			throw new ComboBoxIsTooFullException();
-		
-		for (final String clsName : subTypesStr) {
-			try {
-				result.add(ReflectionUtils.forName(clsName,classloaders));
-			} catch (final ReflectionsException e) {
-				// intentionally blank
-			}
-		}
-
-		return result;
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private String checkInfos(final boolean submodel) {
-		final DefaultListModel listModel = (DefaultListModel) parameterList.getModel();
+	private String checkInfos() { // TODO: have to use somewhere
+		final DefaultListModel<AvailableParameter> listModel = (DefaultListModel<AvailableParameter>) parameterList.getModel();
 		for (int i = 0;i < listModel.getSize();++i) {
-			final AvailableParameter param = (AvailableParameter) listModel.get(i);
-			final String invalid = submodel ? checkSubmodelInfo(param.info) : checkFileInfo(param);
+			final AvailableParameter param = listModel.get(i);
+			final String invalid = checkFileInfo(param);
 			if (invalid != null)
 				return invalid;
 		}
@@ -2671,21 +1375,10 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 			while (nodes.hasMoreElements()) {
 				final DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes.nextElement();
 				final ParameterInATree userObj = (ParameterInATree) node.getUserObject();
-				final String invalid = submodel ? checkSubmodelInfo(userObj.info) : checkFileInfo(userObj);
+				final String invalid = checkFileInfo(userObj);
 				if (invalid != null)
 					return invalid;
 			}
-		}
-		
-		return null;
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private String checkSubmodelInfo(final ParameterInfo info) {
-		if (info instanceof SubmodelInfo) {
-			final SubmodelInfo sInfo = (SubmodelInfo) info;
-			if (sInfo.getActualType() == null)
-				return sInfo.getName().replaceAll("([A-Z])"," $1");
 		}
 		
 		return null;
@@ -2702,32 +1395,14 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	private String checkInfosInGeneTree() {
-		final DefaultTreeModel treeModel = gaSearchHandler.getChromosomeTree();
-		final DefaultMutableTreeNode root = (DefaultMutableTreeNode) treeModel.getRoot();
-		@SuppressWarnings("rawtypes")
-		final Enumeration nodes = root.breadthFirstEnumeration();
-		nodes.nextElement(); // root
-		while (nodes.hasMoreElements()) {
-			final DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes.nextElement();
-			final ParameterOrGene userObj = (ParameterOrGene) node.getUserObject();
-			final String invalid = checkSubmodelInfo(userObj.getInfo());
-			if (invalid != null)
-				return invalid;
-		}
+	//TODO: global run
+	public DefaultMutableTreeNode createTreeFromParameterPage() {
+		final DefaultMutableTreeNode result = new DefaultMutableTreeNode();
 		
-		return null;
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private ParameterTree createParameterTreeFromParamSweepGUI() throws ModelInformationException {
-		final ParameterTree result = new ParameterTree();
-		
-		final DefaultListModel listModel = (DefaultListModel) parameterList.getModel();
-		for (int i = 0;i < listModel.getSize();++i) {
-			final AvailableParameter param = (AvailableParameter) listModel.get(i);
-			final AbstractParameterInfo<?> batchParameter = InfoConverter.parameterInfo2ParameterInfo(param.info);
-			ParameterTreeUtils.addConstantParameterToParameterTree(batchParameter,result,currentModelHandler);
+		final DefaultListModel<AvailableParameter> listModel = (DefaultListModel<AvailableParameter>) parameterList.getModel();
+		for (int i = 0; i < listModel.getSize(); ++i) {
+			final AvailableParameter param = listModel.get(i);
+			result.add(new DefaultMutableTreeNode(param.info));
 		}
 		
 		for (final ParameterCombinationGUI pGUI : parameterTreeBranches) {
@@ -2738,7 +1413,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 			while (nodes.hasMoreElements()) {
 				final DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes.nextElement();
 				final ParameterInATree userObj = (ParameterInATree) node.getUserObject();
-				ParameterTreeUtils.filterConstants(userObj,result,currentModelHandler);
+				filterConstants(userObj, result);
 			}
 		}
 		
@@ -2747,14 +1422,12 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 			@SuppressWarnings("rawtypes")
 			final Enumeration nodes = root.preorderEnumeration();
 			nodes.nextElement(); // root
-			ParameterNode parent = result.getRoot();
+			DefaultMutableTreeNode parent = result;
 			while (nodes.hasMoreElements()) {
 				final DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes.nextElement();
 				final ParameterInATree userObj = (ParameterInATree) node.getUserObject();
-				if (ParameterTreeUtils.isMutableParameter(userObj)) {
-					final AbstractParameterInfo<?> batchParameter = InfoConverter.parameterInfo2ParameterInfo(userObj.info);
-					batchParameter.setRunNumber(1);
-					final ParameterNode parameterNode = new ParameterNode(batchParameter);
+				if (userObj.info.getMultiplicity() > 1) {
+					final DefaultMutableTreeNode parameterNode = new DefaultMutableTreeNode(userObj.info);
 					parent.add(parameterNode);
 					parent = parameterNode;
 				}
@@ -2765,24 +1438,28 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	private void hideError() {
-		if (errorPopup != null) {
-			errorPopup.hide();
-			errorPopup = null;
+	private void filterConstants(final ParameterInATree paramContainer, final DefaultMutableTreeNode root) {
+		if (paramContainer.info.getMultiplicity() == 1) {
+			transformToConstant(paramContainer.info);
+			root.add(new DefaultMutableTreeNode(paramContainer.info));
 		}
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	private void showError(final String message, final JTextField textField) {
-		PopupFactory popupFactory = PopupFactory.getSharedInstance();
-		Point locationOnScreen = textField.getLocationOnScreen();
-		JLabel messageLabel = new JLabel(message);
-		messageLabel.setBorder(new LineBorder(Color.RED, 2, true));
-		errorPopup = popupFactory.getPopup(textField,messageLabel,locationOnScreen.x - 10,locationOnScreen.y - 30);
-		errorPopup.show();
+	private void transformToConstant(final ParameterInfo info) {
+		if (info.isConstant())
+			return;
+		else if (info.getDefinitionType() == ParameterInfo.INCR_DEF) {
+			info.setValue(info.getStartValue());
+			info.setStartValue(null);
+			info.setEndValue(null);
+			info.setStep(null);
+		}
+		
+		info.setDefinitionType(ParameterInfo.CONST_DEF);
 	}
 
-	private static int calculateNumberOfRuns(DefaultMutableTreeNode combinationRoot) {
+	private int calculateNumberOfRuns(final DefaultMutableTreeNode combinationRoot) {
 		if (combinationRoot.getChildCount() == 0) 
 			return 0;
 		
@@ -2794,17 +1471,69 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 			final DefaultMutableTreeNode node = (DefaultMutableTreeNode) combinationElements.nextElement();
 			final ParameterInfo info = ((ParameterInATree)node.getUserObject()).info;
 			
-			if (info instanceof SubmodelInfo) 
-				result *= calculateNumberOfRuns(node);
-			else 
-				result *= info.getMultiplicity();
+			long run = 1;
+			if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.LOCAL && info.getMultiplicity() > 1 )
+				run = info.getRuns();
+			result *= run * info.getMultiplicity();
 		}
+		
+		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.GLOBAL) 
+			result *= parseGlobalRuns(); 
 		
 		return result;
 	}
 	
+	//----------------------------------------------------------------------------------------------------
+	private long parseGlobalRuns() {
+		long runs = 1;
+		final String runsStr = runsField.getText().trim();
+		if (runsStr != null && runsStr.length() > 0) {
+			try {
+				runs = Long.parseLong(runsStr);
+			} catch (NumberFormatException e) {}
+		}
+		return runs;
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	public void setGlobalRuns(final DefaultMutableTreeNode root) {
+		final long runs = parseGlobalRuns();
+		ParameterEnumeration pe = new ParameterEnumeration(root);
+		while (pe.hasMoreElements()) {
+			DefaultMutableTreeNode node = pe.nextElement();
+			if (root.equals(node)) continue;
+			ParameterInfo info = (ParameterInfo) node.getUserObject();
+			info.setRuns(runs);
+		}
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	public void transformIncrementsIfNeed(final DefaultMutableTreeNode root) {
+		ParameterEnumeration pe = new ParameterEnumeration(root);
+		for (DefaultMutableTreeNode node = pe.nextElement();pe.hasMoreElements();node = pe.nextElement()) {
+			if (root.equals(node)) continue;
+			ParameterInfo info = (ParameterInfo) node.getUserObject();
+			if (info.getDefinitionType() == ParameterInfo.INCR_DEF)
+				info.transformIfNeed();
+		}
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private void initializePageForPlatform() {
+		IGUIController controller = PlatformSettings.getGUIControllerForPlatform();
+//		newParameterButton.setEnabled(controller.isNewParametersEnabled()); //TODO:
+//		newParameterButtonCopy.setEnabled(controller.isNewParametersEnabled());
+		switch (controller.getRunOption()) {
+		case NONE 	: runsLabel.setVisible(false);
+					  runsField.setVisible(false);
+					  break;
+		case GLOBAL	: runsLabel.setText("Runs (global): ");
+		default: // do nothing
+		}
+	}
+
+	//----------------------------------------------------------------------------------------------------
 	private void initialize() {
-		// TODO Auto-generated method stub
 		//TODO: all appropriate Style.apply settings here 
 	}
 	
@@ -2818,7 +1547,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		}
         private static final long serialVersionUID = -7383965550748377433L;
 		public List<ParameterInfo> getParameters() { return parameters; }
-		public DefaultMutableTreeNode getParameterTreeRootNode() { return root; } //TODO: reimplement this
-		public JButton getNewParametersButton() { return Page_ParametersV2.this.getNewParametersButton(); }
+		public DefaultMutableTreeNode getParameterTreeRootNode() { return createTreeFromParameterPage(); } 
+		public JButton getNewParametersButton() { return null; /*return Page_ParametersV2.this.getNewParametersButton();*/ } //TODO
 		public File getPluginResourcesDirectory() { return new File(System.getProperty("user.dir") + "/resources/Plugins"); }
 	}}

@@ -47,6 +47,7 @@ import ai.aitia.meme.paramsweep.ParameterSweepWizard;
 import ai.aitia.meme.paramsweep.gui.Page_IntelliExtension;
 import ai.aitia.meme.paramsweep.gui.Page_LoadModel;
 import ai.aitia.meme.paramsweep.gui.Page_Parameters;
+import ai.aitia.meme.paramsweep.gui.Page_ParametersV2;
 import ai.aitia.meme.paramsweep.gui.Page_Recorders;
 import ai.aitia.meme.paramsweep.platform.PlatformManager;
 import ai.aitia.meme.paramsweep.platform.PlatformManager.PlatformType;
@@ -200,7 +201,7 @@ public class WizardSettingsManager {
 	/** Reference to the page Model selection. */
 	private Page_LoadModel loadPage = null;
 	/** Reference to the page Parameters. */
-	private Page_Parameters parametersPage = null;
+	private Page_ParametersV2 parametersPage = null;
 	/** Reference to the page Data Collection. */
 	private Page_Recorders recordersPage = null;
 	private Page_IntelliExtension intelliExtensionPage = null;
@@ -216,7 +217,7 @@ public class WizardSettingsManager {
 	 * @param parameterPage reference to the page Parameters
 	 * @param recordersPage reference to the page Data Collection
 	 */
-	public WizardSettingsManager(ParameterSweepWizard owner, Page_LoadModel loadPage, Page_Parameters parameterPage, Page_Recorders recordersPage,
+	public WizardSettingsManager(ParameterSweepWizard owner, Page_LoadModel loadPage, Page_ParametersV2 parameterPage, Page_Recorders recordersPage,
 								 Page_IntelliExtension intelliExtensionPage) {
 		this.owner = owner;
 		this.loadPage = loadPage;
