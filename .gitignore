@@ -8,3 +8,4 @@
 # ignore generated jars
 *.jar
 !**/lib/*.jar
+/dist/MEME
