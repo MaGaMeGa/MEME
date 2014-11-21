@@ -148,10 +148,10 @@ public class ParameterInfo extends MemberInfo implements Cloneable {
 	public String toString() {
 		StringBuilder sb = new StringBuilder(super.toString());
 		sb.append(" - [");
-		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.LOCAL && runs > 0) {
+		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.LOCAL && runs > 1) {
 			sb.append("runs=");
 			sb.append(runs);
-			sb.append(",");
+			sb.append(", ");
 		}
 		switch (defType) {
 		case CONST_DEF : sb.append("value=");

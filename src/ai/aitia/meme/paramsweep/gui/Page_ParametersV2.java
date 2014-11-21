@@ -53,8 +53,11 @@ import javax.swing.tree.TreeSelectionModel;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 
 import ai.aitia.meme.Logger;
 import ai.aitia.meme.gui.Wizard;
@@ -63,6 +66,8 @@ import ai.aitia.meme.gui.Wizard.IArrowsInHeader;
 import ai.aitia.meme.gui.Wizard.IWizardPage;
 import ai.aitia.meme.paramsweep.ParameterSweepWizard;
 import ai.aitia.meme.paramsweep.batch.IModelInformation.ModelInformationException;
+import ai.aitia.meme.paramsweep.batch.output.RecordableInfo;
+import ai.aitia.meme.paramsweep.generator.WizardSettingsManager;
 import ai.aitia.meme.paramsweep.gui.info.AvailableParameter;
 import ai.aitia.meme.paramsweep.gui.info.MasonChooserParameterInfo;
 import ai.aitia.meme.paramsweep.gui.info.ParameterInATree;
@@ -73,6 +78,7 @@ import ai.aitia.meme.paramsweep.internal.platform.InfoConverter;
 import ai.aitia.meme.paramsweep.internal.platform.PlatformSettings;
 import ai.aitia.meme.paramsweep.plugin.IIntelliContext;
 import ai.aitia.meme.paramsweep.utils.ParameterEnumeration;
+import ai.aitia.meme.paramsweep.utils.ParameterParserException;
 import ai.aitia.meme.paramsweep.utils.Util;
 import ai.aitia.meme.paramsweep.utils.Utilities;
 import ai.aitia.meme.paramsweep.utils.WizardLoadingException;
@@ -241,21 +247,19 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		});
 		
 		final JScrollPane parameterListPane = new JScrollPane(parameterList);
-		parameterListPane.setBorder(BorderFactory.createTitledBorder("")); 
-		parameterListPane.setPreferredSize(new Dimension(300, 300)); //TODO: check sizes
+		parameterListPane.setBorder(BorderFactory.createTitledBorder(null, "Model parameters", TitledBorder.LEADING, TitledBorder.BELOW_TOP)); 
+		parameterListPane.setPreferredSize(new Dimension(230, 300)); 
 		
-		final JPanel parametersPanel = FormsUtils.build("p:g",
-										  "[DialogBorder]0||" + 
-														"1 f:p:g||" +
-														"2 p",
-														new Separator("<html><b>Model parameters</b></html>"),
+		final JPanel parametersPanel = FormsUtils.build("p:g p",
+										  "[DialogBorder]00 f:p:g||" +
+														"_1 p",
 														parameterListPane,
 														new JButton("TODO: new parameters")).getPanel(); //TODO: new parameters
 		
 		combinationsPanel = new JPanel(new GridLayout(0, 1, 5, 5)); 
 		combinationsScrPane = new JScrollPane(combinationsPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		combinationsScrPane.setBorder(null);
-		combinationsScrPane.setPreferredSize(new Dimension(550, 500)); //TODO: check sizes
+		combinationsScrPane.setPreferredSize(new Dimension(400, 500)); 
 		
 		final JButton addNewBoxButton = new JButton("Add new combination"); 
 		addNewBoxButton.setActionCommand(ACTIONCOMMAND_ADD_BOX);
@@ -270,7 +274,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		
 		// right
 		editedParameterText = new JLabel(ORIGINAL_TEXT);
-		editedParameterText.setPreferredSize(new Dimension(280, 40)); //TODO: check size
+		editedParameterText.setPreferredSize(new Dimension(250, 40)); 
 		
 		runsField = new JTextField();
 		runsField.setActionCommand("RUNS_FIELD");
@@ -411,7 +415,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		
 		listDefArea.setLineWrap(true);
 		listDefArea.setWrapStyleWord(true);
-		listDefScr.setPreferredSize(new Dimension(100, 200)); //TODO: check size
+		listDefScr.setPreferredSize(new Dimension(100, 200)); 
 		
 		GUIUtils.addActionListener(this, modifyButton, cancelButton, constDef, listDef, incrDef, constDefField, incrStartValueField, incrEndValueField, incrStepField,
 								   addNewBoxButton, browseFileButton);
@@ -427,8 +431,11 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		
 		final JButton closeButton = new JButton();
 		closeButton.setOpaque(false);
-	    closeButton.setBorder(null);
 	    closeButton.setFocusable(false);
+	    closeButton.setBorderPainted(false);
+	    closeButton.setContentAreaFilled(false);
+	    closeButton.setFocusPainted(false);
+	    closeButton.setBorder(null);
 	    
 	    if (!first) {
 		    closeButton.setRolloverIcon(PARAMETER_BOX_REMOVE);
@@ -491,7 +498,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	    treeScrPane.setViewportView(tree);
 	    treeScrPane.setBorder(null);
 	    treeScrPane.setViewportBorder(null);
-		treeScrPane.setPreferredSize(new Dimension(450, 250)); //TODO: check size
+		treeScrPane.setPreferredSize(new Dimension(250, 250)); 
 	    
 		final JButton upButton = new JButton();
 		upButton.setOpaque(false);
@@ -500,6 +507,9 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		upButton.setRolloverIcon(PARAMETER_UP_ICON_RO);
 		upButton.setDisabledIcon(PARAMETER_UP_ICON_DIS);
 		upButton.setBorder(null);
+		upButton.setBorderPainted(false);
+		upButton.setContentAreaFilled(false);
+		upButton.setFocusPainted(false);
 		upButton.setToolTipText("Move up the selected parameter");
 		upButton.setActionCommand(ACTIONCOMMAND_MOVE_UP);
 		
@@ -510,6 +520,9 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		downButton.setRolloverIcon(PARAMETER_DOWN_ICON_RO);
 		downButton.setDisabledIcon(PARAMETER_DOWN_ICON_DIS);
 		downButton.setBorder(null);
+		downButton.setBorderPainted(false);
+		downButton.setContentAreaFilled(false);
+		downButton.setFocusPainted(false);
 		downButton.setToolTipText("Move down the selected parameter");
 		downButton.setActionCommand(ACTIONCOMMAND_MOVE_DOWN);
 
@@ -537,6 +550,10 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		addButton.setRolloverIcon(PARAMETER_ADD_ICON_RO);
 		addButton.setDisabledIcon(PARAMETER_ADD_ICON_DIS);
 		addButton.setBorder(null);
+		addButton.setBorderPainted(false);
+		addButton.setContentAreaFilled(false);
+		addButton.setFocusPainted(false);
+
 		addButton.setToolTipText("Add selected parameter");
 		addButton.setActionCommand(ACTIONCOMMAND_ADD_PARAM);
 		
@@ -547,6 +564,9 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		removeButton.setRolloverIcon(PARAMETER_REMOVE_ICON_RO);
 		removeButton.setDisabledIcon(PARAMETER_REMOVE_ICON_DIS);
 		removeButton.setBorder(null);
+		removeButton.setBorderPainted(false);
+		removeButton.setContentAreaFilled(false);
+		removeButton.setFocusPainted(false);
 		removeButton.setToolTipText("Remove selected parameter");
 		removeButton.setActionCommand(ACTIONCOMMAND_REMOVE_PARAM);
 		
@@ -715,7 +735,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		
 		GUIUtils.addActionListener(boxActionListener, closeButton, upButton, downButton, addButton, removeButton);
 		
-		result.setPreferredSize(new Dimension(500,250)); //TODO: check size
+		result.setPreferredSize(new Dimension(300,250)); //TODO: check size
 		enableDisableParameterCombinationButtons();
 		
 //		Style.apply(result, dashboard.getCssStyle()); //TODO
@@ -856,7 +876,60 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	 * @throws WizardLoadingException if the XML document is invalid
 	 */
 	public void load(Element element) throws WizardLoadingException { 
-		//TODO:
+		NodeList nl = element.getElementsByTagName(WizardSettingsManager.NEW_PARAMETERS);
+		if (nl == null || nl.getLength() == 0)
+			newParameters = null;
+		else {
+			NodeList nodes = ((Element)nl.item(0)).getElementsByTagName(WizardSettingsManager.PARAMETER);
+			if (nodes == null || nodes.getLength() == 0)
+				throw new WizardLoadingException(true,"missing node: " + WizardSettingsManager.PARAMETER);
+			newParameters = new ArrayList<ParameterInfo>(nodes.getLength());
+			for (int i = 0;i < nodes.getLength();++i) {
+				Element param = (Element) nodes.item(i);
+				String type = param.getAttribute(WizardSettingsManager.TYPE);
+				if (type == null || type.equals("")) 
+					throw new WizardLoadingException(true,"missing 'type' attribute at node: " + WizardSettingsManager.PARAMETER);
+				String javaTypeStr = param.getAttribute(WizardSettingsManager.JAVA_TYPE);
+				if (javaTypeStr == null || "".equals(javaTypeStr))
+					throw new WizardLoadingException(true,"missing 'java_type' attribute at node: " + WizardSettingsManager.PARAMETER);
+				NodeList content = param.getChildNodes();
+				if (content == null || content.getLength() == 0)
+					throw new WizardLoadingException(true,"missing content at node: " + WizardSettingsManager.PARAMETER);
+				String name = ((Text)content.item(0)).getNodeValue();
+				Class<?> javaType = null;
+				try {
+					javaType = Utilities.toClass(owner.getClassLoader(),javaTypeStr);
+				} catch (ClassNotFoundException e) {
+					throw new WizardLoadingException(true,"invalid type at parameter: " + name);
+				}
+				ParameterInfo pi = new ParameterInfo(name,type,javaType);
+				if (!pi.isNumeric() && !pi.isBoolean() && !pi.getType().equals("String"))
+					throw new WizardLoadingException(true,"invalid 'type' attribute at node: " + WizardSettingsManager.PARAMETER);
+				newParameters.add(pi);
+			}
+		}
+		
+		resetParamsweepGUI();
+		parameters = createParameters();
+		
+		nl = null;
+		nl = element.getElementsByTagName(WizardSettingsManager.PARAMETER_FILE);
+		if (nl == null || nl.getLength() == 0)
+			throw new WizardLoadingException(true,"missing node: " + WizardSettingsManager.PARAMETER_FILE);
+		NodeList content = nl.item(0).getChildNodes();
+		if (content == null || content.getLength() == 0)
+			throw new WizardLoadingException(true,"missing content at node: " + WizardSettingsManager.PARAMETER_FILE);
+		String paramFileContent = ((Text)content.item(0)).getNodeValue();
+		try {
+			DefaultMutableTreeNode root = PlatformSettings.parseParameterFile(parameters,paramFileContent);
+			initializePageFromTree(root);
+		} catch (ParameterParserException e) {
+			throw new WizardLoadingException(true,e);
+		}
+		if (cancelButton.isEnabled()) 
+			cancelButton.doClick();
+//		setGlobalRunsField(); //TODO:
+		updateNumberOfRuns();
 	}
 	
 	//-------------------------------------------------------------------------------
@@ -867,7 +940,31 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	 * @throws ParserConfigurationException 
 	 */
 	public void save(Node node) throws ParserConfigurationException, TransformerException {
-		//TODO:
+		final Document document = node.getOwnerDocument();
+		
+		Element element = document.createElement(WizardSettingsManager.PARAMETER_FILE);
+		element.appendChild(document.createTextNode(PlatformSettings.generateParameterTreeOutput(createTreeFromParameterPage())));
+		node.appendChild(element);
+		
+		if (newParameters != null) {
+			Element np = document.createElement(WizardSettingsManager.NEW_PARAMETERS);
+			for (ParameterInfo pi : newParameters) {
+				element = document.createElement(WizardSettingsManager.PARAMETER);
+				element.setAttribute(WizardSettingsManager.TYPE,pi.getType());
+				element.setAttribute(WizardSettingsManager.JAVA_TYPE,pi.getJavaType().getName());
+				String name = pi.getName();
+				final RecordableInfo dummy = new RecordableInfo(name, Integer.TYPE, null, name);
+				try {
+					if (owner.getModelInformation().getRecordables().indexOf(dummy) == -1)
+						name = Util.uncapitalize(name);
+				} catch (ModelInformationException e) { 
+					throw new IllegalStateException(e);
+				}
+				element.appendChild(document.createTextNode(name));
+				np.appendChild(element);
+			}
+			node.appendChild(np);
+		}
 	}
 	
 	//----------------------------------------------------------------------------------------------------
@@ -884,7 +981,6 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	
 	//------------------------------------------------------------------------------
 	/** Creates the list of information objects of parameters. */
-	@SuppressWarnings("unchecked")
 	private List<ParameterInfo> createParameters() { 
 		try {
 			batchParameters = owner.getModelInformation().getParameters();
@@ -939,7 +1035,6 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	/** Edits the information object <code>info</code> so this method fills the appropriate
 	 *  components with the informations of <code>info</code>.
 	 */
-	//TODO: check
 	private void edit(final ParameterInfo info) { 
 		changeText(info.getName(), info.getType());
 		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.LOCAL)
@@ -1219,6 +1314,15 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	 */
 	private void modifyParameterInfo(final ParameterInfo info) { 
 		info.clear();
+		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.LOCAL) {
+			if (runsField.getText().trim().equals("")) {
+				info.setRuns(1);
+			} else {
+				long i = Long.parseLong(runsField.getText().trim());
+				info.setRuns(i);
+			}
+		}
+
 		int defType = ParameterInfo.CONST_DEF;
 		if (listDef.isSelected())
 			defType = ParameterInfo.LIST_DEF;
@@ -1438,6 +1542,87 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	}
 	
 	//----------------------------------------------------------------------------------------------------
+	private void initializePageFromTree(DefaultMutableTreeNode paramTree) throws WizardLoadingException {
+		final DefaultListModel<AvailableParameter> model = new DefaultListModel<>();
+		parameterList.setModel(model); 
+		boolean useFirstBox = true;
+		for (int i = 0; i < paramTree.getChildCount(); ++i) {
+			final DefaultMutableTreeNode node = (DefaultMutableTreeNode) paramTree.getChildAt(i);
+			final ParameterInfo embeddedInfo = (ParameterInfo) node.getUserObject();
+			
+			switch (checkIfConstant(embeddedInfo)) {
+			case CONSTANT:
+				final ParameterCombinationGUI pcGUI = parameterTreeBranches.get(0);
+				final DefaultTreeModel treeModel = (DefaultTreeModel) pcGUI.tree.getModel();
+				final DefaultMutableTreeNode root = (DefaultMutableTreeNode) treeModel.getRoot();
+				final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(new ParameterInATree(embeddedInfo));
+				treeModel.insertNodeInto(newNode, root, root.getChildCount());
+				pcGUI.tree.expandPath(new TreePath(treeModel.getPathToRoot(root)));
+				break;
+			case DEFAULT_CONSTANT:
+				model.addElement(new AvailableParameter(embeddedInfo));
+				break;
+			case NOT_CONSTANT:
+				initializeAParameterBox(node,useFirstBox);
+				useFirstBox = false;
+				break;
+			}
+		}
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private void initializeAParameterBox(final DefaultMutableTreeNode branchRootNode, final boolean useFirstBox) {
+		if (!useFirstBox)
+			addBox();
+		final ParameterCombinationGUI pcGUI = parameterTreeBranches.get(parameterTreeBranches.size() - 1);
+		final DefaultTreeModel treeModel = (DefaultTreeModel) pcGUI.tree.getModel();
+		DefaultMutableTreeNode root = (DefaultMutableTreeNode) treeModel.getRoot();
+		
+		@SuppressWarnings("rawtypes")
+		final Enumeration nodes = branchRootNode.breadthFirstEnumeration();
+		while (nodes.hasMoreElements()) {
+			final DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes.nextElement();
+			final ParameterInfo info = (ParameterInfo) node.getUserObject();
+			
+			final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(new ParameterInATree(info));
+			treeModel.insertNodeInto(newNode, root, root.getChildCount());
+			pcGUI.tree.expandPath(new TreePath(treeModel.getPathToRoot(root)));
+		}
+	}
+
+	//----------------------------------------------------------------------------------------------------
+	private ConstantCheckResult checkIfConstant(ParameterInfo info) throws WizardLoadingException {
+		if (info.isConstant()) {
+			final ParameterInfo originalInfo = findOriginalInfo(info);
+			if (originalInfo == null)
+				throw new WizardLoadingException(true,"Unknown referenced parameter: " + info.getName());
+			return isDefaultConstant(info,originalInfo) ? ConstantCheckResult.DEFAULT_CONSTANT : ConstantCheckResult.CONSTANT;
+		}
+		
+		return ConstantCheckResult.NOT_CONSTANT;
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private boolean isDefaultConstant(final ParameterInfo info, final ParameterInfo defaultValueInfo)
+	{
+		if (!info.getJavaType().equals(defaultValueInfo.getJavaType())) {
+			throw new IllegalStateException("isDefaultConstant(): Type does not match.");
+		}
+		
+		if (info.isEnum())
+			return info.getValue() == defaultValueInfo.getValue();
+		if (info.isBoolean())
+			return ((Boolean)info.getValue()).booleanValue() == ((Boolean)defaultValueInfo.getValue()).booleanValue();
+		if (info.isNumeric()) {
+			final Number num1 = (Number) info.getValue();
+			final Number num2 = (Number) defaultValueInfo.getValue();
+			return Utilities.numberEquals(num1,num2);
+		}
+		
+		return info.getValue().equals(defaultValueInfo.getValue());
+	}
+
+	//----------------------------------------------------------------------------------------------------
 	private void filterConstants(final ParameterInATree paramContainer, final DefaultMutableTreeNode root) {
 		if (paramContainer.info.getMultiplicity() == 1) {
 			transformToConstant(paramContainer.info);
@@ -1550,4 +1735,10 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		public DefaultMutableTreeNode getParameterTreeRootNode() { return createTreeFromParameterPage(); } 
 		public JButton getNewParametersButton() { return null; /*return Page_ParametersV2.this.getNewParametersButton();*/ } //TODO
 		public File getPluginResourcesDirectory() { return new File(System.getProperty("user.dir") + "/resources/Plugins"); }
-	}}
+	}
+
+	//----------------------------------------------------------------------------------------------------
+	private enum ConstantCheckResult {
+		CONSTANT, DEFAULT_CONSTANT, NOT_CONSTANT;
+	}
+}

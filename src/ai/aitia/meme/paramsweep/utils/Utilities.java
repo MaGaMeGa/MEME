@@ -595,5 +595,29 @@ public class Utilities {
 		}
 		return false;
 	}
+	
+	//----------------------------------------------------------------------------------------------------
+	public static boolean numberEquals(final Number num1, final Number num2) {
+		if (num1 == null)
+			return num2 == null;
+		if (num2 == null)
+			return false;
+		
+		if (!num1.getClass().equals(num2.getClass())) return false;
+		
+		if (num1 instanceof Byte)
+			return num1.byteValue() == num2.byteValue();
+		if (num1 instanceof Short)
+			return num1.shortValue() == num2.shortValue();
+		if (num1 instanceof Integer)
+			return num1.intValue() == num2.intValue();
+		if (num1 instanceof Long)
+			return num1.longValue() == num2.longValue();
+		if (num1 instanceof Float)
+			return num1.floatValue() == num2.floatValue();
+		if (num1 instanceof Double)
+			return num1.doubleValue() == num2.doubleValue();
 
+		return false;
+	}
 }
