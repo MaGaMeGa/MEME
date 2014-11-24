@@ -194,7 +194,6 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	public Page_ParametersV2(final ParameterSweepWizard owner) {
 		this.owner = owner;
 		container = initContainer();
-		initialize(); 
 		//Style.apply(container, dashboard.getCssStyle()); //TODO: 
 	}
 
@@ -418,7 +417,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		listDefScr.setPreferredSize(new Dimension(100, 200)); 
 		
 		GUIUtils.addActionListener(this, modifyButton, cancelButton, constDef, listDef, incrDef, constDefField, incrStartValueField, incrEndValueField, incrStepField,
-								   addNewBoxButton, browseFileButton);
+								   addNewBoxButton, browseFileButton, runsField);
 		
 		return sweepPanel;
 	}
@@ -795,7 +794,16 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	public boolean onButtonPress(final Button b) { 
 		boolean enabled = isEnabled(b);
 		if (enabled) {
-			if (b == Button.CANCEL || editedNode == null || modify()) return true;
+			if (b == Button.CANCEL) return true ;
+			if (editedNode == null || modify()) {
+				String invalidInfoName = checkInfos();
+				if (invalidInfoName != null) {
+					Utilities.userAlert(owner,"Please specify a file for parameter " + invalidInfoName);
+					return false;
+				}
+				
+				return true;
+			}
 		}
 		return false;
 	}
@@ -812,7 +820,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	//----------------------------------------------------------------------------------------------------
 	/** {@inheritDoc} 
 	 */
-	public void onPageChange(boolean show) { //TODO: reimplement 
+	public void onPageChange(boolean show) {
 		if (show) {
 			if (owner.getModelState() == ParameterSweepWizard.ERROR) return;
 			initializePageForPlatform();
@@ -822,18 +830,15 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 				parameters = createParameters();
 				if (parameters == null) return;
 				if (owner.getParameterFile() != null && owner.getParameterFile().exists()) {
-					//TODO: do this
-//					try {
-//						root = PlatformSettings.parseParameterFile(parameters,owner.getParameterFile());
-//						root.setUserObject(new String(owner.getParameterFile().getName()));
-//						setGlobalRunsField();
-//						outputTree.setModel(new DefaultTreeModel(root));
-//						outputTree.expandRow(0);
-//					} catch (ParameterParserException e) {
-//						Utilities.userAlert(owner,"Cannot initialize from the defined parameter file.","Reason: " + Util.getLocalizedMessage(e));
-//						e.printStackTrace(ParameterSweepWizard.getLogStream());
-//						createDefaultTree();
-//					}
+					try {
+						final DefaultMutableTreeNode root = PlatformSettings.parseParameterFile(parameters,owner.getParameterFile());
+						setGlobalRunsField(root);
+						initializePageFromTree(root);
+					} catch (ParameterParserException | WizardLoadingException e) {
+						Utilities.userAlert(owner,"Cannot initialize from the defined parameter file.","Reason: " + Util.getLocalizedMessage(e));
+						e.printStackTrace(ParameterSweepWizard.getLogStream());
+						createDefaultParameterList(parameters);;
+					}
 				} else
 					createDefaultParameterList(parameters);
 				enableDisableSettings(false);
@@ -842,17 +847,14 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 			}
 			if (owner.getParameterFile() != null && owner.isParameterFileChanged()) { 
 				if (owner.getModelState() != ParameterSweepWizard.NEW_MODEL && owner.getParameterFile().exists()) {
-					//TODO: do this
-//					try {
-//						root = PlatformSettings.parseParameterFile(parameters,owner.getParameterFile());
-//						root.setUserObject(new String(owner.getParameterFile().getName()));
-//						setGlobalRunsField();
-//						outputTree.setModel(new DefaultTreeModel(root));
-//						outputTree.expandRow(0);
-//					} catch (ParameterParserException e) {
-//						Utilities.userAlert(owner,"Cannot initialize from the defined parameter file.","Reason: " + Util.getLocalizedMessage(e));
-//						e.printStackTrace(ParameterSweepWizard.getLogStream());
-//					}
+					try {
+						final DefaultMutableTreeNode root = PlatformSettings.parseParameterFile(parameters,owner.getParameterFile());
+						setGlobalRunsField(root); 
+						initializePageFromTree(root);
+					} catch (ParameterParserException | WizardLoadingException e) {
+						Utilities.userAlert(owner,"Cannot initialize from the defined parameter file.","Reason: " + Util.getLocalizedMessage(e));
+						e.printStackTrace(ParameterSweepWizard.getLogStream());
+					}
 				}
 			}
 			owner.setParameterFileChanged(false);
@@ -920,15 +922,16 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		if (content == null || content.getLength() == 0)
 			throw new WizardLoadingException(true,"missing content at node: " + WizardSettingsManager.PARAMETER_FILE);
 		String paramFileContent = ((Text)content.item(0)).getNodeValue();
+		DefaultMutableTreeNode root = null;
 		try {
-			DefaultMutableTreeNode root = PlatformSettings.parseParameterFile(parameters,paramFileContent);
+			root = PlatformSettings.parseParameterFile(parameters,paramFileContent);
 			initializePageFromTree(root);
 		} catch (ParameterParserException e) {
 			throw new WizardLoadingException(true,e);
 		}
 		if (cancelButton.isEnabled()) 
 			cancelButton.doClick();
-//		setGlobalRunsField(); //TODO:
+		setGlobalRunsField(root); 
 		updateNumberOfRuns();
 	}
 	
@@ -1029,6 +1032,8 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		for (final ParameterInfo parameterInfo : parameters) 
 			model.addElement(new AvailableParameter(parameterInfo));
 		parameterList.setModel(model); 
+		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.GLOBAL)
+			runsField.setText("1");
 	}
 	
 	//------------------------------------------------------------------------------
@@ -1150,6 +1155,20 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	 */
 	private String[] checkInput(final ParameterInfo info) {
 		final ArrayList<String> errors = new ArrayList<String>();
+		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.LOCAL) {
+			final boolean allowEmptyRun = constDef.isSelected();
+			if (runsField.getText().trim().equals("") && !allowEmptyRun) 
+				errors.add("'Runs' cannot be empty.");
+			else if (!runsField.getText().trim().equals("")) {
+				try {
+					long i = new Long(runsField.getText().trim()).longValue();
+					if (i <= 0)
+						throw new NumberFormatException();
+				} catch (NumberFormatException e) {
+					errors.add("'Runs' must be a positive integer.");
+				}
+			}
+		}
 		if (constDef.isSelected()) {
 			if (info.isEnum() || info instanceof MasonChooserParameterInfo) { 
 				// well, the combo box must contain a valid value
@@ -1316,7 +1335,10 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		info.clear();
 		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.LOCAL) {
 			if (runsField.getText().trim().equals("")) {
-				info.setRuns(1);
+				if (constDef.isSelected())
+					info.setRuns(1);
+				else 
+					throw new IllegalStateException("Runs field is empty.");
 			} else {
 				long i = Long.parseLong(runsField.getText().trim());
 				info.setRuns(i);
@@ -1644,6 +1666,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		info.setDefinitionType(ParameterInfo.CONST_DEF);
 	}
 
+	//----------------------------------------------------------------------------------------------------
 	private int calculateNumberOfRuns(final DefaultMutableTreeNode combinationRoot) {
 		if (combinationRoot.getChildCount() == 0) 
 			return 0;
@@ -1681,8 +1704,10 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	public void setGlobalRuns(final DefaultMutableTreeNode root) {
-		final long runs = parseGlobalRuns();
+	public void setRunsIfNeccessary(final DefaultMutableTreeNode root) {
+		long runs = 1;
+		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.GLOBAL)
+			runs = parseGlobalRuns();
 		ParameterEnumeration pe = new ParameterEnumeration(root);
 		while (pe.hasMoreElements()) {
 			DefaultMutableTreeNode node = pe.nextElement();
@@ -1691,6 +1716,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 			info.setRuns(runs);
 		}
 	}
+	
 	
 	//----------------------------------------------------------------------------------------------------
 	public void transformIncrementsIfNeed(final DefaultMutableTreeNode root) {
@@ -1716,12 +1742,19 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		default: // do nothing
 		}
 	}
-
-	//----------------------------------------------------------------------------------------------------
-	private void initialize() {
-		//TODO: all appropriate Style.apply settings here 
-	}
 	
+	//----------------------------------------------------------------------------------------------------
+	private void setGlobalRunsField(DefaultMutableTreeNode root) {
+		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.GLOBAL) {
+			DefaultMutableTreeNode node = (DefaultMutableTreeNode) root.getChildAt(0);
+			if (node != null) {
+				ParameterInfo pi = (ParameterInfo) node.getUserObject();
+				if (pi != null)
+					runsField.setText(String.valueOf(pi.getRuns()));
+			}
+		}
+	}
+
 	//====================================================================================================
 	// nested classes
 	

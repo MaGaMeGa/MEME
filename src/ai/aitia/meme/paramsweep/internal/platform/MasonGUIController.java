@@ -25,15 +25,17 @@ import ai.aitia.meme.paramsweep.utils.MasonModelFileFilter;
 
 public class MasonGUIController extends CustomJavaGUIController {
 	@Override public FileFilter getModelFileFilter() { return new MasonModelFileFilter(); }
+	
+	@Override public RunOption getRunOption() { return RunOption.NONE; };
 
-	@SuppressWarnings("cast")
+	@SuppressWarnings("incomplete-switch")
 	public String getProgressInfo(BatchEvent event, boolean isLocal, double lastRun, double maxRun) {
 		if (event instanceof IntelliSweepBatchEvent) {
 			IntelliSweepBatchEvent _event = (IntelliSweepBatchEvent) event;
 			String runStr = isLocal ? "Run: " : "Run (in all iterations): ";
 			switch (event.getEventType()) {
 			case RUN_ENDED :  long actRun = (long) event.getNumber();
-							  return runStr + (long) actRun + "/" + (long) maxRun + " (Iteration: " + _event.getIteration() + ")\n" +
+							  return runStr + actRun + "/" + (long) maxRun + " (Iteration: " + _event.getIteration() + ")\n" +
 									 (isLocal ? "Tick: " + 1. + "\n" + _event.getText() + "\n" : "");
 			case STEP_ENDED : return runStr + (long) lastRun + "/" + (long) maxRun + " (Iteration: " + _event.getIteration() + ")\n" +
 									 (isLocal ? "Tick: " + (event.getNumber()) + "\n" + _event.getText() + "\n" : "");

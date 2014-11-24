@@ -741,8 +741,8 @@ public class ParameterSweepWizard extends Wizard implements IPSWInformationProvi
 	private boolean prepare() {
 		final DefaultMutableTreeNode parameterTreeRoot = parametersPage.createTreeFromParameterPage();
 		
-		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.GLOBAL)
-			parametersPage.setGlobalRuns(parameterTreeRoot);
+		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() != RunOption.LOCAL)
+			parametersPage.setRunsIfNeccessary(parameterTreeRoot);
 		parametersPage.transformIncrementsIfNeed(parameterTreeRoot);
 		
 		if (g_Preferences.saveParameterTree()) {

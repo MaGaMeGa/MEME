@@ -105,7 +105,7 @@ public class MasonChooserParameterInfo extends ParameterInfo {
 		StringBuilder sb = new StringBuilder(name);
 		sb.append(" : ").append(type.equals("List") || javaType.equals(unknown.class) ? javaType.getSimpleName() : type);
 		sb.append(" - [");
-		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.LOCAL && runs > 0) {
+		if (PlatformSettings.getGUIControllerForPlatform().getRunOption() == RunOption.LOCAL && runs > 1) {
 			sb.append("runs=");
 			sb.append(runs);
 			sb.append(",");
