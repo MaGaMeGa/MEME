@@ -178,6 +178,8 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	private JPanel rightMiddle;
 
 	private JList<AvailableParameter> parameterList;
+	private JButton newParameterButton = new JButton("Add new parameters...");
+	private JButton newParameterButtonCopy = new JButton("Add new parameters...");
 	
 	private DefaultMutableTreeNode editedNode;
 	private JTree editedTree; 
@@ -253,7 +255,9 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 										  "[DialogBorder]00 f:p:g||" +
 														"_1 p",
 														parameterListPane,
-														new JButton("TODO: new parameters")).getPanel(); //TODO: new parameters
+														newParameterButton).getPanel();
+		newParameterButton.setActionCommand("NEW_PARAMETER");
+		newParameterButtonCopy.setActionCommand("NEW_PARAMETER");
 		
 		combinationsPanel = new JPanel(new GridLayout(0, 1, 5, 5)); 
 		combinationsScrPane = new JScrollPane(combinationsPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -417,7 +421,21 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		listDefScr.setPreferredSize(new Dimension(100, 200)); 
 		
 		GUIUtils.addActionListener(this, modifyButton, cancelButton, constDef, listDef, incrDef, constDefField, incrStartValueField, incrEndValueField, incrStepField,
-								   addNewBoxButton, browseFileButton, runsField);
+								   addNewBoxButton, browseFileButton, runsField, newParameterButton, newParameterButtonCopy);
+		
+		runsField.setName("fld_wizard_params_runs");
+		constDef.setName("rbtn_wizard_params_const");
+		listDef.setName("rbtn_wizard_params_list");
+		incrDef.setName("rbtn_wizard_params_incr");
+		modifyButton.setName("btn_wizard_params_modify");
+		cancelButton.setName("btn_wizard_params_cancel");
+		incrStartValueField.setName("fld_wizard_params_incrstart");
+		incrEndValueField.setName("fld_wizard_params_incrend");
+		incrStepField.setName("fld_wizard_params_incrstep");
+		constDefField.setName("fld_wizard_params_constval");
+		listDefArea.setName("fld_wizard_params_paramlist");
+		newParameterButton.setName("btn_wizard_params_newparameter");
+		addNewBoxButton.setName("btn_wizard_params_newbox");
 		
 		return sweepPanel;
 	}
@@ -583,6 +601,14 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		final ParameterCombinationGUI pcGUI = new ParameterCombinationGUI(tree, treeRoot, runLabel, warningLabel, addButton, removeButton, upButton, downButton);
 		parameterTreeBranches.add(pcGUI);
 		
+		int idx = parameterTreeBranches.size() - 1;
+		if (!first)
+			closeButton.setName("btn_wizard_params_close_" + idx);
+		upButton.setName("btn_wizard_params_moveup_" + idx);
+		downButton.setName("btn_wizard_params_movedown_" + idx);
+		addButton.setName("btn_wizard_params_addparam_" + idx);
+		removeButton.setName("btn_wizard_params_removeparam_" + idx);
+		
 		final ActionListener boxActionListener = new ActionListener() {
 			
 			//====================================================================================================
@@ -734,7 +760,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		
 		GUIUtils.addActionListener(boxActionListener, closeButton, upButton, downButton, addButton, removeButton);
 		
-		result.setPreferredSize(new Dimension(300,250)); //TODO: check size
+		result.setPreferredSize(new Dimension(300,250)); 
 		enableDisableParameterCombinationButtons();
 		
 //		Style.apply(result, dashboard.getCssStyle()); //TODO
@@ -1306,6 +1332,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		fileTextField.setEnabled(enabled);
 		browseFileButton.setEnabled(enabled);
 		cancelButton.setEnabled(enabled);
+		newParameterButton.setEnabled(PlatformSettings.getGUIControllerForPlatform().isNewParametersEnabled() && !enabled);
 	}
 
 	//------------------------------------------------------------------------------
@@ -1411,6 +1438,51 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 			addBox();
 		else if (ACTIONCOMMAND_BROWSE.equals(command))
 			chooseFile();
+		else if (command.equals("NEW_PARAMETER")) { 
+			int result = Utilities.askUser(owner,false,"Warning","All user defined parameter settings will be lost.",
+										   "Do you want to continue?");
+			if (result == 1) { // yes
+				List<RecordableInfo> candidates = null;
+				try {
+					candidates = owner.getModelInformation().getRecordables();
+				} catch (ModelInformationException e1) {
+					Utilities.userAlert(owner,"Error while collecting new parameter candidates.","Reason: " +
+										Util.getLocalizedMessage(e1));
+					e1.printStackTrace(ParameterSweepWizard.getLogStream());
+					return;
+				}
+				NewParametersDialog dialog = new NewParametersDialog(ParameterSweepWizard.getFrame(),candidates,originalInitParamResult);
+				result = dialog.showDialog();
+				if (result == NewParametersDialog.OK_OPTION) {
+					List<ParameterInfo> oldNewParameters = newParameters == null ? new ArrayList<ParameterInfo>() : newParameters; 
+					newParameters = dialog.getNewParameterList();
+					if (newParameters.size() == 0)
+						newParameters = null;
+					resetParamsweepGUI();
+					parameters = createParameters();
+					if (owner.getParameterFile() != null && owner.getParameterFile().exists()) {
+						try {
+							final DefaultMutableTreeNode root = PlatformSettings.parseParameterFile(parameters,owner.getParameterFile());
+							setGlobalRunsField(root);
+							initializePageFromTree(root);
+						} catch (ParameterParserException | WizardLoadingException e1) {
+							createDefaultParameterList(parameters);
+							Utilities.userAlert(owner,"Cannot initialize from the defined parameter file.","Reason: " +
+												Util.getLocalizedMessage(e1));
+							e1.printStackTrace(ParameterSweepWizard.getLogStream());
+						}
+					} else
+						createDefaultParameterList(parameters);
+					enableDisableSettings(false);
+					modifyButton.setEnabled(false);
+					owner.reinitializeRecordableLists(newParameters == null ? oldNewParameters : 
+																			  Utilities.listSubtract(oldNewParameters,newParameters));
+					owner.cleanRecorders();
+					updateNumberOfRuns();
+				}
+			}
+		}
+
 	}
 
 	//----------------------------------------------------------------------------------------------------
@@ -1458,7 +1530,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		for (final ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?> pInfo : batchParameters) {
 			final ParameterInfo converted = InfoConverter.parameterInfo2ParameterInfo(pInfo);
 			if (info.equals(converted)) {
-				converted.setRuns(1); //TODO: global run?
+				converted.setRuns(1); 
 				return converted;
 			}
 		}
@@ -1484,7 +1556,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	private String checkInfos() { // TODO: have to use somewhere
+	private String checkInfos() { 
 		final DefaultListModel<AvailableParameter> listModel = (DefaultListModel<AvailableParameter>) parameterList.getModel();
 		for (int i = 0;i < listModel.getSize();++i) {
 			final AvailableParameter param = listModel.get(i);
@@ -1521,7 +1593,6 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	//TODO: global run
 	public DefaultMutableTreeNode createTreeFromParameterPage() {
 		final DefaultMutableTreeNode result = new DefaultMutableTreeNode();
 		
@@ -1732,8 +1803,11 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	//----------------------------------------------------------------------------------------------------
 	private void initializePageForPlatform() {
 		IGUIController controller = PlatformSettings.getGUIControllerForPlatform();
-//		newParameterButton.setEnabled(controller.isNewParametersEnabled()); //TODO:
-//		newParameterButtonCopy.setEnabled(controller.isNewParametersEnabled());
+		newParameterButton.setEnabled(controller.isNewParametersEnabled()); 
+		newParameterButtonCopy.setEnabled(controller.isNewParametersEnabled());
+		newParameterButton.setVisible(controller.isNewParametersEnabled()); 
+		newParameterButtonCopy.setVisible(controller.isNewParametersEnabled());
+
 		switch (controller.getRunOption()) {
 		case NONE 	: runsLabel.setVisible(false);
 					  runsField.setVisible(false);
@@ -1755,9 +1829,12 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		}
 	}
 
+	//----------------------------------------------------------------------------------------------------
+	public JButton getNewParametersButton() { return newParameterButtonCopy; }
+	
 	//====================================================================================================
 	// nested classes
-	
+
 	//----------------------------------------------------------------------------------------------------
 	private class IntelliContext extends HashMap<Object, Object> implements IIntelliContext {
 		{
@@ -1766,7 +1843,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
         private static final long serialVersionUID = -7383965550748377433L;
 		public List<ParameterInfo> getParameters() { return parameters; }
 		public DefaultMutableTreeNode getParameterTreeRootNode() { return createTreeFromParameterPage(); } 
-		public JButton getNewParametersButton() { return null; /*return Page_ParametersV2.this.getNewParametersButton();*/ } //TODO
+		public JButton getNewParametersButton() { return Page_ParametersV2.this.getNewParametersButton(); } 
 		public File getPluginResourcesDirectory() { return new File(System.getProperty("user.dir") + "/resources/Plugins"); }
 	}
 

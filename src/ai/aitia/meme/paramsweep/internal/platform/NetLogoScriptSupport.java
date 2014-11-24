@@ -626,7 +626,8 @@ public class NetLogoScriptSupport implements IScriptSupport {
 				}
 
 				final ScriptGeneratedMemberInfo info = parentVariable == null ? new ScriptGeneratedMemberInfo(name,type,javaType)
-																			  : new VariableScriptGeneratedMemberInfo(name,parentVariable);				info.setSource(source);
+																			  : new VariableScriptGeneratedMemberInfo(name,parentVariable);	
+				info.setSource(source);
 				
 				for (int j = 0;j < refs.length;++j) {
 					GeneratedMemberInfo gmi = getDefinedScript(refs[j].trim());

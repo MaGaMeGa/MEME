@@ -27,6 +27,7 @@ public class MasonGUIController extends CustomJavaGUIController {
 	@Override public FileFilter getModelFileFilter() { return new MasonModelFileFilter(); }
 	
 	@Override public RunOption getRunOption() { return RunOption.NONE; };
+	@Override public boolean isNewParametersEnabled() { return false; };
 
 	@SuppressWarnings("incomplete-switch")
 	public String getProgressInfo(BatchEvent event, boolean isLocal, double lastRun, double maxRun) {

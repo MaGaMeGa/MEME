@@ -217,7 +217,7 @@ public class NewParametersDialog extends JDialog implements ActionListener {
 		/** Names of the columns of the table. */
 		private static String[] columnNames = { "Selected", "Name", "Type", "Initial value" };
 		/** Types of the columns of the table. */
-		private static Class[] columnTypes = { Boolean.class, String.class, String.class, String.class };
+		private static Class<?>[] columnTypes = { Boolean.class, String.class, String.class, String.class };
 		
 		/** The list of information objects of the possible parameters. */
 		private List<ParameterInfo> infoList = null;
@@ -246,7 +246,7 @@ public class NewParametersDialog extends JDialog implements ActionListener {
 				if (InfoConverter.isVariable(candidate)) { // means this is a variable
 					if (reserved.contains(Util.capitalize(candidate.getName())) || reserved.contains(Util.uncapitalize(candidate.getName())))
 						continue;
-					if (Util.isAcceptableType(candidate.getType())) {
+					if (Util.isAcceptableSimpleType(candidate.getType())) {
 						Class<?> convertedType = convert(candidate.getType());
 						ParameterInfo pi = new ParameterInfo(candidate.getName(),Utilities.toTypeString(convertedType),convertedType);
 						pi.setInitValue();
@@ -274,7 +274,7 @@ public class NewParametersDialog extends JDialog implements ActionListener {
 			case 0  : return markList.get(rowIndex);
 			case 1  : return infoList.get(rowIndex).getName();
 			case 2  : return infoList.get(rowIndex).getType();
-			case 3  : return infoList.get(rowIndex).getValue().toString();
+			case 3  : return infoList.get(rowIndex).getValue() == null ? "" : infoList.get(rowIndex).getValue().toString();
 			default : throw new IllegalStateException();
 			}
 		}
