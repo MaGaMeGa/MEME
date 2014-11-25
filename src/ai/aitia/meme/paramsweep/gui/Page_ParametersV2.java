@@ -6,12 +6,15 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
@@ -31,6 +35,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
@@ -39,6 +44,7 @@ import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
@@ -60,6 +66,8 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
 import ai.aitia.meme.Logger;
+import ai.aitia.meme.events.HybridAction;
+import ai.aitia.meme.events.IHybridActionListener;
 import ai.aitia.meme.gui.Wizard;
 import ai.aitia.meme.gui.Wizard.Button;
 import ai.aitia.meme.gui.Wizard.IArrowsInHeader;
@@ -516,33 +524,9 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	    treeScrPane.setBorder(null);
 	    treeScrPane.setViewportBorder(null);
 		treeScrPane.setPreferredSize(new Dimension(250, 250)); 
-	    
-		final JButton upButton = new JButton();
-		upButton.setOpaque(false);
-		upButton.setRolloverEnabled(true);
-		upButton.setIcon(PARAMETER_UP_ICON);
-		upButton.setRolloverIcon(PARAMETER_UP_ICON_RO);
-		upButton.setDisabledIcon(PARAMETER_UP_ICON_DIS);
-		upButton.setBorder(null);
-		upButton.setBorderPainted(false);
-		upButton.setContentAreaFilled(false);
-		upButton.setFocusPainted(false);
-		upButton.setToolTipText("Move up the selected parameter");
-		upButton.setActionCommand(ACTIONCOMMAND_MOVE_UP);
 		
+		final JButton upButton = new JButton();
 		final JButton downButton = new JButton();
-		downButton.setOpaque(false);
-		downButton.setRolloverEnabled(true);
-		downButton.setIcon(PARAMETER_DOWN_ICON);
-		downButton.setRolloverIcon(PARAMETER_DOWN_ICON_RO);
-		downButton.setDisabledIcon(PARAMETER_DOWN_ICON_DIS);
-		downButton.setBorder(null);
-		downButton.setBorderPainted(false);
-		downButton.setContentAreaFilled(false);
-		downButton.setFocusPainted(false);
-		downButton.setToolTipText("Move down the selected parameter");
-		downButton.setActionCommand(ACTIONCOMMAND_MOVE_DOWN);
-
 		
 		final JPanel mainPanel = FormsUtils.build("~ f:p:g ~ p ~ r:p",
 												  "012||" +
@@ -570,22 +554,10 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		addButton.setBorderPainted(false);
 		addButton.setContentAreaFilled(false);
 		addButton.setFocusPainted(false);
-
 		addButton.setToolTipText("Add selected parameter");
 		addButton.setActionCommand(ACTIONCOMMAND_ADD_PARAM);
 		
 		final JButton removeButton = new JButton();
-		removeButton.setOpaque(false);
-		removeButton.setRolloverEnabled(true);
-		removeButton.setIcon(PARAMETER_REMOVE_ICON);
-		removeButton.setRolloverIcon(PARAMETER_REMOVE_ICON_RO);
-		removeButton.setDisabledIcon(PARAMETER_REMOVE_ICON_DIS);
-		removeButton.setBorder(null);
-		removeButton.setBorderPainted(false);
-		removeButton.setContentAreaFilled(false);
-		removeButton.setFocusPainted(false);
-		removeButton.setToolTipText("Remove selected parameter");
-		removeButton.setActionCommand(ACTIONCOMMAND_REMOVE_PARAM);
 		
 		final JPanel result = FormsUtils.build("p ~ f:p:g",
 											   "_0 f:p:g||" +
@@ -609,15 +581,24 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		addButton.setName("btn_wizard_params_addparam_" + idx);
 		removeButton.setName("btn_wizard_params_removeparam_" + idx);
 		
-		final ActionListener boxActionListener = new ActionListener() {
+		class HybridActionListener implements ActionListener, IHybridActionListener {
 			
 			//====================================================================================================
 			// methods
 			
 			//----------------------------------------------------------------------------------------------------
 			public void actionPerformed(final ActionEvent e) {
-				final String cmd = e.getActionCommand();
-				
+				hybridAction(e, null);
+			}
+			
+			//----------------------------------------------------------------------------------------------------
+			public void hybridAction(ActionEvent e, HybridAction a) {
+				String cmd = null;
+				if ( a != null ) 
+					cmd = a.getValue(Action.ACTION_COMMAND_KEY).toString();
+				else 
+					cmd = e.getActionCommand();
+					
 				if (ACTIONCOMMAND_ADD_PARAM.equals(cmd)) 
 					handleAddParameter(pcGUI);
 				else if (ACTIONCOMMAND_REMOVE_PARAM.equals(cmd)) 
@@ -690,7 +671,8 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 			//----------------------------------------------------------------------------------------------------
 			private void removeParameter(final JTree tree, final DefaultMutableTreeNode node, final DefaultMutableTreeNode parentNode) {
 				final ParameterInATree userObj = (ParameterInATree) node.getUserObject();
-				final ParameterInfo originalInfo = findOriginalInfo(userObj.info);
+//				final ParameterInfo originalInfo = findOriginalInfo(userObj.info);
+				final ParameterInfo originalInfo = findMatchedInfo(userObj.info);
 				if (originalInfo != null) {
 					final DefaultListModel<AvailableParameter> model = (DefaultListModel<AvailableParameter>) parameterList.getModel();
 					model.addElement(new AvailableParameter(originalInfo));
@@ -758,7 +740,75 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 			}
 		};
 		
-		GUIUtils.addActionListener(boxActionListener, closeButton, upButton, downButton, addButton, removeButton);
+		final HybridActionListener hybridActionListener = new HybridActionListener(); 
+		GUIUtils.addActionListener(hybridActionListener, closeButton, addButton );
+		
+		final HybridAction upAction = new HybridAction(hybridActionListener,"Move up",null,Action.ACTION_COMMAND_KEY,ACTIONCOMMAND_MOVE_UP);
+		final HybridAction downAction = new HybridAction(hybridActionListener,"Move down",null,Action.ACTION_COMMAND_KEY,ACTIONCOMMAND_MOVE_DOWN);
+		final HybridAction removeAction = new HybridAction(hybridActionListener,"Remove",null,Action.ACTION_COMMAND_KEY,ACTIONCOMMAND_REMOVE_PARAM);
+		
+		final JPopupMenu contextMenu = new JPopupMenu();
+		contextMenu.setName("cmenu_wizard_parameters_treecmenu_" + idx);
+		contextMenu.add(upAction);
+		contextMenu.add(downAction);
+		contextMenu.add(removeAction);
+			
+		contextMenu.getComponent(0).setName("btn_wizard_params_cmenumoveup_" + idx);
+		contextMenu.getComponent(1).setName("btn_wizard_params_cmenumovedown_" + idx);
+		contextMenu.getComponent(2).setName("btn_wizard_params_cmenuremove_" + idx);
+		
+		tree.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				if (SwingUtilities.isRightMouseButton(e) && e.getComponent().isEnabled()) {
+					DefaultMutableTreeNode node = mouseOnNode(tree, e);
+					if (node == null) 
+						node = (DefaultMutableTreeNode) tree.getPathForRow(tree.getRowCount() - 1).getLastPathComponent();
+					tree.setSelectionPath(new TreePath(node.getPath()));
+					contextMenu.show(e.getComponent(), e.getX(), e.getY());
+				}
+			}
+		});
+					
+		upButton.setAction(upAction);
+		upButton.setOpaque(false);
+		upButton.setRolloverEnabled(true);
+		upButton.setText(""); // need to delete the text explicitly because the button inherits text from the action
+		upButton.setIcon(PARAMETER_UP_ICON);
+		upButton.setRolloverIcon(PARAMETER_UP_ICON_RO);
+		upButton.setDisabledIcon(PARAMETER_UP_ICON_DIS);
+		upButton.setBorder(null);
+		upButton.setBorderPainted(false);
+		upButton.setContentAreaFilled(false);
+		upButton.setFocusPainted(false);
+		upButton.setToolTipText("Move up the selected parameter");
+
+		downButton.setAction(downAction);
+		downButton.setOpaque(false);
+		downButton.setRolloverEnabled(true);
+		downButton.setText(""); // need to delete the text explicitly because the button inherits text from the action
+		downButton.setIcon(PARAMETER_DOWN_ICON);
+		downButton.setRolloverIcon(PARAMETER_DOWN_ICON_RO);
+		downButton.setDisabledIcon(PARAMETER_DOWN_ICON_DIS);
+		downButton.setBorder(null);
+		downButton.setBorderPainted(false);
+		downButton.setContentAreaFilled(false);
+		downButton.setFocusPainted(false);
+		downButton.setToolTipText("Move down the selected parameter");
+
+		
+		removeButton.setAction(removeAction);
+		removeButton.setOpaque(false);
+		removeButton.setRolloverEnabled(true);
+		removeButton.setText(""); // need to delete the text explicitly because the button inherits text from the action
+		removeButton.setIcon(PARAMETER_REMOVE_ICON);
+		removeButton.setRolloverIcon(PARAMETER_REMOVE_ICON_RO);
+		removeButton.setDisabledIcon(PARAMETER_REMOVE_ICON_DIS);
+		removeButton.setBorder(null);
+		removeButton.setBorderPainted(false);
+		removeButton.setContentAreaFilled(false);
+		removeButton.setFocusPainted(false);
+		removeButton.setToolTipText("Remove selected parameter");
 		
 		result.setPreferredSize(new Dimension(300,250)); 
 		enableDisableParameterCombinationButtons();
@@ -766,6 +816,17 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 //		Style.apply(result, dashboard.getCssStyle()); //TODO
 
 		return result;
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	/** Returns the node that belongs to the location of the event. */
+	private DefaultMutableTreeNode mouseOnNode(final JTree tree, final MouseEvent event) {
+		Point loc = event.getPoint();
+		TreePath path = null; 
+		for (int i = 20;path == null && i <= loc.x;path = tree.getPathForLocation(i,loc.y),i += 20);
+		if (path != null)
+			return (DefaultMutableTreeNode) path.getLastPathComponent();
+		return null;
 	}
 	
 	//----------------------------------------------------------------------------------------------------
@@ -933,6 +994,8 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 				ParameterInfo pi = new ParameterInfo(name,type,javaType);
 				if (!pi.isNumeric() && !pi.isBoolean() && !pi.getType().equals("String"))
 					throw new WizardLoadingException(true,"invalid 'type' attribute at node: " + WizardSettingsManager.PARAMETER);
+				pi.setInitValue();
+				pi.setRuns(1);
 				newParameters.add(pi);
 			}
 		}
@@ -1042,8 +1105,9 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 				String name = newParameters.get(i).getName();
 				initParamResult[originalInitParamResult.length + i] = name;
 				newParameters.get(i).setName(Util.capitalize(name));
+				info.add(newParameters.get(i).clone());
 			}
-			info.addAll(newParameters);
+//			info.addAll(newParameters);
 		} else 
 			initParamResult = originalInitParamResult;
 		Collections.sort(info);
@@ -1539,6 +1603,20 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	}
 	
 	//----------------------------------------------------------------------------------------------------
+	private ParameterInfo findMatchedInfo(final ParameterInfo info) {
+		ParameterInfo result = findOriginalInfo(info);
+		
+		if (result == null && newParameters != null) {
+			for (final ParameterInfo candidate : newParameters) {
+				if (info.equals(candidate))
+					return candidate;
+			}
+		}
+		
+		return result;
+	}
+	
+	//----------------------------------------------------------------------------------------------------
 	private void enableDisableParameterCombinationButtons() {
 		final boolean selectionInTheList = parameterList.getSelectedIndex() >= 0; 
 		
@@ -1549,9 +1627,9 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 					
 			
 			pGUI.addButton.setEnabled(selectionInTheList);
-			pGUI.removeButton.setEnabled(topLevelSelectionInTheTree);
-			pGUI.upButton.setEnabled(selectionInTheTree);
-			pGUI.downButton.setEnabled(selectionInTheTree);
+			pGUI.removeButton.getAction().setEnabled(topLevelSelectionInTheTree);
+			pGUI.upButton.getAction().setEnabled(selectionInTheTree);
+			pGUI.downButton.getAction().setEnabled(selectionInTheTree);
 		}
 	}
 	
@@ -1686,7 +1764,8 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	//----------------------------------------------------------------------------------------------------
 	private ConstantCheckResult checkIfConstant(ParameterInfo info) throws WizardLoadingException {
 		if (info.isConstant()) {
-			final ParameterInfo originalInfo = findOriginalInfo(info);
+//			final ParameterInfo originalInfo = findOriginalInfo(info);
+			final ParameterInfo originalInfo = findMatchedInfo(info);
 			if (originalInfo == null)
 				throw new WizardLoadingException(true,"Unknown referenced parameter: " + info.getName());
 			return isDefaultConstant(info,originalInfo) ? ConstantCheckResult.DEFAULT_CONSTANT : ConstantCheckResult.CONSTANT;
