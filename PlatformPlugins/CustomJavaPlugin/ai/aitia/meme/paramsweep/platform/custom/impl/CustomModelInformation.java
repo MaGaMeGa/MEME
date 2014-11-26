@@ -16,6 +16,7 @@
  ******************************************************************************/
 package ai.aitia.meme.paramsweep.platform.custom.impl;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -276,6 +277,7 @@ public class CustomModelInformation implements IModelInformation {
 	}
 	
 	//----------------------------------------------------------------------------------------------------
+	@SuppressWarnings("rawtypes")
 	private ParameterInfo<?> createParameterInfo(Object model, String name, Method method) throws IllegalAccessException, InvocationTargetException {
 		Object o = null;
 		if (method.getParameterTypes().length > 0)  { // getParameter
@@ -288,7 +290,13 @@ public class CustomModelInformation implements IModelInformation {
 				o = method.invoke(model,Util.uncapitalize(name));
 		} else // get<Name>
 			o = method.invoke(model,(Object[])null);
-		Class<?> c = o.getClass();
+
+		Class<?> c;
+		if (o == null)
+			c = method.getReturnType();
+		else 
+			c = o.getClass();
+		
 		if (Byte.TYPE.equals(c) || Byte.class.equals(c))
 			return new ParameterInfo<Byte>(name,null,(Byte)o);
 		else if (Short.TYPE.equals(c) || Short.class.equals(c))
@@ -305,7 +313,11 @@ public class CustomModelInformation implements IModelInformation {
 			return new ParameterInfo<Boolean>(name,null,(Boolean)o);
 		else if (String.class.equals(c))
 			return new ParameterInfo<String>(name,null,(String)o);
-		throw new IllegalArgumentException("invalid parameter type");
+		else if (File.class.isAssignableFrom(c))
+			return new ParameterInfo<File>(name,null,(File)o);
+		else if (Enum.class.isAssignableFrom(c))
+			return new ParameterInfo<Enum>(name,null,(Enum)o);
+		throw new IllegalArgumentException("invalid parameter (" + name + ") type (" + c + ")");
 	}
 
 	@Override

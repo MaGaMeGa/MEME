@@ -16,14 +16,13 @@
  ******************************************************************************/
 package ai.aitia.meme.paramsweep.platform.repast.impl;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import javassist.CannotCompileException;
@@ -207,9 +206,15 @@ public class RepastModelInformation implements IModelInformation {
 	}
 
 	//----------------------------------------------------------------------------------------------------
+	@SuppressWarnings("rawtypes")
 	private ParameterInfo<?> createParameterInfo(Object model, String name, Method method) throws IllegalAccessException, InvocationTargetException {
 		Object o = method.invoke(model,(Object[])null);
-		Class<?> c = method.getReturnType();
+		Class<?> c;
+		if (o == null)
+			c = method.getReturnType();
+		else 
+			c = o.getClass();
+
 		if (Byte.TYPE.equals(c) || Byte.class.equals(c))
 			return new ParameterInfo<Byte>(name,null,(Byte)o);
 		else if (Short.TYPE.equals(c) || Short.class.equals(c))
@@ -226,7 +231,11 @@ public class RepastModelInformation implements IModelInformation {
 			return new ParameterInfo<Boolean>(name,null,(Boolean)o);
 		else if (String.class.equals(c))
 			return new ParameterInfo<String>(name,null,(String)o);
-		throw new IllegalArgumentException("invalid parameter type");
+		else if (File.class.isAssignableFrom(c))
+			return new ParameterInfo<File>(name,null,(File)o);
+		else if (Enum.class.isAssignableFrom(c))
+			return new ParameterInfo<Enum>(name,null,(Enum)o);
+		throw new IllegalArgumentException("invalid parameter (" + name + ") type (" + c + ")");
 	}
 	
 	//----------------------------------------------------------------------------------------------------

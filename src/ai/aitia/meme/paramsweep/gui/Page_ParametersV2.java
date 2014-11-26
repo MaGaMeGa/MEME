@@ -42,6 +42,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTree;
+import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
@@ -144,7 +145,10 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 								ACTIONCOMMAND_MOVE_UP = "MOVE_UP",
 								ACTIONCOMMAND_MOVE_DOWN = "MOVE_DOWN",
 								ACTIONCOMMAND_EDIT = "EDIT",
-								ACTIONCOMMAND_BROWSE = "BROWSE";
+								ACTIONCOMMAND_BROWSE = "BROWSE",
+								ACTIONCOMMAND_ADD_ENUM = "ADD_ENUM",
+								ACTIONCOMMAND_REMOVE_ENUM = "REMOVE_ENUM",
+								ACTIONCOMMAND_NEW_PARAMETERS = "NEW_PARAMETER";
 
 	private static final String TITLE = "Parameters";
 	private static final String INFO_TEXT = "Specify input parameter values: Set the number of runs for each parameter value and define the parameter space";
@@ -177,6 +181,10 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	private JTextField incrEndValueField;
 	private JTextField incrStepField;
 	private JComboBox<Object> enumDefBox;
+	private JList<Object> leftEnumValueList;
+	private JList<Object> rightEnumValueList;
+	private JButton addEnumButton;
+	private JButton removeEnumButton;
 	private JButton cancelButton;
 	private JButton modifyButton;
 	private JTextField fileTextField;
@@ -342,7 +350,67 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 								"[DialogBorder]01 p", 
 								"Constant value:", CellConstraints.TOP, enumDefBox).getPanel();
 		
-		//TODO: enum list
+		leftEnumValueList = new JList<Object>(new DefaultListModel<Object>());
+		rightEnumValueList = new JList<Object>(new DefaultListModel<Object>());
+		final JScrollPane leftEnumValuePane = new JScrollPane(leftEnumValueList,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		final JScrollPane rightEnumValuePane = new JScrollPane(rightEnumValueList,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		leftEnumValuePane.setPreferredSize(new Dimension(125,100));
+		rightEnumValuePane.setPreferredSize(new Dimension(125,100));
+		
+		addEnumButton = new JButton();
+		addEnumButton.setOpaque(false);
+		addEnumButton.setRolloverEnabled(true);
+		addEnumButton.setIcon(PARAMETER_ADD_ICON);
+		addEnumButton.setRolloverIcon(PARAMETER_ADD_ICON_RO);
+		addEnumButton.setDisabledIcon(PARAMETER_ADD_ICON_DIS);
+		addEnumButton.setBorder(null);
+		addEnumButton.setBorderPainted(false);
+		addEnumButton.setContentAreaFilled(false);
+		addEnumButton.setFocusPainted(false);
+		addEnumButton.setToolTipText("Add selected value");
+		addEnumButton.setActionCommand(ACTIONCOMMAND_ADD_ENUM);
+		
+		removeEnumButton = new JButton();
+		removeEnumButton.setOpaque(false);
+		removeEnumButton.setRolloverEnabled(true);
+		removeEnumButton.setIcon(PARAMETER_REMOVE_ICON);
+		removeEnumButton.setRolloverIcon(PARAMETER_REMOVE_ICON_RO);
+		removeEnumButton.setDisabledIcon(PARAMETER_REMOVE_ICON_DIS);
+		removeEnumButton.setBorder(null);
+		removeEnumButton.setBorderPainted(false);
+		removeEnumButton.setContentAreaFilled(false);
+		removeEnumButton.setFocusPainted(false);
+		removeEnumButton.setToolTipText("Remove selected value");
+		removeEnumButton.setActionCommand(ACTIONCOMMAND_REMOVE_ENUM);
+				
+		final JPanel enumListPanel = FormsUtils.build("p:g ~ p ' p ~ p:g",
+				 				"[DialogBorder]0011 f:p:g||" +
+				 							  "_23_ p||",
+							   leftEnumValuePane,rightEnumValuePane,
+							   removeEnumButton,addEnumButton).getPanel();
+		
+		leftEnumValueList.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(final MouseEvent e) {
+				if (SwingUtilities.isLeftMouseButton(e) && e.getComponent().isEnabled() && e.getClickCount() == 2) {
+					final DefaultListModel<Object> model = (DefaultListModel<Object>) rightEnumValueList.getModel();
+					
+					for (final Object element : leftEnumValueList.getSelectedValuesList())
+						model.addElement(element);
+				}
+			}
+		});
+		rightEnumValueList.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mouseClicked(final MouseEvent e) {
+				if (SwingUtilities.isLeftMouseButton(e) && e.getComponent().isEnabled() && e.getClickCount() == 2) {
+					final DefaultListModel<Object> model = (DefaultListModel<Object>) rightEnumValueList.getModel();
+					
+					for (final Object element : rightEnumValueList.getSelectedValuesList())
+						model.removeElement(element);
+				}
+			}
+		});
 		
 		fileTextField = new JTextField();
 		fileTextField.addKeyListener(new KeyAdapter() {
@@ -361,6 +429,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		listDefPanel.setName("LIST");
 		incrDefPanel.setName("INCREMENT");
 		enumDefPanel.setName("ENUM");
+		enumListPanel.setName("ENUMLIST");
 		fileDefPanel.setName("FILE");
 
 		//TODO
@@ -376,6 +445,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		rightMiddle.add(listDefPanel, listDefPanel.getName());
 		rightMiddle.add(incrDefPanel, incrDefPanel.getName());
 		rightMiddle.add(enumDefPanel, enumDefPanel.getName());
+		rightMiddle.add(enumListPanel, enumListPanel.getName());
 		rightMiddle.add(fileDefPanel, fileDefPanel.getName());
 		
 		modifyButton = new JButton("Modify");
@@ -429,7 +499,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		listDefScr.setPreferredSize(new Dimension(100, 200)); 
 		
 		GUIUtils.addActionListener(this, modifyButton, cancelButton, constDef, listDef, incrDef, constDefField, incrStartValueField, incrEndValueField, incrStepField,
-								   addNewBoxButton, browseFileButton, runsField, newParameterButton, newParameterButtonCopy);
+								   addNewBoxButton, browseFileButton, runsField, newParameterButton, newParameterButtonCopy, addEnumButton, removeEnumButton);
 		
 		runsField.setName("fld_wizard_params_runs");
 		constDef.setName("rbtn_wizard_params_const");
@@ -443,6 +513,11 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		constDefField.setName("fld_wizard_params_constval");
 		listDefArea.setName("fld_wizard_params_paramlist");
 		newParameterButton.setName("btn_wizard_params_newparameter");
+		enumDefBox.setName("cb_wizard_params_enum_const");
+		addEnumButton.setName("btn_wizard_params_add_enum_value");
+		removeEnumButton.setName("btn_wizard_params_remove_enum_value");
+		browseFileButton.setName("btn_wizard_params_browse");
+		fileTextField.setName("fld_wizard_params_file_const");
 		addNewBoxButton.setName("btn_wizard_params_newbox");
 		
 		return sweepPanel;
@@ -671,7 +746,6 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 			//----------------------------------------------------------------------------------------------------
 			private void removeParameter(final JTree tree, final DefaultMutableTreeNode node, final DefaultMutableTreeNode parentNode) {
 				final ParameterInATree userObj = (ParameterInATree) node.getUserObject();
-//				final ParameterInfo originalInfo = findOriginalInfo(userObj.info);
 				final ParameterInfo originalInfo = findMatchedInfo(userObj.info);
 				if (originalInfo != null) {
 					final DefaultListModel<AvailableParameter> model = (DefaultListModel<AvailableParameter>) parameterList.getModel();
@@ -860,6 +934,8 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		listDefArea.setText(null);
 		fileTextField.setText(null);
 		fileTextField.setToolTipText(null);
+		leftEnumValueList.setModel(new DefaultListModel<Object>());
+		rightEnumValueList.setModel(new DefaultListModel<Object>());
 		combinationsPanel.removeAll();
 		parameterTreeBranches.clear();
 		combinationsPanel.add(createAParameterBox(true));
@@ -1141,7 +1217,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 				view = "ENUM";
 				constDef.setSelected(true);
 				incrDef.setEnabled(false);
-				listDef.setEnabled(false);
+				listDef.setEnabled(true);
 				Object[] elements = null;
 				if (info.isEnum()){
 					@SuppressWarnings("unchecked")
@@ -1175,9 +1251,43 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 			}
 			break;
 		}
-		case ParameterInfo.LIST_DEF  : view = "LIST";
-			listDef.setSelected(true);
-			listDefArea.setText(info.valuesToString());
+		case ParameterInfo.LIST_DEF  :
+			if (info.isEnum() || info instanceof MasonChooserParameterInfo) {
+				view = "ENUMLIST";
+				listDef.setSelected(true);
+				incrDef.setEnabled(false);
+				constDef.setEnabled(true);
+				Object[] elements = null;
+				if (info.isEnum()){
+					@SuppressWarnings("unchecked")
+					final Class<Enum<?>> type = (Class<Enum<?>>) info.getJavaType();
+					elements = type.getEnumConstants();
+				} else {
+					final MasonChooserParameterInfo chooserInfo = (MasonChooserParameterInfo) info;
+					elements = chooserInfo.getValidStrings();
+				}
+				
+				final DefaultListModel<Object> leftEnumModel = (DefaultListModel<Object>) leftEnumValueList.getModel();
+				leftEnumModel.removeAllElements();
+				for (final Object object : elements)
+					leftEnumModel.addElement(object);
+				
+				final DefaultListModel<Object> rightEnumModel = (DefaultListModel<Object>) rightEnumValueList.getModel();
+				rightEnumModel.removeAllElements();
+				for (final Object object : info.getValues()) {
+					if (info.isEnum())
+						rightEnumModel.addElement(object);
+					else {
+						final MasonChooserParameterInfo chooserInfo = (MasonChooserParameterInfo) info;
+						rightEnumModel.addElement(chooserInfo.getValidStrings()[(Integer) object]);
+					}
+				}
+			} else {
+				view = "LIST";
+				listDef.setSelected(true);
+				listDefArea.setText(info.valuesToString());
+			}
+			
 			break;
 		case ParameterInfo.INCR_DEF  : view = "INCREMENT";
 			incrDef.setSelected(true);
@@ -1191,7 +1301,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		enableDisableSettings(true);
 		if (!info.isNumeric()) 
 			incrDef.setEnabled(false);
-		if (info.isEnum() || info instanceof MasonChooserParameterInfo || info.isFile()) { 
+		if (info.isFile()) { 
 			incrDef.setEnabled(false);
 			listDef.setEnabled(false);
 		}
@@ -1278,18 +1388,24 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 				errors.addAll(PlatformSettings.additionalParameterCheck(info, new String[] { constDefField.getText().trim() }, ParameterInfo.CONST_DEF));
 			}
 		} else if (listDef.isSelected()) {
-			String text = listDefArea.getText().trim();
-			if (text.equals("")) 
-				errors.add("'List of values' cannot be empty.");
-			else {
-				text = text.replaceAll("[\\s]+"," ");
-				final String[] elements = text.split(" ");
-				boolean goodList = true;
-				for (final String element : elements)
-					goodList = goodList && ParameterInfo.isValid(element.trim(), info.getType());
-				if (!goodList)
-					errors.add("All elements of the list must be a valid " + getTypeText(info.getType()));
-				errors.addAll(PlatformSettings.additionalParameterCheck(info, elements, ParameterInfo.LIST_DEF));
+			if (info.isEnum() || info instanceof MasonChooserParameterInfo) {
+				final ListModel<Object> model = rightEnumValueList.getModel();
+				if (model.getSize() == 0)
+					errors.add("The right list cannot be empty."); //TODO: better error message
+			} else {
+				String text = listDefArea.getText().trim();
+				if (text.equals("")) 
+					errors.add("'List of values' cannot be empty.");
+				else {
+					text = text.replaceAll("[\\s]+"," ");
+					final String[] elements = text.split(" ");
+					boolean goodList = true;
+					for (final String element : elements)
+						goodList = goodList && ParameterInfo.isValid(element.trim(), info.getType());
+					if (!goodList)
+						errors.add("All elements of the list must be a valid " + getTypeText(info.getType()));
+					errors.addAll(PlatformSettings.additionalParameterCheck(info, elements, ParameterInfo.LIST_DEF));
+				}
 			}
 		} else {
 			boolean s = false, e = false, st = false; 
@@ -1393,6 +1509,10 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		incrEndValueField.setEnabled(enabled);
 		incrStepField.setEnabled(enabled);
 		enumDefBox.setEnabled(enabled);
+		leftEnumValueList.setEnabled(enabled);
+		rightEnumValueList.setEnabled(enabled);
+		addEnumButton.setEnabled(enabled);
+		removeEnumButton.setEnabled(enabled);
 		fileTextField.setEnabled(enabled);
 		browseFileButton.setEnabled(enabled);
 		cancelButton.setEnabled(enabled);
@@ -1412,7 +1532,8 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		incrStepField.setText("");
 		fileTextField.setText("");
 		fileTextField.setToolTipText("");
-		
+		leftEnumValueList.setModel(new DefaultListModel<Object>());
+		rightEnumValueList.setModel(new DefaultListModel<Object>());
 		constDef.setSelected(true);
 		final CardLayout cl = (CardLayout) rightMiddle.getLayout();
 		cl.show(rightMiddle,"CONST");
@@ -1456,14 +1577,42 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 			
 			break;
 		}
-		case ParameterInfo.LIST_DEF  : String text = listDefArea.getText().trim();
-									   text = text.replaceAll("[\\s]+"," ");
-									   final String[] elements = text.split(" ");
-									   final List<Object> list = new ArrayList<Object>(elements.length);
-									   for (final String element : elements) 
-										  list.add(ParameterInfo.getValue(element, info.getType()));
-									   info.setValues(list);
-									   break;
+		case ParameterInfo.LIST_DEF  : {
+			if (info.isEnum()) { 
+				final DefaultListModel<Object> model = (DefaultListModel<Object>) rightEnumValueList.getModel();
+				List<Object> result = new ArrayList<Object>();
+				for (int i = 0; i < model.size(); result.add(model.get(i++)));
+				info.setValues(result);
+			}
+			else if (info instanceof MasonChooserParameterInfo) {
+				final MasonChooserParameterInfo chooserInfo = (MasonChooserParameterInfo) info;
+				final String[] validStrings = chooserInfo.getValidStrings();
+				List<Object> result = new ArrayList<Object>();
+				final DefaultListModel<Object> model = (DefaultListModel<Object>) rightEnumValueList.getModel();
+				for (int i = 0; i < model.size(); ++i) {
+					int idx = -1;
+					for (int j = 0; j < validStrings.length; ++j) {
+						if (validStrings[j].equals(model.get(i))) {
+							idx = j;
+							break;
+						}
+					}
+					
+					if (idx >= 0)
+						result.add(idx);
+				}
+				info.setValues(result);
+			} else {
+				String text = listDefArea.getText().trim();
+				text = text.replaceAll("[\\s]+"," ");
+				final String[] elements = text.split(" ");
+				final List<Object> list = new ArrayList<Object>(elements.length);
+				for (final String element : elements) 
+					list.add(ParameterInfo.getValue(element, info.getType()));
+				info.setValues(list);
+				break;
+			}
+		}
 		case ParameterInfo.INCR_DEF  : info.setStartValue((Number)ParameterInfo.getValue(incrStartValueField.getText().trim(), info.getType()));
 									   info.setEndValue((Number)ParameterInfo.getValue(incrEndValueField.getText().trim(), info.getType()));
 									   info.setStep((Number)ParameterInfo.getValue(incrStepField.getText().trim(), info.getType()));
@@ -1479,7 +1628,66 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		if (ACTIONCOMMAND_EDIT.equals(command)){
 			if (editedNode != null)
 				cancelAllSelectionBut(null);
-		} else if (command.equals("CONST") || command.equals("LIST") || command.equals("INCREMENT")) {
+		} else if (command.equals("CONST")) {
+			final DefaultMutableTreeNode node = editedNode;
+			final ParameterInATree userObj = (ParameterInATree) node.getUserObject();
+			final CardLayout cl = (CardLayout) rightMiddle.getLayout();
+			if (userObj.info instanceof MasonChooserParameterInfo || userObj.info.isEnum()) {
+				Object[] elements = null;
+				if (userObj.info.isEnum()){
+					@SuppressWarnings("unchecked")
+					final Class<Enum<?>> type = (Class<Enum<?>>) userObj.info.getJavaType();
+					elements = type.getEnumConstants();
+				} else {
+					final MasonChooserParameterInfo chooserInfo = (MasonChooserParameterInfo) userObj.info;
+					elements = chooserInfo.getValidStrings();
+				}
+				final DefaultComboBoxModel<Object> model = (DefaultComboBoxModel<Object>) enumDefBox.getModel();
+				model.removeAllElements();
+				for (final Object object : elements) {
+					model.addElement(object);
+				}
+				if (userObj.info.isEnum())
+					enumDefBox.setSelectedItem(userObj.info.getValue());
+				else 
+					enumDefBox.setSelectedIndex((Integer)userObj.info.getValue());
+				cl.show(rightMiddle,"ENUM");
+			} else 
+				cl.show(rightMiddle,"CONST");
+		} else if (command.equals("LIST")) {
+			final DefaultMutableTreeNode node = editedNode;
+			final ParameterInATree userObj = (ParameterInATree) node.getUserObject();
+			final CardLayout cl = (CardLayout) rightMiddle.getLayout();
+			if (userObj.info instanceof MasonChooserParameterInfo || userObj.info.isEnum()) {
+				Object[] elements = null;
+				if (userObj.info.isEnum()){
+					@SuppressWarnings("unchecked")
+					final Class<Enum<?>> type = (Class<Enum<?>>) userObj.info.getJavaType();
+					elements = type.getEnumConstants();
+				} else {
+					final MasonChooserParameterInfo chooserInfo = (MasonChooserParameterInfo) userObj.info;
+					elements = chooserInfo.getValidStrings();
+				}
+				
+				final DefaultListModel<Object> leftEnumModel = (DefaultListModel<Object>) leftEnumValueList.getModel();
+				leftEnumModel.removeAllElements();
+				for (final Object object : elements)
+					leftEnumModel.addElement(object);
+				
+				final DefaultListModel<Object> rightEnumModel = (DefaultListModel<Object>) rightEnumValueList.getModel();
+				rightEnumModel.removeAllElements();
+				for (final Object object : userObj.info.getValues()) {
+					if (userObj.info.isEnum())
+						rightEnumModel.addElement(object);
+					else {
+						final MasonChooserParameterInfo chooserInfo = (MasonChooserParameterInfo) userObj.info;
+						rightEnumModel.addElement(chooserInfo.getValidStrings()[(Integer) object]);
+					}
+				}
+				cl.show(rightMiddle,"ENUMLIST");
+			} else 
+				cl.show(rightMiddle,"LIST");
+		} else if (command.equals("INCREMENT")) {
 			final CardLayout cl = (CardLayout) rightMiddle.getLayout();
 			cl.show(rightMiddle,command);
 		} else if (command.equals("CANCEL")) {
@@ -1500,9 +1708,20 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 			incrStepField.grabFocus();
 		else if (ACTIONCOMMAND_ADD_BOX.equals(command)) 
 			addBox();
+		else if (ACTIONCOMMAND_ADD_ENUM.equals(command)) {
+			final DefaultListModel<Object> model = (DefaultListModel<Object>) rightEnumValueList.getModel();
+			
+			for (final Object element : leftEnumValueList.getSelectedValuesList())
+				model.addElement(element);
+		} else if (ACTIONCOMMAND_REMOVE_ENUM.equals(command)) {
+			final DefaultListModel<Object> model = (DefaultListModel<Object>) rightEnumValueList.getModel();
+			
+			for (final Object element : rightEnumValueList.getSelectedValuesList())
+				model.removeElement(element);
+		}
 		else if (ACTIONCOMMAND_BROWSE.equals(command))
 			chooseFile();
-		else if (command.equals("NEW_PARAMETER")) { 
+		else if (ACTIONCOMMAND_NEW_PARAMETERS.equals(command)) { 
 			int result = Utilities.askUser(owner,false,"Warning","All user defined parameter settings will be lost.",
 										   "Do you want to continue?");
 			if (result == 1) { // yes
@@ -1764,7 +1983,6 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	//----------------------------------------------------------------------------------------------------
 	private ConstantCheckResult checkIfConstant(ParameterInfo info) throws WizardLoadingException {
 		if (info.isConstant()) {
-//			final ParameterInfo originalInfo = findOriginalInfo(info);
 			final ParameterInfo originalInfo = findMatchedInfo(info);
 			if (originalInfo == null)
 				throw new WizardLoadingException(true,"Unknown referenced parameter: " + info.getName());

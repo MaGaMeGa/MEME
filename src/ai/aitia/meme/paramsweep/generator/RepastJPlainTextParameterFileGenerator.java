@@ -63,6 +63,12 @@ public class RepastJPlainTextParameterFileGenerator {
 	public static final String SET_STRING		= "set_string: ";
 	/** Parameter file keyword. */
 	public static final String SET_STRING_LIST	= "set_string_list: ";
+	/** Parameter file keyword. */
+	public static final String SET_FILE			= "set_file: ";
+	/** Parameter file keyword. */
+	public static final String SET_ENUM			= "set_enum: ";
+	/** Parameter file keyword. */
+	public static final String SET_ENUM_LIST	= "set_enum_list: ";
 	
 	/** The destination file object. */
 	private File dest = null;
@@ -85,7 +91,6 @@ public class RepastJPlainTextParameterFileGenerator {
 	 * @param root the root node of the parameter tree
 	 * @throws IOException if any problem occures during the file creation
 	 */
-	@SuppressWarnings("unchecked")
 	public void generateFile(DefaultMutableTreeNode root) throws IOException {
 		String finalRes = prettyPrint(generate(root));
 		PrintWriter pw = new PrintWriter(new FileWriter(dest));
@@ -182,6 +187,10 @@ public class RepastJPlainTextParameterFileGenerator {
 						  	  				  sb.append(SET);
 						  				  else if (info.isBoolean())
 						  					  sb.append(SET_BOOLEAN);
+						  				  else if (info.isFile())
+						  					  sb.append(SET_FILE);
+						  				  else if (info.isEnum())
+						  					  sb.append(SET_ENUM);
 						  				  else
 						  					  sb.append(SET_STRING);
 						  				  sb.append(info.valuesToString());
@@ -190,6 +199,8 @@ public class RepastJPlainTextParameterFileGenerator {
 						  	  				  sb.append(SET_LIST);
 						  				  else if (info.isBoolean())
 						  					  sb.append(SET_BOOLEAN_LIST);
+						  				  else if (info.isEnum())
+						  					  sb.append(SET_ENUM_LIST);
 						  				  else
 						  					  sb.append(SET_STRING_LIST);
 						  				  sb.append(info.valuesToString());
