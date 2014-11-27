@@ -21,11 +21,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
-import java.util.Arrays;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.xml.parsers.DocumentBuilder;
@@ -58,8 +58,6 @@ import ai.aitia.meme.paramsweep.utils.ParameterEnumeration;
 import ai.aitia.meme.paramsweep.utils.ParameterParserException;
 import ai.aitia.meme.paramsweep.utils.Util;
 import ai.aitia.meme.paramsweep.utils.Utilities;
-import ai.aitia.meme.utils.OSUtils;
-import ai.aitia.meme.utils.OSUtils.OSType;
 import ai.aitia.meme.utils.Utils;
 
 public class PlatformSettings {
@@ -465,7 +463,7 @@ public class PlatformSettings {
 			ParameterInfo info = parameters.get(index);
 			long run = param.getNumRuns();
 			if (param.isConstant()) {
-			    Object value = convert(param.getValue(),info.getType());
+			    Object value = convert(param.getValue(),info.getType(),info.getJavaType());
 			    if (value == null) 
 			    	ParameterSweepWizard.logError("Invalid parameter value: %s at %s",param.getValue().toString(),param.getName());
 			    else {
@@ -476,7 +474,7 @@ public class PlatformSettings {
 			    }
 			} else if (param.isList()) {
 				Vector<Object> list = param.getList();
-				List<Object> newList = convert(list,info.getType());
+				List<Object> newList = convert(list,info.getType(),info.getJavaType());
 				if (newList == null) 
 					ParameterSweepWizard.logError("Invalid parameter value(s) at %s",param.getName());    
 				else {
@@ -486,13 +484,13 @@ public class PlatformSettings {
 				    info.setValues(newList);
 				}
 			} else {
-				Object start = convert(param.getStart(),info.getType());
+				Object start = convert(param.getStart(),info.getType(),info.getJavaType());
 				if (start == null)
 					ParameterSweepWizard.logError("Invalid parameter value: %s at %s",param.getStart().toString(),param.getName());
-				Object end = convert(param.getEnd(),info.getType());
+				Object end = convert(param.getEnd(),info.getType(),info.getJavaType());
 				if (end == null) 
 					ParameterSweepWizard.logError("Invalid parameter value: %s at %s",param.getEnd().toString(),param.getName());
-				Object incr = convert(param.getIncr(),info.getType());
+				Object incr = convert(param.getIncr(),info.getType(),info.getJavaType());
 				if (incr == null)
 					ParameterSweepWizard.logError("Invalid parameter value: %s at %s",param.getIncr().toString(),param.getName());
 				if (start != null && end != null && incr != null) {
@@ -528,12 +526,20 @@ public class PlatformSettings {
 	 * @param type the name of the new type (if this is a primitive type we use 
 	 *             its wrapper type instead.
 	 */
-	private static Object convert(Object value, String type) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private static Object convert(Object value, String type, Class<?> javaType) {
 		try {
 			if (type.equals("String"))
 				return value.toString();
 			if (type.equals("boolean") || type.equals("Boolean"))
 				return new Boolean(value.toString());
+			if (type.equalsIgnoreCase("File"))
+				return new File(value.toString());
+			if (Enum.class.isAssignableFrom(javaType)) {
+				final Class<? extends Enum> clazz = (Class<? extends Enum>) javaType;
+				return Enum.valueOf(clazz,value.toString());
+			}
+			
 			Double d = (Double) value;
 			if (type.equals("double") || type.equals("Double"))
 				return d;
@@ -556,10 +562,10 @@ public class PlatformSettings {
 	 * @param type the name of the new type (if this is a primitive type we use 
 	 *             its wrapper type instead.
 	 */
-	private static List<Object> convert(Vector<Object> list, String type) {
+	private static List<Object> convert(Vector<Object> list, String type, Class<?> javaType) {
 		List<Object> result = new ArrayList<Object>(list.size());
 		for (Object o : list) {
-			Object oo = convert(o,type);
+			Object oo = convert(o,type,javaType);
 			if (oo == null) return null;
 			result.add(oo);
 		}
@@ -572,7 +578,6 @@ public class PlatformSettings {
 	 *  parameter. 
 	 * @return null if it doesn't find the node
 	 */
-	@SuppressWarnings("unchecked")
 	private static DefaultMutableTreeNode findNode(DefaultMutableTreeNode root, List<ParameterInfo> parameters, Parameter param) {
 		int index = -1;
 		for (int i = 0; i < parameters.size();++i) {

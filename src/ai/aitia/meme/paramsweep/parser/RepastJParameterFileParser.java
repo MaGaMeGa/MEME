@@ -27,7 +27,6 @@ import java.util.Vector;
 import ai.aitia.meme.paramsweep.utils.Util;
 
 import uchicago.src.sim.parameter.Parameter;
-import uchicago.src.sim.parameter.ParameterReader;
 
 /** This class parses an existing parameter file. It uses the Repast services to 
  *  achieve this.

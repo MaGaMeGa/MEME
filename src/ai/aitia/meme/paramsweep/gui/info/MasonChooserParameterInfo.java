@@ -114,7 +114,13 @@ public class MasonChooserParameterInfo extends ParameterInfo {
 		case CONST_DEF : sb.append("value=");
 						 sb.append(validStringValues.get((Integer)getValue()));
 						 break;
-		case LIST_DEF  : 
+		case LIST_DEF  : sb.append("value=");
+						 for (int i = 0; i < getValues().size(); ++i) {
+							 if (i != 0)
+								 sb.append(", ");
+							 sb.append(validStringValues.get((Integer)getValues().get(i)));
+						 }
+						 break;
 		case INCR_DEF  : 
 			throw new UnsupportedOperationException();
 		}
