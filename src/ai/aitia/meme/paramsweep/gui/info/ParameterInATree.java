@@ -15,11 +15,11 @@ public class ParameterInATree extends AvailableParameter {
 	@Override
 	public String toString() {
 		String result = info.toString();
-		final int idx = result.indexOf(":");
-		if (idx > 0) {
-			final String humanName = result.substring(0,idx).replaceAll("([A-Z])", " $1");
-			result = humanName + result.substring(idx);
-		}
+//		final int idx = result.indexOf(":");
+//		if (idx > 0) {
+//			final String humanName = result.substring(0,idx).replaceAll("([A-Z])", " $1");
+//			result = humanName + result.substring(idx);
+//		}
 		
 		return result;
 	}

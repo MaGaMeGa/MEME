@@ -1319,7 +1319,8 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		if (name == null) {
 			editedParameterText.setText(ORIGINAL_TEXT);
 		} else {
-			final String humanName = name.replaceAll("([A-Z])", " $1");
+//			final String humanName = name.replaceAll("([A-Z])", " $1");
+			final String humanName = name;
 			editedParameterText.setText("<html><b>" + humanName + "</b>: " + type + "</html>");
 		}
 	}

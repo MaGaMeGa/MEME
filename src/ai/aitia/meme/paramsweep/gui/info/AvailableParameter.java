@@ -24,7 +24,8 @@ public class AvailableParameter {
 	//----------------------------------------------------------------------------------------------------
 	@Override
 	public String toString() {
-		final String humanName = info.getName().replaceAll("([A-Z])", " $1");
+//		final String humanName = info.getName().replaceAll("([A-Z])", " $1");
+		final String humanName = info.getName();
 		String result = humanName;
 		if (info.getValue() != null) {
 			if (info instanceof MasonChooserParameterInfo) {
