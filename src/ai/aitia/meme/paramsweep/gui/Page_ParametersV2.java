@@ -77,6 +77,7 @@ import ai.aitia.meme.paramsweep.ParameterSweepWizard;
 import ai.aitia.meme.paramsweep.batch.IModelInformation.ModelInformationException;
 import ai.aitia.meme.paramsweep.batch.output.RecordableInfo;
 import ai.aitia.meme.paramsweep.generator.WizardSettingsManager;
+import ai.aitia.meme.paramsweep.gui.component.DefaultJButton;
 import ai.aitia.meme.paramsweep.gui.info.AvailableParameter;
 import ai.aitia.meme.paramsweep.gui.info.MasonChooserParameterInfo;
 import ai.aitia.meme.paramsweep.gui.info.ParameterInATree;
@@ -137,6 +138,9 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 
 	private static final ImageIcon PARAMETER_BOX_REMOVE = new ImageIcon(new ImageIcon(Page_ParametersV2.class.getResource("icons/remove_box.png")).getImage().
 														  getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
+
+	private static final ImageIcon EMPTY = new ImageIcon(new ImageIcon(Page_ParametersV2.class.getResource("icons/empty.png")).getImage().
+			getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
 	
 	private static final String ACTIONCOMMAND_ADD_PARAM = "ADD_PARAM",
 								ACTIONCOMMAND_REMOVE_PARAM = "REMOVE_PARAM",
@@ -212,7 +216,6 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	public Page_ParametersV2(final ParameterSweepWizard owner) {
 		this.owner = owner;
 		container = initContainer();
-		//Style.apply(container, dashboard.getCssStyle()); //TODO: 
 	}
 
 	//----------------------------------------------------------------------------------------------------
@@ -289,7 +292,6 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 				 parametersPanel,combinationsScrPane,
 				 addNewBoxButton).getPanel();
 		left.setBorder(BorderFactory.createTitledBorder(null, "Specify parameter combinations", TitledBorder.LEADING, TitledBorder.BELOW_TOP));
-//		Style.registerCssClasses(left, Dashboard.CSS_CLASS_COMMON_PANEL); //TODO: check
 		
 		// right
 		editedParameterText = new JLabel(ORIGINAL_TEXT);
@@ -316,8 +318,6 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 					constDef,
 					listDef,
 					incrDef).getPanel();
-		
-//		Style.registerCssClasses(rightTop, Dashboard.CSS_CLASS_COMMON_PANEL); //TODO
 		
 		constDefField = new JTextField();
 		final JPanel constDefPanel = FormsUtils.build("p ~ p:g",
@@ -357,7 +357,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		leftEnumValuePane.setPreferredSize(new Dimension(125,100));
 		rightEnumValuePane.setPreferredSize(new Dimension(125,100));
 		
-		addEnumButton = new JButton();
+		addEnumButton = new DefaultJButton();
 		addEnumButton.setOpaque(false);
 		addEnumButton.setRolloverEnabled(true);
 		addEnumButton.setIcon(PARAMETER_ADD_ICON);
@@ -370,7 +370,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		addEnumButton.setToolTipText("Add selected value");
 		addEnumButton.setActionCommand(ACTIONCOMMAND_ADD_ENUM);
 		
-		removeEnumButton = new JButton();
+		removeEnumButton = new DefaultJButton();
 		removeEnumButton.setOpaque(false);
 		removeEnumButton.setRolloverEnabled(true);
 		removeEnumButton.setIcon(PARAMETER_REMOVE_ICON);
@@ -432,15 +432,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		enumListPanel.setName("ENUMLIST");
 		fileDefPanel.setName("FILE");
 
-		//TODO
-//		Style.registerCssClasses(constDefPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
-//		Style.registerCssClasses(listDefPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
-//		Style.registerCssClasses(incrDefPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
-//		Style.registerCssClasses(enumDefPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
-//		Style.registerCssClasses(fileDefPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
-		
 		rightMiddle = new JPanel(new CardLayout());
-//		Style.registerCssClasses(rightMiddle, Dashboard.CSS_CLASS_COMMON_PANEL); //TODO
 		rightMiddle.add(constDefPanel, constDefPanel.getName());
 		rightMiddle.add(listDefPanel, listDefPanel.getName());
 		rightMiddle.add(incrDefPanel, incrDefPanel.getName());
@@ -455,25 +447,18 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 							  "[DialogBorder]_01_ p",
 							  modifyButton, cancelButton).getPanel();
 		
-//		Style.registerCssClasses(rightBottom, Dashboard.CSS_CLASS_COMMON_PANEL); //TODO
-		
 		final JPanel right = new JPanel(new BorderLayout());
 		right.add(rightTop, BorderLayout.NORTH);
 		right.add(rightMiddle, BorderLayout.CENTER);
 		right.add(rightBottom, BorderLayout.SOUTH);
 		right.setBorder(BorderFactory.createTitledBorder(null, "Parameter settings", TitledBorder.LEADING, TitledBorder.BELOW_TOP));
 
-//		Style.registerCssClasses(right, Dashboard.CSS_CLASS_COMMON_PANEL); //TODO
-
 		// the whole paramsweep panel
-		
 		final JPanel content = FormsUtils.build("p:g p",
 								   "01 f:p:g",
 								   left, right).getPanel();
-//		Style.registerCssClasses(content, Dashboard.CSS_CLASS_COMMON_PANEL); //TODO
 		
 		JPanel sweepPanel = new JPanel();
-//		Style.registerCssClasses(sweepPanel, Dashboard.CSS_CLASS_COMMON_PANEL); //TODO
 		sweepPanel.setLayout(new BorderLayout());
 		final JScrollPane sp = new JScrollPane(content);
 		sp.setBorder(null);
@@ -529,7 +514,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		final JLabel runLabel = new JLabel("<html><b>Number of runs:</b> 0</html>");
 		final JLabel warningLabel = new JLabel();
 		
-		final JButton closeButton = new JButton();
+		final JButton closeButton = new DefaultJButton();
 		closeButton.setOpaque(false);
 	    closeButton.setFocusable(false);
 	    closeButton.setBorderPainted(false);
@@ -537,7 +522,10 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	    closeButton.setFocusPainted(false);
 	    closeButton.setBorder(null);
 	    
-	    if (!first) {
+	    if (first) {
+	    	closeButton.setIcon(EMPTY);
+	    	runLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+	    } else {
 		    closeButton.setRolloverIcon(PARAMETER_BOX_REMOVE);
 		    closeButton.setRolloverEnabled(true);
 		    closeButton.setIcon(RGBGrayFilter.getDisabledIcon(closeButton, PARAMETER_BOX_REMOVE));
@@ -600,8 +588,8 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	    treeScrPane.setViewportBorder(null);
 		treeScrPane.setPreferredSize(new Dimension(250, 250)); 
 		
-		final JButton upButton = new JButton();
-		final JButton downButton = new JButton();
+		final JButton upButton = new DefaultJButton();
+		final JButton downButton = new DefaultJButton();
 		
 		final JPanel mainPanel = FormsUtils.build("~ f:p:g ~ p ~ r:p",
 												  "012||" +
@@ -619,8 +607,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 				
 		mainPanel.setBorder(BorderFactory.createTitledBorder(""));
 		
-		final JButton addButton = new JButton();
-		addButton.setOpaque(false);
+		final JButton addButton = new DefaultJButton();
 		addButton.setRolloverEnabled(true);
 		addButton.setIcon(PARAMETER_ADD_ICON);
 		addButton.setRolloverIcon(PARAMETER_ADD_ICON_RO);
@@ -632,7 +619,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		addButton.setToolTipText("Add selected parameter");
 		addButton.setActionCommand(ACTIONCOMMAND_ADD_PARAM);
 		
-		final JButton removeButton = new JButton();
+		final JButton removeButton = new DefaultJButton();
 		
 		final JPanel result = FormsUtils.build("p ~ f:p:g",
 											   "_0 f:p:g||" +
@@ -642,8 +629,6 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 											   mainPanel,
 											   addButton,
 											   removeButton).getPanel();
-		
-//		Style.registerCssClasses(result,Dashboard.CSS_CLASS_COMMON_PANEL); //TODO:
 		
 		final ParameterCombinationGUI pcGUI = new ParameterCombinationGUI(tree, treeRoot, runLabel, warningLabel, addButton, removeButton, upButton, downButton);
 		parameterTreeBranches.add(pcGUI);
@@ -887,8 +872,6 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 		result.setPreferredSize(new Dimension(300,250)); 
 		enableDisableParameterCombinationButtons();
 		
-//		Style.apply(result, dashboard.getCssStyle()); //TODO
-
 		return result;
 	}
 	
@@ -1392,7 +1375,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 			if (info.isEnum() || info instanceof MasonChooserParameterInfo) {
 				final ListModel<Object> model = rightEnumValueList.getModel();
 				if (model.getSize() == 0)
-					errors.add("The right list cannot be empty."); //TODO: better error message
+					errors.add("The list on the right cannot be empty.");
 			} else {
 				String text = listDefArea.getText().trim();
 				if (text.equals("")) 

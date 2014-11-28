@@ -47,19 +47,20 @@ public class ParameterBoxTreeRenderer extends DefaultTreeCellRenderer {
 		}
 		
 		setToolTipText(tooltipText);
-		final JLabel label = (JLabel) super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, focus);
-		label.setIcon(null);
 		
 		if (multiplicity > 0) {
 			final JPanel panel = new JPanel(new BorderLayout());
-			panel.setOpaque(false);
 			
 			panel.add(new JLabel("<html><b>" + multiplicity + "x</b>&nbsp;</html>"), BorderLayout.WEST);
-			panel.add(label,BorderLayout.CENTER);
+			panel.add(new JLabel(value.toString()),BorderLayout.CENTER);
 			panel.setSize(new Dimension(tree.getSize().width, tree.getRowHeight()));
+			panel.setOpaque(true);
 			
 			return panel;
 		}
+		
+		final JLabel label = (JLabel) super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, focus);
+		label.setIcon(null);
 		
 		return label;
 	}
