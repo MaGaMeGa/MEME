@@ -18,8 +18,10 @@ package ai.aitia.meme.paramsweep.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.Image;
 
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -44,9 +46,14 @@ import ai.aitia.meme.paramsweep.utils.WizardLoadingException;
  *
  */
 public class Page_IntelliExtension extends JPanel implements IWizardPage,
-																IArrowsInHeader{
+																IArrowsInHeader {
 
     private static final long serialVersionUID = -1139304437944444616L;
+    
+	private static final int ICON_WIDTH_AND_HEIGHT = 25;
+	public static final ImageIcon DESCRIPTION_ICON = new ImageIcon(new ImageIcon(Page_IntelliExtension.class.getResource("icons/info.png")).
+																	getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
+
     
     private ParameterSweepWizard owner = null;
     private boolean beenHere = false;

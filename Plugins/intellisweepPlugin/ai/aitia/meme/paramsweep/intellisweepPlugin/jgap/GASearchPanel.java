@@ -75,16 +75,28 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.filechooser.FileSystemView;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import org.jdesktop.swingx.JXLabel;
+
+import ai.aitia.meme.paramsweep.ParameterSweepWizard;
 import ai.aitia.meme.paramsweep.batch.IModelInformation.ModelInformationException;
 import ai.aitia.meme.paramsweep.batch.output.RecordableInfo;
+import ai.aitia.meme.paramsweep.gui.component.CheckList;
+import ai.aitia.meme.paramsweep.gui.component.CheckListModel;
 import ai.aitia.meme.paramsweep.gui.info.MasonChooserParameterInfo;
 import ai.aitia.meme.paramsweep.gui.info.ParameterInfo;
 import ai.aitia.meme.paramsweep.gui.info.SubmodelInfo;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.GASearchPanelModel.FitnessFunctionDirection;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.GASearchPanelModel.ModelListener;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.IGAConfigurator;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.IGAOperatorConfigurator;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.IGASelectorConfigurator;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.gene.ParameterOrGene;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.utils.ga.GeneInfo;
 import ai.aitia.meme.paramsweep.internal.platform.InfoConverter;
 import ai.aitia.meme.paramsweep.internal.platform.PlatformSettings;
@@ -117,9 +129,7 @@ public class GASearchPanel extends JPanel {
 	private static final String PARAM_SETTINGS_CONSTANT_VALUE_PANEL = "constant";
 	private static final String PARAM_SETTINGS_ENUM_VALUE_PANEL = "enum";
 	private static final String PARAM_SETTINGS_FILE_VALUE_PANEL = "file";
-	private static final String PARAM_SETTINGS_SUBMODEL_VALUE_PANEL = "submodel";
 	
-	private static final String DESCRIPTION_PANEL = "Description";
 	private static final String OPERATOR_SETTINGS_PANEL_DEFAULT_PANEL = "DEFAULT";
 	private static final String OPERATOR_SETTINGS_PANEL_TITLE_POSTFIX = "Operator settings";
 	
@@ -131,7 +141,6 @@ public class GASearchPanel extends JPanel {
 		numberFormatter.setGroupingUsed(false);
 	}
 	
-	private JTextField numberOfTurnsField;
 	private JSpinner populationSizeField;
 	private JTextField populationRandomSeedField;
 	private JRadioButton numberOfGenerationsRadioButton;
@@ -140,9 +149,7 @@ public class GASearchPanel extends JPanel {
 	private JTextField fitnessLimitField;
 	private JRadioButton fitnessMinimizeRadioButton;
 	private JRadioButton fitnessMaximizeRadioButton;
-	private JComboBox fitnessFunctionList;
-	private JComboBox fitnessStatistics;
-	private JSpinner fitnessTimeSeriesLength;
+	private JComboBox<RecordableInfo> fitnessFunctionList;
 	private JTree geneTree;
 	private JLabel numberLabel;
 	protected Popup errorPopup;
@@ -152,8 +159,7 @@ public class GASearchPanel extends JPanel {
 	private JTextField doubleMinField;
 	private JTextField doubleMaxField;
 	private JTextArea valuesArea;
-	private JComboBox enumDefBox;
-	private JComboBox submodelTypeBox;
+	private JComboBox<Object> enumDefBox;
 	private JTextField fileTextField;
 	private JButton fileBrowseButton;
 
@@ -161,39 +167,28 @@ public class GASearchPanel extends JPanel {
 	private JRadioButton doubleGeneValueRangeRButton;
 	private JRadioButton intGeneValueRangeRButton;
 	private JRadioButton listGeneValueRButton;
-
 	private JPanel geneSettingsValuePanel;
-	private JButton modifyButton;
-	
-	private DefaultMutableTreeNode editedNode;
 
+	private JButton modifyButton;
 	private JButton cancelButton;
 
 	private JScrollPane mainScrPane;
-
 	private JPanel operatorSettingsPanel;
-
 	private CheckList selectorList;
-
 	private CheckList operatorList;
 
+	private DefaultMutableTreeNode editedNode;
+	
 	//====================================================================================================
 	// methods
 	
 	//----------------------------------------------------------------------------------------------------
-	public GASearchPanel(final GASearchPanelModel model, final Page_Parameters parentPage) {
-		this.parentPage = parentPage;
+	public GASearchPanel(final GASearchPanelModel model) {
 		initSearchPanel(model);
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	public double getNumberOfRequestedTurns() {
-		return Double.parseDouble(numberOfTurnsField.getText());
-	}
-	
-	//----------------------------------------------------------------------------------------------------
 	public void reset(final GASearchPanelModel model) {
-		numberOfTurnsField.setText(double2String(model.getNumberOfTurns()));
 		populationSizeField.setValue(model.getPopulationSize());
 		populationRandomSeedField.setText(String.valueOf(model.getPopulationRandomSeed()));
 		
@@ -214,15 +209,11 @@ public class GASearchPanel extends JPanel {
 			fitnessMinimizeRadioButton.setSelected(true);
 		else 
 			fitnessMaximizeRadioButton.setSelected(true);
-		
 		fitnessFunctionList.setSelectedItem(model.getSelectedFitnessFunction());
-		fitnessStatistics.setSelectedItem(model.getSelectedFitnessStatistics());
-		fitnessTimeSeriesLength.setValue(model.getFitnessTimeSeriesLength());
 		
 		final CardLayout settingslayout = (CardLayout) operatorSettingsPanel.getLayout();
 		settingslayout.show(operatorSettingsPanel,OPERATOR_SETTINGS_PANEL_DEFAULT_PANEL);
 		((TitledBorder)operatorSettingsPanel.getBorder()).setTitle(OPERATOR_SETTINGS_PANEL_TITLE_POSTFIX);
-		descriptionLabel.setText("");
 		
 		final List<IGASelectorConfigurator> selectionOperators = model.getSelectionOperators();
 		final List<IGASelectorConfigurator> selectedSelectionOperators = model.getSelectedSelectionOperators();
@@ -253,72 +244,47 @@ public class GASearchPanel extends JPanel {
 		enableDisableSettings(false);
 	}
 	
-	//----------------------------------------------------------------------------------------------------
-//	public void setSelectedFitnessFunction(final GASearchPanelModel gaSearchHandler) {
-//		fitnessFunctionList.setSelectedItem(gaSearchHandler.getSelectedFitnessFunction());
-//	}
-	
-	
 	//====================================================================================================
 	// assistant methods
 		
 	//----------------------------------------------------------------------------------------------------
 	private void initSearchPanel(final GASearchPanelModel model) {
 		model.addModelListener(new ModelListener() {
+			
+			//====================================================================================================
+			// methods
+			
+			//----------------------------------------------------------------------------------------------------
 			public void fitnessFunctionAdded() {
 				fitnessFunctionList.removeAllItems();
-				final List<?> list = model.getFitnessFunctions();
-				for (final Object fitnessFunction : list) {
+				final List<RecordableInfo> list = model.getFitnessFunctions();
+				for (final RecordableInfo fitnessFunction : list) {
 					fitnessFunctionList.addItem(fitnessFunction);
 				}				
 			}
 			
+			//----------------------------------------------------------------------------------------------------
 			public void fitnessFunctionsRemoved() {
 				fitnessFunctionList.removeAllItems();
 			}
 
+			//----------------------------------------------------------------------------------------------------
 			public void parameterAdded() {
 				final DefaultTreeModel treeModel = model.getChromosomeTree();
 				final DefaultMutableTreeNode root = (DefaultMutableTreeNode) treeModel.getRoot();
  				geneTree.expandPath(new TreePath(treeModel.getPathToRoot(root)));
 			}
 
+			//----------------------------------------------------------------------------------------------------
 			public void parametersRemoved() {
 				parameterAdded(); // :)
 			}
 		});
 		
-		numberOfTurnsField = new JTextField(double2String(model.getNumberOfTurns()));
-		numberOfTurnsField.setInputVerifier(new InputVerifier() {
-
-			public boolean verify(final JComponent input) {
-				if (errorPopup != null) {
-					errorPopup.hide();
-					errorPopup = null;
-				}
-
-				try {
-					final double value = Double.parseDouble(numberOfTurnsField.getText());
-					model.setNumberOfTurns(value);
-					return true;
-				} catch (final NumberFormatException e) {
-					final PopupFactory popupFactory = PopupFactory.getSharedInstance();
-					final Point locationOnScreen = numberOfTurnsField.getLocationOnScreen();
-					final JLabel message = new JLabel("Please specify a (possibly floating point) number!");
-					message.setBorder(new LineBorder(Color.RED, 2, true));
-					errorPopup = popupFactory.getPopup(numberOfTurnsField, message, locationOnScreen.x - 10, locationOnScreen.y - 30);
-					errorPopup.show();
-					
-					return false;
-				}
-			}
-		});
-		
-		final JPanel numberOfTurnsPanel = FormsUtils.build("p ' f:p:g", "01", NUMBER_OF_TURNS_IN_A_SIMULATION, numberOfTurnsField).getPanel();
-		
 		// create the population parameters panel
 		populationSizeField = new JSpinner(new SpinnerNumberModel(model.getPopulationSize(),2,Integer.MAX_VALUE,1));
 		populationSizeField.addChangeListener(new ChangeListener() {
+			@Override
 			public void stateChanged(final ChangeEvent e) {
 				model.setPopulationSize((Integer)((JSpinner)e.getSource()).getValue());
 			}
@@ -326,7 +292,7 @@ public class GASearchPanel extends JPanel {
 		
 		populationRandomSeedField = new JTextField(String.valueOf(model.getPopulationRandomSeed()));
 		populationRandomSeedField.setInputVerifier(new InputVerifier() {
-			
+			@Override
 			public boolean verify(final JComponent input) {
 				if (errorPopup != null) {
 					errorPopup.hide();
@@ -356,19 +322,18 @@ public class GASearchPanel extends JPanel {
 				"Size",populationSizeField,
 				"Random seed", populationRandomSeedField).getPanel();
 		populationPanel.setBorder(BorderFactory.createTitledBorder(null,"Population",TitledBorder.LEADING,TitledBorder.BELOW_TOP));
-		Style.registerCssClasses(populationPanel, Dashboard.CSS_CLASS_COMMON_PANEL);
 		
 		// create the stopping conditions panel
 		numberOfGenerationsRadioButton = new JRadioButton("Number of generations");
 		numberOfGenerationsField = new JSpinner(new SpinnerNumberModel(model.getNumberOfGenerations(),1,Integer.MAX_VALUE,1));
 		numberOfGenerationsField.addChangeListener(new ChangeListener() {
-			
+			@Override
 			public void stateChanged(final ChangeEvent e) {
 				model.setNumberOfGenerations((Integer)((JSpinner)e.getSource()).getValue());				
 			}
 		});
 		numberOfGenerationsRadioButton.addChangeListener(new ChangeListener() {
-			
+			@Override
 			public void stateChanged(final ChangeEvent e) {
 				if (numberOfGenerationsRadioButton.isSelected()) {
 					numberOfGenerationsField.setEnabled(true);
@@ -381,7 +346,7 @@ public class GASearchPanel extends JPanel {
 		fitnessLimitRadioButton = new JRadioButton("Fitness limit");
 		fitnessLimitField = new JTextField(String.valueOf(model.getFitnessLimitCriterion()));
 		fitnessLimitField.setInputVerifier(new InputVerifier() {
-			
+			@Override
 			public boolean verify(final JComponent input) {
 				if (errorPopup != null){
 					errorPopup.hide();
@@ -407,7 +372,7 @@ public class GASearchPanel extends JPanel {
 			}
 		});
 		fitnessLimitRadioButton.addChangeListener(new ChangeListener() {
-
+			@Override
 			public void stateChanged(final ChangeEvent e) {
 				if (fitnessLimitRadioButton.isSelected()) {
 					fitnessLimitField.setEnabled(true);
@@ -435,7 +400,6 @@ public class GASearchPanel extends JPanel {
 				numberOfGenerationsRadioButton,numberOfGenerationsField,
 				fitnessLimitRadioButton,fitnessLimitField).getPanel();
 		stoppingPanel.setBorder(BorderFactory.createTitledBorder(null,"Stopping",TitledBorder.LEADING,TitledBorder.BELOW_TOP));
-		Style.registerCssClasses(stoppingPanel, Dashboard.CSS_CLASS_COMMON_PANEL);
 		
 		// create the fitness function panel
 		fitnessMinimizeRadioButton = new JRadioButton("Minimize");
@@ -443,6 +407,7 @@ public class GASearchPanel extends JPanel {
 		
 		GUIUtils.createButtonGroup(fitnessMinimizeRadioButton,fitnessMaximizeRadioButton);
 		GUIUtils.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (fitnessMinimizeRadioButton.isSelected())
 					model.setFitnessFunctionDirection(FitnessFunctionDirection.MINIMIZE);
@@ -457,74 +422,44 @@ public class GASearchPanel extends JPanel {
 			fitnessMaximizeRadioButton.setSelected(true);
 		
 		final JPanel fitnessButtonsPanel = new JPanel();
-		Style.registerCssClasses(fitnessButtonsPanel, Dashboard.CSS_CLASS_COMMON_PANEL);
 		fitnessButtonsPanel.add(fitnessMinimizeRadioButton);
 		fitnessButtonsPanel.add(fitnessMaximizeRadioButton);
 		
 		fitnessFunctionList = new JComboBox(model.getFitnessFunctions().toArray(new Object[0]));
 		fitnessFunctionList.setSelectedItem(model.getSelectedFitnessFunction());
 		fitnessFunctionList.addItemListener(new ItemListener() {
-			
+			@Override
 			public void itemStateChanged(final ItemEvent e) {
 				if (ItemEvent.SELECTED == e.getStateChange())
 					model.setSelectedFitnessFunction((RecordableInfo) e.getItem());
 			}
 		});
 		
-		initializeStatistics(model);
-		final SpinnerNumberModel spinnerNumberModel = new SpinnerNumberModel();
-		spinnerNumberModel.setStepSize(10);
-		spinnerNumberModel.setValue(model.getFitnessTimeSeriesLength());
-		fitnessTimeSeriesLength = new JSpinner(spinnerNumberModel);
-		spinnerNumberModel.addChangeListener(new ChangeListener() {
-			
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				model.setFitnessTimeSeriesLength((Integer)spinnerNumberModel.getValue());
-			}
-		});
-		
-		JXLabel fitnessMessage = new JXLabel("Please specify a function that always returns with non-negative value!");
+		final JXLabel fitnessMessage = new JXLabel("Please specify a function that always returns with non-negative value!");
 		fitnessMessage.setLineWrap(true);
-		final JPanel fitnessPanel = FormsUtils.build("p ~ f:p:g ~ p", 
-				"000 |" +
-				"122 ||" +
-				"345 ||" +
-				"677 ||" +
-				"888",
+		final JPanel fitnessPanel = FormsUtils.build("p ~ f:p:g", 
+				"00 ||" +
+				"12 ||" +
+				"33",
 				fitnessButtonsPanel,
-				"Statistics", fitnessStatistics,
-				"of the last", fitnessTimeSeriesLength, "values of",
 				"Fitness function", fitnessFunctionList,
 				fitnessMessage).getPanel();
 		fitnessPanel.setBorder(BorderFactory.createTitledBorder(null,"Fitness",TitledBorder.LEADING,TitledBorder.BELOW_TOP));
-		Style.registerCssClasses(fitnessPanel, Dashboard.CSS_CLASS_COMMON_PANEL);
 		
 		operatorSettingsPanel = new JPanel(new CardLayout());
 		operatorSettingsPanel.setBorder(BorderFactory.createTitledBorder(null,OPERATOR_SETTINGS_PANEL_TITLE_POSTFIX,TitledBorder.LEADING,TitledBorder.BELOW_TOP));
-		Style.registerCssClasses(operatorSettingsPanel, Dashboard.CSS_CLASS_COMMON_PANEL);
 		operatorSettingsPanel.add(new JLabel("Here come the operator settings!"), OPERATOR_SETTINGS_PANEL_DEFAULT_PANEL);
-		
-		final JPanel operatorDescriptionPanel = new JPanel(new BorderLayout());
-		operatorDescriptionPanel.setBorder(BorderFactory.createTitledBorder(null,DESCRIPTION_PANEL,TitledBorder.LEADING,TitledBorder.BELOW_TOP));
-		Style.registerCssClasses(operatorDescriptionPanel, Dashboard.CSS_CLASS_COMMON_PANEL);
-		operatorDescriptionPanel.add(initDescriptionPanel(),BorderLayout.CENTER);
 		
 		final List<IGASelectorConfigurator> selectionOperators = model.getSelectionOperators();
 		final List<IGASelectorConfigurator> selectedSelectionOperators = model.getSelectedSelectionOperators();
 		final CheckListModel selectorListModel = new CheckListModel(selectionOperators);
 		selectorList = new CheckList(selectorListModel);
-		Style.registerCssClasses(selectorList, Dashboard.CSS_CLASS_COMMON_PANEL);
 		selectorList.setBorder(BorderFactory.createTitledBorder(null,"Selection",TitledBorder.LEADING,TitledBorder.BELOW_TOP));
 		selectorList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
 		int i = 0;
 		for (final IGASelectorConfigurator selectionOperator : selectionOperators) {
-			final JPanel settingspanel = selectionOperator.getSettingspanel();
-			Style.registerCssClasses(settingspanel, Dashboard.CSS_CLASS_COMMON_PANEL);
-			
-			String description = selectionOperator.getDescription();
-			Style.registerCssClasses(description, Dashboard.CSS_CLASS_COMMON_PANEL);
+			final JPanel settingspanel = selectionOperator.getSettingsPanel();
 			operatorSettingsPanel.add(settingspanel,selectionOperator.getName());
 			
 			if (selectedSelectionOperators.contains(selectionOperator))
@@ -534,18 +469,24 @@ public class GASearchPanel extends JPanel {
 		}
 		
 		selectorList.addListSelectionListener(new ListSelectionListener() {
-			
+			@Override
 			public void valueChanged(final ListSelectionEvent e) {
 				final IGASelectorConfigurator operator = (IGASelectorConfigurator) selectorList.getSelectedValue();
-				showOperatorDetails(operatorSettingsPanel, operatorDescriptionPanel,operator);
+				showOperatorDetails(operatorSettingsPanel, operator);
 			}
 		});
 		
 		selectorListModel.addListDataListener(new ListDataListener() {
 			
-			public void intervalRemoved(final ListDataEvent e) {}
-			public void intervalAdded(final ListDataEvent e) {}
+			//====================================================================================================
+			// methods
 			
+			//----------------------------------------------------------------------------------------------------
+			@Override public void intervalRemoved(final ListDataEvent e) {}
+			@Override public void intervalAdded(final ListDataEvent e) {}
+			
+			//----------------------------------------------------------------------------------------------------
+			@Override
 			public void contentsChanged(final ListDataEvent e) {
 				final IGASelectorConfigurator operator = (IGASelectorConfigurator) selectorList.getSelectedValue();
 				
@@ -556,21 +497,16 @@ public class GASearchPanel extends JPanel {
 			}
 		});
 
-		List<IGAOperatorConfigurator> geneticOperators = model.getGeneticOperators();
-		List<IGAOperatorConfigurator> selectedGeneticOperators = model.getSelectedGeneticOperators();
-		CheckListModel operatorListModel = new CheckListModel(geneticOperators);
+		final List<IGAOperatorConfigurator> geneticOperators = model.getGeneticOperators();
+		final List<IGAOperatorConfigurator> selectedGeneticOperators = model.getSelectedGeneticOperators();
+		final CheckListModel operatorListModel = new CheckListModel(geneticOperators);
 		operatorList = new CheckList(operatorListModel);
-		Style.registerCssClasses(operatorList, Dashboard.CSS_CLASS_COMMON_PANEL);
 		operatorList.setBorder(BorderFactory.createTitledBorder(null,"Genetic operators",TitledBorder.LEADING,TitledBorder.BELOW_TOP));
 		operatorList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		i = 0;
 		for (final IGAOperatorConfigurator operator : geneticOperators){
-			final JPanel settingsPanel = operator.getSettingspanel();
-			Style.registerCssClasses(settingsPanel, Dashboard.CSS_CLASS_COMMON_PANEL);
-			
-			String description = operator.getDescription();
-			Style.registerCssClasses(description, Dashboard.CSS_CLASS_COMMON_PANEL);
+			final JPanel settingsPanel = operator.getSettingsPanel();
 			operatorSettingsPanel.add(settingsPanel,operator.getName());
 			
 			if (selectedGeneticOperators.contains(operator))
@@ -580,18 +516,24 @@ public class GASearchPanel extends JPanel {
 		}
 
 		operatorList.addListSelectionListener(new ListSelectionListener() {
-			
+			@Override
 			public void valueChanged(final ListSelectionEvent e) {
 				final IGAOperatorConfigurator operator = (IGAOperatorConfigurator) operatorList.getSelectedValue();
-				showOperatorDetails(operatorSettingsPanel, operatorDescriptionPanel, operator);
+				showOperatorDetails(operatorSettingsPanel, operator);
 			}
 		});
 		
 		operatorListModel.addListDataListener(new ListDataListener() {
 			
-			public void intervalRemoved(final ListDataEvent e) {}
-			public void intervalAdded(final ListDataEvent e) {}
+			//====================================================================================================
+			// methods
 			
+			//----------------------------------------------------------------------------------------------------
+			@Override public void intervalRemoved(final ListDataEvent e) {}
+			@Override public void intervalAdded(final ListDataEvent e) {}
+			
+			//----------------------------------------------------------------------------------------------------
+			@Override
 			public void contentsChanged(final ListDataEvent e) {
 				final IGAOperatorConfigurator operator = (IGAOperatorConfigurator) operatorList.getSelectedValue();
 				
@@ -601,29 +543,18 @@ public class GASearchPanel extends JPanel {
 					model.unsetSelectedGeneticOperator(operator);
 			}
 		});		
-
-		final JPanel operatorDetailsPanel = FormsUtils.build("f:p:g(0.5) f:p:g(0.5)", 
-				"01", operatorSettingsPanel, operatorDescriptionPanel).getPanel();
-		Style.registerCssClasses(operatorDetailsPanel, Dashboard.CSS_CLASS_COMMON_PANEL);
 		
 		final JPanel gaSettingsPanel = FormsUtils.build("f:p:g", 
 				"0||" +
 				"1||" +
 				"2||" +
 				"3||" +
-				"4||" + 
-				"5||" + 
-				"6||" +
-				"7",
-				new Separator("General parameters"),
-				numberOfTurnsPanel,
-				new Separator("Genetic algorithm settings"),
+				"4", 
 				populationPanel,
 				stoppingPanel,
 				fitnessPanel,
 				selectorList,
 				operatorList).getPanel();
-		Style.registerCssClasses(gaSettingsPanel, Dashboard.CSS_CLASS_COMMON_PANEL);
 		
 		// the chromosome panel
 	    final JScrollPane treeScrPane = new JScrollPane();
@@ -632,6 +563,7 @@ public class GASearchPanel extends JPanel {
 		geneTree.setCellRenderer(new ChromosomeTreeRenderer());
 		
 		geneTree.addTreeSelectionListener(new TreeSelectionListener() {
+			@Override
 			public void valueChanged(final TreeSelectionEvent e) {
 				final TreePath selectionPath = geneTree.getSelectionPath();
 				
@@ -644,10 +576,6 @@ public class GASearchPanel extends JPanel {
 					if (selectionPath != null) {
 						final DefaultMutableTreeNode node = (DefaultMutableTreeNode) selectionPath.getLastPathComponent();
 						final ParameterOrGene userObj = (ParameterOrGene) node.getUserObject();
-						if (userObj.getInfo().getDescription() != null && !userObj.getInfo().getDescription().trim().isEmpty())
-							descriptionLabel.setText(userObj.getInfo().getDescription());
-						else
-							descriptionLabel.setText("");
 						
 						if (!node.equals(editedNode)) {
 							if (!node.isRoot() && selectionPath.getPathCount() == treeModel.getPathToRoot(node).length) {
@@ -658,14 +586,12 @@ public class GASearchPanel extends JPanel {
 								geneTree.setSelectionPath(null);
 								resetSettings();
 								enableDisableSettings(false);
-								descriptionLabel.setText("");
 							}
 						}
 					} else {
 						editedNode = null;
 						resetSettings();
 						enableDisableSettings(false);
-						descriptionLabel.setText("");
 					}
 				} else 
 					geneTree.setSelectionPath(new TreePath(treeModel.getPathToRoot(editedNode)));
@@ -686,18 +612,15 @@ public class GASearchPanel extends JPanel {
 				  new Separator(""),
 				  treeScrPane).getPanel(); 
 
-
 		treePanel.setBorder(BorderFactory.createTitledBorder(""));
-		Style.registerCssClasses(treePanel,Dashboard.CSS_CLASS_COMMON_PANEL);
 		
+		geneSettingsValuePanel = new JPanel(new CardLayout());
+
 		constantRButton = new JRadioButton("Constant");
 		doubleGeneValueRangeRButton = new JRadioButton("Double value range");
 		intGeneValueRangeRButton = new JRadioButton("Integer value range");
 		listGeneValueRButton = new JRadioButton("Value list");
 		GUIUtils.createButtonGroup(constantRButton,doubleGeneValueRangeRButton,intGeneValueRangeRButton,listGeneValueRButton);
-
-		geneSettingsValuePanel = new JPanel(new CardLayout());
-		Style.registerCssClasses(geneSettingsValuePanel, Dashboard.CSS_CLASS_COMMON_PANEL);
 
 		constantField = new JTextField();
 		constantField.setActionCommand("CONST_FIELD");
@@ -705,39 +628,30 @@ public class GASearchPanel extends JPanel {
 		final JPanel constantPanel = FormsUtils.build("p ~ p:g",
 								 		"[DialogBorder]01 p",
 								 		"Constant value",constantField).getPanel();
-		Style.registerCssClasses(constantPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
 
 		
-		enumDefBox = new JComboBox(new DefaultComboBoxModel());
+		enumDefBox = new JComboBox<Object>(new DefaultComboBoxModel<Object>());
 		
 		final JPanel enumDefPanel = FormsUtils.build("p ~ p:g", 
 								"[DialogBorder]01 p", 
 								"Constant value",enumDefBox).getPanel();
-		Style.registerCssClasses(enumDefPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
-		
-		submodelTypeBox = new JComboBox();
-		
-		final JPanel submodelTypePanel = FormsUtils.build("p ~ p:g",
-											"[DialogBorder]01",
-											"Constant value",submodelTypeBox).getPanel();
-		Style.registerCssClasses(submodelTypePanel,Dashboard.CSS_CLASS_COMMON_PANEL);
 		
 		fileTextField = new JTextField();
 		fileTextField.setActionCommand("FILE_FIELD");
 		fileTextField.addKeyListener(new KeyAdapter() {
+			@Override
 			public void keyTyped(final KeyEvent e) { 
 				final char character = e.getKeyChar();
 				final File file = new File(Character.isISOControl(character) ? fileTextField.getText() : fileTextField.getText() + character);
 				fileTextField.setToolTipText(file.getAbsolutePath());
 			}
 		});
-		fileBrowseButton = new JButton(Page_Parameters.BROWSE_BUTTON_TEXT);
+		fileBrowseButton = new JButton(FileSystemView.getFileSystemView().getSystemIcon(new File(".")));
 		fileBrowseButton.setActionCommand("FILE_BROWSE");
 		
 		final JPanel fileDefPanel = FormsUtils.build("p ~ p:g ~ p",
 									   "[DialogBorder]012",
 									   "File",fileTextField,fileBrowseButton).getPanel();
-		Style.registerCssClasses(fileDefPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
 
 		intMinField = new JTextField();
 		intMinField.setActionCommand("INT_MIN");
@@ -757,33 +671,29 @@ public class GASearchPanel extends JPanel {
 											  		"23 p",
 											  		"Minimum value",doubleMinField,
 											  		"Maximum value",doubleMaxField).getPanel();
-		Style.registerCssClasses(doublePanel,Dashboard.CSS_CLASS_COMMON_PANEL);
 
 		final JPanel intPanel = FormsUtils.build("p ' f:p:g",
 								   "[DialogBorder]01 p ||" +
 										   		 "23 p",
 										   		 "Minimum value",intMinField,
 										   		 "Maximum value",intMaxField).getPanel();
-		Style.registerCssClasses(intPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
 		
 		final JPanel valuesPanel = FormsUtils.build("p ' p:g",
 									  "[DialogBorder]01 f:p:g",
 								      "Value list",CellConstraints.TOP,valuesDefScr).getPanel();
-		Style.registerCssClasses(valuesPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
 		
 		final JPanel emptyPanel = new JPanel();
-		Style.registerCssClasses(emptyPanel, Dashboard.CSS_CLASS_COMMON_PANEL);
 		
 		geneSettingsValuePanel.add(emptyPanel,"NULL");
 		geneSettingsValuePanel.add(constantPanel,PARAM_SETTINGS_CONSTANT_VALUE_PANEL);
 		geneSettingsValuePanel.add(enumDefPanel,PARAM_SETTINGS_ENUM_VALUE_PANEL);
 		geneSettingsValuePanel.add(fileDefPanel,PARAM_SETTINGS_FILE_VALUE_PANEL);
-		geneSettingsValuePanel.add(submodelTypePanel,PARAM_SETTINGS_SUBMODEL_VALUE_PANEL);
 		geneSettingsValuePanel.add(doublePanel,GENE_SETTINGS_DOUBLE_RANGE_VALUE_PANEL);
 		geneSettingsValuePanel.add(intPanel,GENE_SETTINGS_INT_RANGE_VALUE_PANEL);
 		geneSettingsValuePanel.add(valuesPanel,GENE_SETTINGS_LIST_VALUE_PANEL);
 		
 		final ItemListener itemListener = new ItemListener() {
+			@Override
 			public void itemStateChanged(final ItemEvent _) {
 				if (editedNode != null) {
 					final CardLayout layout = (CardLayout) geneSettingsValuePanel.getLayout();
@@ -795,9 +705,7 @@ public class GASearchPanel extends JPanel {
 						layout.show(geneSettingsValuePanel,GENE_SETTINGS_LIST_VALUE_PANEL);
 					else if (constantRButton.isSelected()) {
 						final ParameterOrGene param = (ParameterOrGene) editedNode.getUserObject();
-						if (param.getInfo() instanceof SubmodelInfo) 
-							layout.show(geneSettingsValuePanel,PARAM_SETTINGS_SUBMODEL_VALUE_PANEL);
-						else if (param.getInfo().isEnum() || param.getInfo() instanceof MasonChooserParameterInfo)
+						if (param.getInfo().isEnum() || param.getInfo() instanceof MasonChooserParameterInfo)
 							layout.show(geneSettingsValuePanel,PARAM_SETTINGS_ENUM_VALUE_PANEL);
 						else if (param.getInfo().isFile()) 
 							layout.show(geneSettingsValuePanel,PARAM_SETTINGS_FILE_VALUE_PANEL);
@@ -824,7 +732,6 @@ public class GASearchPanel extends JPanel {
 													doubleGeneValueRangeRButton,
 													intGeneValueRangeRButton,
 													listGeneValueRButton ).getPanel();
-		Style.registerCssClasses(selectPanel,Dashboard.CSS_CLASS_COMMON_PANEL);
 		
 		final JPanel buttonsPanel = new JPanel();
 		modifyButton = new JButton("Modify");
@@ -832,6 +739,12 @@ public class GASearchPanel extends JPanel {
 		cancelButton = new JButton("Cancel");
 		cancelButton.setActionCommand("CANCEL");
 		GUIUtils.addActionListener(new ActionListener() {
+			
+			//====================================================================================================
+			// methods
+			
+			//----------------------------------------------------------------------------------------------------
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				final String cmd = e.getActionCommand();
 				if ("EDIT".equals(cmd)) 
@@ -848,11 +761,13 @@ public class GASearchPanel extends JPanel {
 					chooseFile();
 			}
 			
+			//----------------------------------------------------------------------------------------------------
 			private void edit() {
 				if (editedNode != null)
 					geneTree.setSelectionPath(null);
 			}
 			
+			//----------------------------------------------------------------------------------------------------
 			private void cancel() {
 				resetSettings();
 				enableDisableSettings(false);
@@ -860,16 +775,17 @@ public class GASearchPanel extends JPanel {
 				geneTree.setSelectionPath(null);
 			}
 			
+			//----------------------------------------------------------------------------------------------------
 			private void chooseFile() {
 				final JFileChooser fileDialog = new JFileChooser(!"".equals(fileTextField.getToolTipText()) ? fileTextField.getToolTipText() :
-					parentPage.getCurrentDirectory());
+					ParameterSweepWizard.getLastDir().getPath());
 				if (!"".equals(fileTextField.getToolTipText()))
 					fileDialog.setSelectedFile(new File(fileTextField.getToolTipText()));
-				int dialogResult = fileDialog.showOpenDialog(parentPage.getWizard());
+				int dialogResult = fileDialog.showOpenDialog(GASearchPanel.this);
 				if (dialogResult == JFileChooser.APPROVE_OPTION) {
 					final File selectedFile = fileDialog.getSelectedFile();
 					if (selectedFile != null) {
-						parentPage.setCurrentDirectory(selectedFile.getAbsoluteFile().getParent());
+						ParameterSweepWizard.setLastDir(selectedFile.getAbsoluteFile().getParentFile());
 						fileTextField.setText(selectedFile.getName());
 						fileTextField.setToolTipText(selectedFile.getAbsolutePath());
 					}
@@ -888,22 +804,18 @@ public class GASearchPanel extends JPanel {
 														buttonsPanel).getPanel();
 		
 		geneSetterPanel.setBorder(BorderFactory.createTitledBorder(null,"Gene/parameter settings",TitledBorder.LEADING,TitledBorder.BELOW_TOP));
-		Style.registerCssClasses(geneSetterPanel, Dashboard.CSS_CLASS_COMMON_PANEL);
 		
 		final JPanel rightTop = FormsUtils.build("f:p:g p",
 												 "01 f:p:g",
 												 treePanel,geneSetterPanel).getPanel();
 		rightTop.setBorder(BorderFactory.createTitledBorder(null,"Chromosome",TitledBorder.LEADING,TitledBorder.BELOW_TOP));
-		Style.registerCssClasses(rightTop,Dashboard.CSS_CLASS_COMMON_PANEL);
 		
 		final JPanel mainPanel = FormsUtils.build("p f:p:g", 
 				"01 f:p:g||" +
 				"02 p",
 				gaSettingsPanel,rightTop,
-				operatorDetailsPanel).getPanel();
+				operatorSettingsPanel).getPanel();
 		mainPanel.setBorder(BorderFactory.createTitledBorder(""));
-		Style.registerCssClasses(mainPanel, Dashboard.CSS_CLASS_COMMON_PANEL);
-		
 		
 		setLayout(new BorderLayout());
 		mainScrPane = new JScrollPane(mainPanel);
@@ -914,116 +826,15 @@ public class GASearchPanel extends JPanel {
 		resetSettings();
 		enableDisableSettings(false);
 	}
-
-	private void initializeStatistics(final GASearchPanelModel model) {
-		fitnessStatistics = new JComboBox(model.getFitnessStatistics().toArray(new Object[0]));
-		fitnessStatistics.setRenderer(new DefaultListCellRenderer() {
-			
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-				super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-				IStatisticsPlugin plugin = (IStatisticsPlugin) value;
-				
-				this.setText(plugin.getName());
-				this.setToolTipText(plugin.getDescription());
-				
-				return this;
-			}
-		});
-		fitnessStatistics.setSelectedItem(model.getSelectedFitnessStatistics());
-		fitnessStatistics.addItemListener(new ItemListener() {
-			
-			public void itemStateChanged(final ItemEvent e) {
-				if (ItemEvent.SELECTED == e.getStateChange())
-					model.setSelectedFitnessStatistics((IStatisticsPlugin) e.getItem());
-			}
-		});
-
-	}
 	
 	//----------------------------------------------------------------------------------------------------
-	@SuppressWarnings("unused")
-    private JCheckBox createOperatorCheckBox(final JPanel operatorSettingsPanel, final JPanel operatorDescriptionPanel, final IGASelectorConfigurator operator, final GASearchPanelModel model) {
-		JCheckBox checkBox = new JCheckBox(operator.getName());
-		operatorSettingsPanel.add(operator.getSettingspanel(), operator.getName());
-		JXLabel descriptionLabel = new JXLabel(operator.getDescription());
-		descriptionLabel.setLineWrap(true);
-		descriptionLabel.setVerticalAlignment(SwingConstants.TOP);
-		descriptionLabel.setPreferredSize(new Dimension(200, 200));
-		operatorDescriptionPanel.add(descriptionLabel, operator.getName());
-		
-		checkBox.addItemListener(new ItemListener() {
-			
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED){
-					CardLayout settingslayout = (CardLayout) operatorSettingsPanel.getLayout();
-					settingslayout.show(operatorSettingsPanel, operator.getName());
-					((TitledBorder)operatorSettingsPanel.getBorder()).setTitle(operator.getName());
-					operatorSettingsPanel.repaint();
-					
-					CardLayout descriptionLayout = (CardLayout) operatorDescriptionPanel.getLayout();
-					descriptionLayout.show(operatorDescriptionPanel, operator.getName());
-					
-//					model.setSelectedOperator(operator);
-				} else {
-					CardLayout settingslayout = (CardLayout) operatorSettingsPanel.getLayout();
-					settingslayout.show(operatorSettingsPanel, OPERATOR_SETTINGS_PANEL_DEFAULT_PANEL);
-					((TitledBorder)operatorSettingsPanel.getBorder()).setTitle(OPERATOR_SETTINGS_PANEL_TITLE_POSTFIX);
-					operatorSettingsPanel.repaint();
-
-					CardLayout descriptionLayout = (CardLayout) operatorDescriptionPanel.getLayout();
-					descriptionLayout.show(operatorDescriptionPanel, OPERATOR_SETTINGS_PANEL_DEFAULT_PANEL);
-					
-//					model.removeSelectedOperator(operator);
-				}
-			}
-		});
-		
-		checkBox.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusGained(FocusEvent e) {
-				CardLayout settingslayout = (CardLayout) operatorSettingsPanel.getLayout();
-				settingslayout.show(operatorSettingsPanel, operator.getName());
-				((TitledBorder)operatorSettingsPanel.getBorder()).setTitle(operator.getName());
-				operatorSettingsPanel.repaint();
-				
-				CardLayout descriptionLayout = (CardLayout) operatorDescriptionPanel.getLayout();
-				descriptionLayout.show(operatorDescriptionPanel, operator.getName());				
-			}
-		});
-		
-		return checkBox;
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private JScrollPane initDescriptionPanel() {
-		descriptionLabel = new JXLabel("");
-		descriptionLabel.setLineWrap(true);
-		descriptionLabel.setVerticalAlignment(SwingConstants.TOP);
-		
-		JScrollPane scrollPane = new JScrollPane(descriptionLabel);
-		Style.registerCssClasses(scrollPane, ".borderless");
-		scrollPane.getViewportBorder();
-		scrollPane.setViewportBorder(null);
-		scrollPane.setPreferredSize(new Dimension(200, 100));
-		
-		return scrollPane;
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	protected void showOperatorDetails(final JPanel operatorSettingsPanel, final JPanel operatorDescriptionPanel, final IGAConfigurator operator) {
+	protected void showOperatorDetails(final JPanel operatorSettingsPanel, final IGAConfigurator operator) {
 		if (operator != null) {
 			CardLayout settingslayout = (CardLayout) operatorSettingsPanel.getLayout();
 			settingslayout.show(operatorSettingsPanel, operator.getName());
 			((TitledBorder)operatorSettingsPanel.getBorder()).setTitle(operator.getName());
 			operatorSettingsPanel.repaint();
-			descriptionLabel.setText(operator.getDescription());
-		} else
-			descriptionLabel.setText("");
-
+		} 
 	}
 	
 	//-------------------------------------------------------------------------------------------------

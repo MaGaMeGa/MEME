@@ -8,3 +8,4 @@ ai.aitia.meme.paramsweep.intellisweepPlugin.Static_ThreeLevelFactorial
 ai.aitia.meme.paramsweep.intellisweepPlugin.Static_CentralComposite
 ai.aitia.meme.paramsweep.intellisweepPlugin.OrderMethod
 ai.aitia.meme.paramsweep.intellisweepPlugin.DummyGAPlugin
+ai.aitia.meme.paramsweep.intellisweepPlugin.JgapGAPlugin
