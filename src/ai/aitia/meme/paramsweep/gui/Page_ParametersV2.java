@@ -1448,7 +1448,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 
 	//------------------------------------------------------------------------------
 	/** Returns the appropriate error message part according to the value of <code>type</code>. */
-	String getTypeText(final String type) {
+	private String getTypeText(final String type) {
 		if ("int".equals(type) || "Integer".equals(type))
 			return "integer value.";
 		if ("float".equals(type) || "Float".equals(type)

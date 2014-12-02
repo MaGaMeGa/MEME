@@ -52,7 +52,7 @@ public class ParameterOrGene implements Serializable {
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	public ParameterOrGene(final ParameterInfo info, final Integer min, final Integer max) {
+	public ParameterOrGene(final ParameterInfo info, final Long min, final Long max) {
 		this.info = info;
 		setGene(min,max);
 	}
@@ -76,7 +76,7 @@ public class ParameterOrGene implements Serializable {
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	public void setGene(final Integer min, final Integer max) {
+	public void setGene(final Long min, final Long max) {
 		this.gene = true;
 		this.geneInfo = new GeneInfo(info.getName(),min,max,info.getType(),info.getJavaType());
 		this.geneInfo.setIntegerVals(true);

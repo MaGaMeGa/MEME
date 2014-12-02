@@ -19,22 +19,16 @@ package ai.aitia.meme.paramsweep.intellisweepPlugin.jgap;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
@@ -42,16 +36,12 @@ import java.util.StringTokenizer;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.InputVerifier;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -64,7 +54,6 @@ import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
@@ -83,14 +72,13 @@ import javax.swing.tree.TreeSelectionModel;
 
 import org.jdesktop.swingx.JXLabel;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.paramsweep.ParameterSweepWizard;
-import ai.aitia.meme.paramsweep.batch.IModelInformation.ModelInformationException;
 import ai.aitia.meme.paramsweep.batch.output.RecordableInfo;
 import ai.aitia.meme.paramsweep.gui.component.CheckList;
 import ai.aitia.meme.paramsweep.gui.component.CheckListModel;
 import ai.aitia.meme.paramsweep.gui.info.MasonChooserParameterInfo;
 import ai.aitia.meme.paramsweep.gui.info.ParameterInfo;
-import ai.aitia.meme.paramsweep.gui.info.SubmodelInfo;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.GASearchPanelModel.FitnessFunctionDirection;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.GASearchPanelModel.ModelListener;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.IGAConfigurator;
@@ -98,9 +86,7 @@ import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.IGAOperator
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.IGASelectorConfigurator;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.gene.ParameterOrGene;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.utils.ga.GeneInfo;
-import ai.aitia.meme.paramsweep.internal.platform.InfoConverter;
 import ai.aitia.meme.paramsweep.internal.platform.PlatformSettings;
-import ai.aitia.meme.paramsweep.plugin.IStatisticsPlugin;
 import ai.aitia.meme.paramsweep.utils.Utilities;
 import ai.aitia.meme.utils.FormsUtils;
 import ai.aitia.meme.utils.FormsUtils.Separator;
@@ -120,8 +106,6 @@ public class GASearchPanel extends JPanel {
 	// members
    
 	private static final long serialVersionUID = 7957280032992002080L;
-	
-	private static final String NUMBER_OF_TURNS_IN_A_SIMULATION = "Number of turns in a simulation";
 	
 	private static final String GENE_SETTINGS_INT_RANGE_VALUE_PANEL = "int_range";
 	private static final String GENE_SETTINGS_DOUBLE_RANGE_VALUE_PANEL = "double_range";
@@ -425,7 +409,7 @@ public class GASearchPanel extends JPanel {
 		fitnessButtonsPanel.add(fitnessMinimizeRadioButton);
 		fitnessButtonsPanel.add(fitnessMaximizeRadioButton);
 		
-		fitnessFunctionList = new JComboBox(model.getFitnessFunctions().toArray(new Object[0]));
+		fitnessFunctionList = new JComboBox<RecordableInfo>(model.getFitnessFunctions().toArray(new RecordableInfo[0]));
 		fitnessFunctionList.setSelectedItem(model.getSelectedFitnessFunction());
 		fitnessFunctionList.addItemListener(new ItemListener() {
 			@Override
@@ -837,17 +821,6 @@ public class GASearchPanel extends JPanel {
 		} 
 	}
 	
-	//-------------------------------------------------------------------------------------------------
-	/**
-	 * Utility method that returns the string representation of a double value (rounded to 2 decimal
-	 * digits using US format) 
-	 */
-	private static String double2String(final double d) {
-		BigDecimal bd = new BigDecimal(d);
-		bd = bd.setScale(2,BigDecimal.ROUND_HALF_UP);
-		return numberFormatter.format(bd);
-	}
-	
 	//------------------------------------------------------------------------------
 	/** Enables/disables the parameter editing components of the page according to
 	 *  the value of <code>enabled</code>.
@@ -859,7 +832,6 @@ public class GASearchPanel extends JPanel {
 		listGeneValueRButton.setEnabled(enabled);
 		constantField.setEnabled(enabled);
 		enumDefBox.setEnabled(enabled);
-		submodelTypeBox.setEnabled(enabled);
 		fileTextField.setEnabled(enabled);
 		fileBrowseButton.setEnabled(enabled);
 		intMinField.setEnabled(enabled);
@@ -899,10 +871,6 @@ public class GASearchPanel extends JPanel {
 		if (param.isGene()) {
 			editGene(param.getGeneInfo());
 			return;
-		} else if (param.getInfo() instanceof SubmodelInfo) {
-			final SubmodelInfo sInfo = (SubmodelInfo) param.getInfo();
-			editSubmodelInfo(sInfo);
-			return;
 		} else if (param.getInfo().isEnum() || param.getInfo() instanceof MasonChooserParameterInfo) {
 			view = PARAM_SETTINGS_ENUM_VALUE_PANEL;
 			intGeneValueRangeRButton.setEnabled(false);
@@ -922,7 +890,7 @@ public class GASearchPanel extends JPanel {
 				elements = chooserInfo.getValidStrings();
 			}
 			
-			final DefaultComboBoxModel model = (DefaultComboBoxModel) enumDefBox.getModel();
+			final DefaultComboBoxModel<Object> model = (DefaultComboBoxModel<Object>) enumDefBox.getModel();
 			model.removeAllElements();
 			for (final Object object : elements) 
 				model.addElement(object);
@@ -950,39 +918,6 @@ public class GASearchPanel extends JPanel {
 			intGeneValueRangeRButton.setEnabled(false);
 			doubleGeneValueRangeRButton.setEnabled(false);
 			listGeneValueRButton.setEnabled(false);
-		}
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	private void editSubmodelInfo(final SubmodelInfo sInfo) {
-		constantRButton.setSelected(true);
-		intGeneValueRangeRButton.setEnabled(false);
-		doubleGeneValueRangeRButton.setEnabled(false);
-		listGeneValueRButton.setEnabled(false);
-		final Class<?> actualType = sInfo.getActualType();
-		final DefaultComboBoxModel model = (DefaultComboBoxModel) submodelTypeBox.getModel();
-		model.removeAllElements();
-		model.addElement("Loading class information...");
-		final CardLayout cl = (CardLayout) geneSettingsValuePanel.getLayout();
-		cl.show(geneSettingsValuePanel,PARAM_SETTINGS_SUBMODEL_VALUE_PANEL);
-		
-		try {
-			final ClassElement[] elements = parentPage.fetchPossibleTypes(sInfo);
-			model.removeAllElements();
-			for (final ClassElement classElement : elements) 
-				model.addElement(classElement);
-			
-			if (actualType != null)
-				submodelTypeBox.setSelectedItem(new ClassElement(actualType));
-			submodelTypeBox.setEnabled(true);
-		} catch (final ComboBoxIsTooFullException e) {
-			String errorMsg = "Too much possibilities for " + sInfo.getName() + ". Please narrow down the domain by " + 
-					  		  "defining the possible classes in the @Submodel annotation.";
-			JOptionPane.showMessageDialog(parentPage.getWizard(),new JLabel(errorMsg),"Error while analyizing model",JOptionPane.ERROR_MESSAGE);
-			
-			resetSettings();
-			enableDisableSettings(false);
-			editedNode = null;
 		}
 	}
 	
@@ -1020,18 +955,9 @@ public class GASearchPanel extends JPanel {
 			
 			if (info.isEnum() || info instanceof MasonChooserParameterInfo) { 
 				// well, the combo box must contain a valid value
-			} else if (info instanceof SubmodelInfo) {
-				final Object selectedObject = submodelTypeBox.getSelectedItem();
-				if (!(selectedObject instanceof ClassElement))
-					errors.add("Invalid type is selected for parameter " + info.getName());
-				else {
-					final ClassElement selectedElement = (ClassElement) selectedObject;
-					if (selectedElement.clazz == null)
-						errors.add("'Constant value' cannot be empty. Please select a type.");
-				}
 			} else if (info.isFile()) {
 				if (fileTextField.getText().trim().isEmpty())
-					log.warn("Empty string was specified as file parameter " + info.getName().replaceAll("([A-Z])"," $1"));
+					Logger.logWarning("Empty string was specified as file parameter " + info.getName().replaceAll("([A-Z])"," $1"));
 
 				final File file = new File(fileTextField.getToolTipText());
 				if (!file.exists()) 
@@ -1041,7 +967,7 @@ public class GASearchPanel extends JPanel {
 			else {
 				final boolean valid = ParameterInfo.isValid(constantField.getText().trim(),info.getType());
 				if (!valid) 
-					errors.add("'Constant value' must be a valid " + parentPage.getTypeText(info.getType()) + ".");
+					errors.add("'Constant value' must be a valid " + getTypeText(info.getType()) + ".");
 				
 				errors.addAll(PlatformSettings.additionalParameterCheck(info,new String[] { constantField.getText().trim() },ParameterInfo.CONST_DEF));
 			}
@@ -1059,7 +985,7 @@ public class GASearchPanel extends JPanel {
 					
 					final boolean valid = ParameterInfo.isValid(minFieldText,param.getInfo().getType());
 					if (!valid) 
-						errors.add("'Minimum value' must be a valid " + parentPage.getTypeText(param.getInfo().getType()) + ".");
+						errors.add("'Minimum value' must be a valid " + getTypeText(param.getInfo().getType()) + ".");
 					
 					errors.addAll(PlatformSettings.additionalParameterCheck(param.getInfo(),new String[] { minFieldText.trim() },ParameterInfo.CONST_DEF));
 				} catch (final NumberFormatException _) {
@@ -1075,7 +1001,7 @@ public class GASearchPanel extends JPanel {
 					
 					final boolean valid = ParameterInfo.isValid(maxFieldText,param.getInfo().getType());
 					if (!valid) 
-						errors.add("'Maximum value' must be a valid " + parentPage.getTypeText(param.getInfo().getType()) + ".");
+						errors.add("'Maximum value' must be a valid " + getTypeText(param.getInfo().getType()) + ".");
 					
 					errors.addAll(PlatformSettings.additionalParameterCheck(param.getInfo(),new String[] { maxFieldText.trim() },ParameterInfo.CONST_DEF));
 				} catch (final NumberFormatException _) {
@@ -1101,7 +1027,7 @@ public class GASearchPanel extends JPanel {
 					
 					final boolean valid = ParameterInfo.isValid(minFieldText,param.getInfo().getType());
 					if (!valid) 
-						errors.add("'Minimum value' must be a valid " + parentPage.getTypeText(param.getInfo().getType()) + ".");
+						errors.add("'Minimum value' must be a valid " + getTypeText(param.getInfo().getType()) + ".");
 					
 					errors.addAll(PlatformSettings.additionalParameterCheck(param.getInfo(),new String[] { minFieldText.trim() },ParameterInfo.CONST_DEF));
 				} catch (final NumberFormatException _) {
@@ -1117,7 +1043,7 @@ public class GASearchPanel extends JPanel {
 					
 					final boolean valid = ParameterInfo.isValid(maxFieldText,param.getInfo().getType());
 					if (!valid) 
-						errors.add("'Maximum value' must be a valid " + parentPage.getTypeText(param.getInfo().getType()) + ".");
+						errors.add("'Maximum value' must be a valid " + getTypeText(param.getInfo().getType()) + ".");
 					
 					errors.addAll(PlatformSettings.additionalParameterCheck(param.getInfo(),new String[] { maxFieldText.trim() },ParameterInfo.CONST_DEF));
 				} catch (final NumberFormatException _) {
@@ -1144,7 +1070,7 @@ public class GASearchPanel extends JPanel {
 						
 						final boolean valid = ParameterInfo.isValid(strValue,param.getInfo().getType());
 						if (!valid) 
-							errors.add("'" + strValue + "' is not a valid " + parentPage.getTypeText(param.getInfo().getType()) + ".");
+							errors.add("'" + strValue + "' is not a valid " + getTypeText(param.getInfo().getType()) + ".");
 						
 						valueList.add(parseListElement(param.getInfo().getJavaType(),strValue));
 					}
@@ -1157,6 +1083,21 @@ public class GASearchPanel extends JPanel {
 		}
 		
 		return errors.isEmpty() ? null : errors.toArray(new String[0]);
+	}
+	
+	//------------------------------------------------------------------------------
+	/** Returns the appropriate error message part according to the value of <code>type</code>. */
+	private String getTypeText(final String type) {
+		if ("int".equals(type) || "Integer".equals(type))
+			return "integer value.";
+		if ("float".equals(type) || "Float".equals(type)
+			|| "double".equals(type) || "Double".equals(type))
+			return "real value.";
+		if ("boolean".equals(type) || "Boolean".equals(type))
+			return "boolean value (\"true\" or \"false\").";
+		if ("String".equals(type))
+			return "string that not contains any white space.";
+		return type + ".";
 	}
 	
 	//----------------------------------------------------------------------------------------------------
@@ -1179,10 +1120,8 @@ public class GASearchPanel extends JPanel {
 			modifyParameterOrGene(userObj);
 			resetSettings();
 			
-			if (!(userObj.info instanceof SubmodelInfo)) {
-				final DefaultTreeModel model = (DefaultTreeModel) geneTree.getModel();
-				model.nodeStructureChanged(editedNode);
-			}
+			final DefaultTreeModel model = (DefaultTreeModel) geneTree.getModel();
+			model.nodeStructureChanged(editedNode);
 			
 			editedNode = null;
 			
@@ -1205,16 +1144,13 @@ public class GASearchPanel extends JPanel {
 				param.setConstant(enumDefBox.getSelectedItem());
 			else if (info instanceof MasonChooserParameterInfo) 
 				param.setConstant(enumDefBox.getSelectedIndex());				
-			else if (info instanceof SubmodelInfo) {
-				final SubmodelInfo sInfo = (SubmodelInfo) info;
-				modifySubmodelParameterInfo(sInfo);
-			} else if (info.isFile()) 
+			else if (info.isFile()) 
 				param.setConstant(ParameterInfo.getValue(fileTextField.getToolTipText(),info.getType()));
 			else
 				param.setConstant(ParameterInfo.getValue(constantField.getText().trim(),info.getType()));
 		} else if (intGeneValueRangeRButton.isSelected()) {
-			final Integer minValue = new Integer(intMinField.getText().trim());
-			final Integer maxValue = new Integer(intMaxField.getText().trim());
+			final Long minValue = new Long(intMinField.getText().trim());
+			final Long maxValue = new Long(intMaxField.getText().trim());
 			param.setGene(minValue,maxValue);
 		} else if (doubleGeneValueRangeRButton.isSelected()) {
 			final Double minValue = new Double(doubleMinField.getText().trim());
@@ -1231,64 +1167,6 @@ public class GASearchPanel extends JPanel {
 		}
 	}
 
-	//----------------------------------------------------------------------------------------------------
-	private void modifySubmodelParameterInfo(final SubmodelInfo sInfo) {
-		final Object selectedItem = submodelTypeBox.getSelectedItem();
-		if (selectedItem instanceof ClassElement) {
-			final Class<?> newActualType = ((ClassElement)selectedItem).clazz;
-			
-			if (!parentPage.classEquals(newActualType,sInfo.getActualType())) {
-				sInfo.setActualType(newActualType);
-				addSubParametersToTree(sInfo);
-			} // else do nothing
-		}
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private void addSubParametersToTree(final SubmodelInfo sInfo) { 
-		try {
-			final DefaultTreeModel treeModel = (DefaultTreeModel) geneTree.getModel();
-			final DefaultMutableTreeNode node = editedNode;
-			
-			if (sInfo.getActualType() == null) {
-				if (node.getChildCount() > 0) {
-					node.removeAllChildren();
-					treeModel.nodeStructureChanged(node);
-				}
-				
-				return;
-			}
-			
-			final List<ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?>> subparameters = ParameterTreeUtils.fetchSubparameters(
-																												parentPage.getCurrentModelHandler(),sInfo);
-			
-			final List<ParameterInfo> convertedSubparameters = new ArrayList<ParameterInfo>(subparameters.size());
-			for (ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?> parameterInfo : subparameters) {
-				final ParameterInfo converted = InfoConverter.parameterInfo2ParameterInfo(parameterInfo);
-				converted.setRuns(0);
-				convertedSubparameters.add(converted);
-			}
-			Collections.sort(convertedSubparameters);
-			
-			if (node.getChildCount() > 0) {
-				node.removeAllChildren();
-				treeModel.nodeStructureChanged(node);
-			}
-			
-			for (final ParameterInfo pInfo : convertedSubparameters) {
-				final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(new ParameterOrGene(pInfo));
-				treeModel.insertNodeInto(newNode,node,node.getChildCount());
-			}
-
-			geneTree.expandPath(new TreePath(treeModel.getPathToRoot(node)));
-		} catch (final ModelInformationException e) {
-			sInfo.setActualType(null);
-			JOptionPane.showMessageDialog(parentPage.getWizard(),new JLabel(e.getMessage()), "Error while analyizing model", JOptionPane.ERROR_MESSAGE);
-			e.printStackTrace();
-			submodelTypeBox.setSelectedIndex(0);
-		}
-	}
-	
 	//----------------------------------------------------------------------------------------------------
 	private void updateNumberOfGenes() {
 		int count = 0;

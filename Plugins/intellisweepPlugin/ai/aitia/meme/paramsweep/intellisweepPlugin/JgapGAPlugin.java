@@ -16,29 +16,51 @@
  ******************************************************************************/
 package ai.aitia.meme.paramsweep.intellisweepPlugin;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 
+import org.jgap.Genotype;
+import org.jgap.IChromosome;
+import org.jgap.Population;
+import org.jgap.impl.DefaultConfiguration;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import ai.aitia.meme.paramsweep.batch.IParameterSweepResultReader;
 import ai.aitia.meme.paramsweep.batch.output.RecordableInfo;
 import ai.aitia.meme.paramsweep.batch.param.ParameterTree;
+import ai.aitia.meme.paramsweep.gui.info.ParameterInfo;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.GASearchPanelModel;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.BestChromosomeSelectorConfigurator;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.CrossoverOperatorConfigurator;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.GeneAveragingCrossoverOperatorConfigurator;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.IGAOperatorConfigurator;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.IGASelectorConfigurator;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.MutationOperatorConfigurator;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.TournamentSelectorConfigurator;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.WeightedRouletteSelectorConfigurator;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.gene.ParameterOrGene;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.utils.ga.GeneInfo;
+import ai.aitia.meme.paramsweep.internal.platform.InfoConverter;
 import ai.aitia.meme.paramsweep.plugin.IIntelliContext;
 import ai.aitia.meme.paramsweep.plugin.IIntelliDynamicMethodPlugin;
 import ai.aitia.meme.paramsweep.plugin.IOptimizationMethodPlugin;
 import ai.aitia.meme.paramsweep.utils.WizardLoadingException;
 
-public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationMethodPlugin, GASearchPanelModel, IWorkspaceAware {
+public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationMethodPlugin, GASearchPanelModel {
 	
 	//====================================================================================================
 	// members
 	
 	private static final long serialVersionUID = 2516082442494840822L;
-	
-	private static final int DEFAULT_TIMESERIES_LENGTH = 20;
-	private static final Logger log = LoggerFactory.getLogger(GASearchHandler.class);
 	
 	private static final String POPULATION_SIZE = "Population size";
 	private static final String POPULATION_RANDOM_SEED = "Population random seed";
@@ -54,85 +76,14 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 	protected static final String bckExt = ".bak";
 	
 	private static final List<Class<?>> acceptableReturnTypesForFitnessFunction;
-	private static final List<IStatisticsPlugin> fitnessStatistics;
-	
-	public static final IStatisticsPlugin noStatistics = new IStatisticsPlugin() {
-
-		@Override
-		public String getLocalizedName() {
-			return null;
-		}
-
-		@Override
-		public int getNumberOfParameters() {
-			return 0;
-		}
-
-		@Override
-		public String getName() {
-			return "none";
-		}
-
-		@Override
-		public String getDescription() {
-			return "no statistics selected";
-		}
-
-		@SuppressWarnings("rawtypes")
-		@Override
-		public Class getReturnType() {
-			return null;
-		}
-
-		@SuppressWarnings("rawtypes")
-		@Override
-		public List<Class> getParameterTypes() {
-			return null;
-		}
-
-		@Override
-		public List<String> getParameterNames() {
-			return null;
-		}
-
-		@Override
-		public List<String> getParameterDescriptions() {
-			return null;
-		}
-
-		@Override
-		public String getFullyQualifiedName() {
-			return null;
-		}
-	};
 	
 	static {
-		Class<?>[] array = { Byte.TYPE, Byte.class, Short.TYPE, Short.class, Integer.TYPE, Integer.class, Long.TYPE, Long.class, Float.TYPE, Float.class,
-							 Double.TYPE, Double.class };
+		final Class<?>[] array = { Byte.TYPE, Byte.class, Short.TYPE, Short.class, Integer.TYPE, Integer.class, Long.TYPE, Long.class, Float.TYPE, Float.class,
+							 	   Double.TYPE, Double.class };
 		acceptableReturnTypesForFitnessFunction = Arrays.asList(array);
 
-		Reflections reflections = new Reflections("ai.aitia.meme.paramsweep.coltPlugin");
-		Set<Class<? extends IStatisticsPlugin>> subTypesOf = reflections.getSubTypesOf(IStatisticsPlugin.class);
-		fitnessStatistics = new ArrayList<IStatisticsPlugin>();
-		
-		fitnessStatistics.add(noStatistics);
-		
-		for (Class<? extends IStatisticsPlugin> pluginClass : subTypesOf) {
-			try {
-				final IStatisticsPlugin plugin = pluginClass.newInstance();
-				List<Class> parameterTypes = plugin.getParameterTypes();
-				if (parameterTypes.size() == 1 && parameterTypes.get(0).isAssignableFrom(DoubleArrayList.class)) {
-					fitnessStatistics.add(plugin);
-				}
-			} catch (InstantiationException e) {
-				log.error("Could not instantiate " + pluginClass.getName(), e);
-			} catch (IllegalAccessException e) {
-				log.error("Could not instantiate " + pluginClass.getName(), e);
-			}
-		}
 	}
 
-	private double numberOfTurns = Dashboard.NUMBER_OF_TURNS;
 	private int populationSize = 12;
 	private int populationGenerationSeed = 1;
 	private int numberOfGenerations = 12;
@@ -140,11 +91,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 	private boolean fixNumberOfGenerations = true;
 	private FitnessFunctionDirection optimizationDirection = FitnessFunctionDirection.MINIMIZE;
 	private RecordableInfo selectedFunction;
-
-	private IStatisticsPlugin selectedFitnessStatistics;
-	
 	private final List<IGASelectorConfigurator> selectedSelectionOperators = new ArrayList<IGASelectorConfigurator>();
-
 	private final List<IGAOperatorConfigurator> selectedGeneticOperators = new ArrayList<IGAOperatorConfigurator>();
 
 	private DefaultConfiguration gaConfiguration;
@@ -164,8 +111,6 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 	 */
 	private final List<RecordableInfo> fitnessFunctions = new ArrayList<RecordableInfo>();
 
-	private int fitnessTimeSeriesLength = DEFAULT_TIMESERIES_LENGTH;
-	
 	private final String populationFileName = "population";
 	
 	private DefaultTreeModel chromosomeTree;
@@ -176,15 +121,19 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 	private Genotype genotype;
 	private List<ParameterInfo> paramList;
 
-	private final List<ModelListener> listeners = new ArrayList<GASearchPanelModel.ModelListener>();
-	
-	private File workspace = new File(".");
-	private IModelHandler currentModelHandler = null;
-
+	private transient List<ModelListener> listeners = new ArrayList<GASearchPanelModel.ModelListener>();
 	
 	//====================================================================================================
 	// methods
 
+	//----------------------------------------------------------------------------------------------------
+	public JgapGAPlugin() {
+		selectors = Arrays.asList(new TournamentSelectorConfigurator(),new WeightedRouletteSelectorConfigurator(),new BestChromosomeSelectorConfigurator());
+		geneticOperators = Arrays.asList(new GeneAveragingCrossoverOperatorConfigurator(), new CrossoverOperatorConfigurator(),new MutationOperatorConfigurator());
+		
+		init();
+	}
+	
 	//----------------------------------------------------------------------------------------------------
 	public String getLocalizedName() { return "Genetic Algorithm"; }
 	public int getMethodType() { return DYNAMIC_METHOD; }
@@ -194,20 +143,9 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 	public String getDescription() {
 		return "The method uses genetic algorithms to find the optimal parameter settings.";
 	}
-
-
-	//----------------------------------------------------------------------------------------------------
-	public GASearchHandler(final IModelHandler currentModelHandler) {
-		selectors = Arrays.asList(new TournamentSelectorConfigurator(),new WeightedRouletteSelectorConfigurator(),new BestChromosomeSelectorConfigurator());
-		geneticOperators = Arrays.asList(new GeneAveragingCrossoverOperatorConfigurator(), new CrossoverOperatorConfigurator(),new MutationOperatorConfigurator());
-		
-		init(currentModelHandler);
-	}
 	
 	//----------------------------------------------------------------------------------------------------
-	public void init(final IModelHandler modelHandler) {
-		this.currentModelHandler = modelHandler;
-		numberOfTurns = Dashboard.NUMBER_OF_TURNS;
+	private void init() {
 		populationSize = 12;
 		populationGenerationSeed = 1;
 		numberOfGenerations = 12;
@@ -216,9 +154,6 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 		optimizationDirection = FitnessFunctionDirection.MINIMIZE;
 		selectedFunction = new RecordableInfo("Please select a function!",Object.class,"Please select a function!");
 
-		selectedFitnessStatistics = fitnessStatistics.get(0);
-		fitnessTimeSeriesLength = DEFAULT_TIMESERIES_LENGTH;
-		
 		selectedSelectionOperators.clear();
 		selectedGeneticOperators.clear();
 
@@ -231,533 +166,57 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 		genotype = null;
 		paramList = null;
 		
-		workspace = new File(".");
-		
 		fitnessFunctions.add(selectedFunction);
-		
 		
 		selectedSelectionOperators.add(selectors.get(2));
 
 		selectedGeneticOperators.add(geneticOperators.get(0));
 		selectedGeneticOperators.add(geneticOperators.get(2));
 	}
-	
-	//----------------------------------------------------------------------------------------------------
-	public void saveConfiguration(final ObjectFactory factory, final Model config) {
-		saveGeneralParameters(factory,config);
-		saveSelectors(factory,config);
-		saveOperators(factory,config);
-		saveChromosome(factory,config);
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private void saveGeneralParameters(final ObjectFactory factory, final Model config) {
-		final List<GeneralParameter> generalParameters = config.getGeneralParameterList();
-
-		GeneralParameter gp = factory.createGeneralParameter();
-		gp.setName(ParameterTreeUtils.NUMBER_OF_TURNS_XML_NAME);
-		gp.setValue(String.valueOf(numberOfTurns));
-		generalParameters.add(gp);
-		
-		gp = factory.createGeneralParameter();
-		gp.setName(POPULATION_SIZE);
-		gp.setValue(String.valueOf(populationSize));
-		generalParameters.add(gp);
-		
-		gp = factory.createGeneralParameter();
-		gp.setName(POPULATION_RANDOM_SEED);
-		gp.setValue(String.valueOf(populationGenerationSeed));
-		generalParameters.add(gp);
-		
-		gp = factory.createGeneralParameter();
-		gp.setName(FIX_NUMBER_OF_GENERATIONS);
-		gp.setValue(String.valueOf(fixNumberOfGenerations));
-		generalParameters.add(gp);
-		
-		gp = factory.createGeneralParameter();
-		gp.setName(NUMBER_OF_GENERATIONS);
-		gp.setValue(String.valueOf(numberOfGenerations));
-		generalParameters.add(gp);
-		
-		gp = factory.createGeneralParameter();
-		gp.setName(FITNESS_LIMIT_CRITERION);
-		gp.setValue(String.valueOf(fitnessLimitCriterion));
-		generalParameters.add(gp);
-		
-		gp = factory.createGeneralParameter();
-		gp.setName(OPTIMIZATION_DIRECTION);
-		gp.setValue(optimizationDirection.name());
-		generalParameters.add(gp);
-		
-		gp = factory.createGeneralParameter();
-		gp.setName(FITNESS_FUNCTION);
-		gp.setValue(createUniqueName(selectedFunction));
-		generalParameters.add(gp);
-
-		gp = factory.createGeneralParameter();
-		gp.setName(FITNESS_STATISTICS);
-		gp.setValue(selectedFitnessStatistics.getName());
-		generalParameters.add(gp);
-
-		gp = factory.createGeneralParameter();
-		gp.setName(FITNESS_TIMESERIES_LENGTH);
-		gp.setValue(String.valueOf(fitnessTimeSeriesLength));
-		generalParameters.add(gp);
-}
-
-	//----------------------------------------------------------------------------------------------------
-	private String createUniqueName(final RecordableInfo fitnessFunction) {
-		//TODO: support 'the fitness function is part of a submodel parameter' case too
-		return fitnessFunction.getName();
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private void saveSelectors(final ObjectFactory factory, final Model config) {
-		final List<Selector> selectors = config.getSelectorList();
-		
-		for (final IGASelectorConfigurator selectorOperator : selectedSelectionOperators) {
-			final Selector selector = factory.createSelector();
-			selector.setType(selectorOperator.getName());
-			final List<Property> selectorProperties = selector.getSelectorProperties();
-			
-			for (final Entry<String,String> entry : selectorOperator.getConfiguration().entrySet()) {
-				final Property property = factory.createProperty();
-				property.setKey(entry.getKey());
-				property.setValue(entry.getValue());
-				selectorProperties.add(property);
-			}
-			
-			selectors.add(selector);
-		}
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private void saveOperators(final ObjectFactory factory, final Model config) {
-		final List<Operator> operators = config.getOperatorList();
-		
-		for (final IGAOperatorConfigurator geneticOperator : selectedGeneticOperators) {
-			final Operator operator = factory.createOperator();
-			operator.setType(geneticOperator.getName());
-			final List<Property> operatorProperties = operator.getOperatorProperties();
-			
-			for (final Entry<String,String> entry : geneticOperator.getConfiguration().entrySet()) {
-				final Property property = factory.createProperty();
-				property.setKey(entry.getKey());
-				property.setValue(entry.getValue());
-				operatorProperties.add(property);
-			}
-			
-			operators.add(operator);
-		}
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private void saveChromosome(final ObjectFactory factory, final Model config) {
-		final eu.crisis_economics.abm.dashboard.generated.Chromosome chromosome = factory.createChromosome();
-		
-		@SuppressWarnings("rawtypes")
-		final Enumeration nodes = ((DefaultMutableTreeNode)chromosomeTree.getRoot()).children();
-		while (nodes.hasMoreElements()) {
-			final DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes.nextElement();
-			saveParameterOrGene(node,factory,chromosome);
-		}
-		
-		config.setChromosome(chromosome);
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private void saveParameterOrGene(final DefaultMutableTreeNode node, final ObjectFactory factory, final Object parent) {
-		final ParameterOrGene userObj = (ParameterOrGene) node.getUserObject();
-		final ParameterInfo info = userObj.getInfo();
-		
-		if (userObj.isGene()) {
-			final GeneInfo geneInfo = userObj.getGeneInfo();
-			
-			final eu.crisis_economics.abm.dashboard.generated.Gene gene = factory.createGene();
-			gene.setName(info.getName());
-			gene.setGeneType(geneInfo.getValueType());
-			
-			if (GeneInfo.INTERVAL.equals(geneInfo.getValueType())) {
-				gene.setInteger(geneInfo.isIntegerVals());
-				gene.setMin(geneInfo.isIntegerVals() ? new BigDecimal(geneInfo.getMinValue().longValue()) : new BigDecimal(geneInfo.getMinValue().doubleValue()));
-				gene.setMax(geneInfo.isIntegerVals() ? new BigDecimal(geneInfo.getMaxValue().longValue()) : new BigDecimal(geneInfo.getMaxValue().doubleValue()));
-			} else {
-				final List<String> geneValues = gene.getGeneValueList();
-				for (final Object value : geneInfo.getValueRange()) 
-					geneValues.add(String.valueOf(value));
-			}
-			
-			if (parent instanceof eu.crisis_economics.abm.dashboard.generated.Chromosome) {
-				final eu.crisis_economics.abm.dashboard.generated.Chromosome chromosome = (eu.crisis_economics.abm.dashboard.generated.Chromosome) parent;
-				chromosome.getGeneList().add(gene);
-			} else if (parent instanceof SubmodelParameter) {
-				final SubmodelParameter submodelParameter = (SubmodelParameter) parent;
-				submodelParameter.getGeneList().add(gene);
-			}
-			
-		} else if (info instanceof SubmodelInfo) {
-			final SubmodelInfo sInfo = (SubmodelInfo) info;
-			
-			final SubmodelParameter parameter = factory.createSubmodelParameter();
-			parameter.setName(info.getName());
-			parameter.setType(sInfo.getActualType() == null ? "null" : sInfo.getActualType().getName());
-			
-			if (parent instanceof eu.crisis_economics.abm.dashboard.generated.Chromosome) {
-				final eu.crisis_economics.abm.dashboard.generated.Chromosome chromosome = (eu.crisis_economics.abm.dashboard.generated.Chromosome) parent;
-				chromosome.getSubmodelParameterList().add(parameter);
-			} else if (parent instanceof SubmodelParameter) {
-				final SubmodelParameter submodelParameter = (SubmodelParameter) parent;
-				submodelParameter.getSubmodelParameterList().add(parameter);
-			}
-			
-			if (node.getChildCount() > 0) {
-				@SuppressWarnings("rawtypes")
-				final Enumeration childNodes = node.children();
-				while (childNodes.hasMoreElements()) {
-					final DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) childNodes.nextElement();
-					saveParameterOrGene(childNode,factory,parameter);
- 				}
-			}
-		} else {
-			final Parameter parameter = factory.createParameter();
-			parameter.setName(info.getName());
-			parameter.setParameterType(ParameterType.CONSTANT);
-			parameter.getContent().add(info.getValue().toString());
-			
-			if (parent instanceof eu.crisis_economics.abm.dashboard.generated.Chromosome) {
-				final eu.crisis_economics.abm.dashboard.generated.Chromosome chromosome = (eu.crisis_economics.abm.dashboard.generated.Chromosome) parent;
-				chromosome.getParameterList().add(parameter);
-			} else if (parent instanceof SubmodelParameter) {
-				final SubmodelParameter submodelParameter = (SubmodelParameter) parent;
-				submodelParameter.getParameterList().add(parameter);
-			}
-		}
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	/**
-	 * This method creates a list of {@link ParameterInfo} instances for the {@link #loadConfiguration(Model, List)} method. How the list of {@link ai.aitia.meme.paramsweep.batch.param.ParameterInfo} is converted 
-	 * to {@link ParameterInfo} is copied from {@link Page_Parameters#createAndDisplayAParameterPanel} method.
-	 * 
-	 * @param config the object representing the XML file
-	 * @param parameters the list of model parameters
-	 * @throws ModelInformationException if {@link #loadConfiguration(Model, List)} throws an exception
-	 */
-	public void loadConfigurationFromBatchInfo(final Model config, final List<ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?>> parameters) throws ModelInformationException {
-		final List<ParameterInfo> info = new ArrayList<ParameterInfo>();
-		for (ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?> batchParameterInfo : parameters) {
-			final ParameterInfo parameterInfo = InfoConverter.parameterInfo2ParameterInfo(batchParameterInfo);
-			// prepare the parameterInfo for the param sweeps
-			parameterInfo.setRuns(0);
-			parameterInfo.setDefinitionType(ParameterInfo.CONST_DEF);
-			parameterInfo.setValue(batchParameterInfo.getDefaultValue());
-			info.add(parameterInfo);
-		}
-		
-		loadConfiguration(config, info);
-	}
-	//----------------------------------------------------------------------------------------------------
-	@Override
-	public void loadConfiguration(final Model config, final List<ParameterInfo> parameters) throws ModelInformationException {
-		final List<GeneralParameter> generalParameters = config.getGeneralParameterList();
-		loadGeneralParameters(generalParameters);
-		
-		final List<Selector> selectors = config.getSelectorList();
-		loadSelectors(selectors);
-		
-		final List<Operator> operators = config.getOperatorList();
-		loadOperators(operators);
-		
-		loadChromosome(config.getChromosome(),parameters);
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	private void loadGeneralParameters(final List<GeneralParameter> generalParameters) {
-		for (final GeneralParameter generalParameter : generalParameters) {
-			if (ParameterTreeUtils.NUMBER_OF_TURNS_XML_NAME.equals(generalParameter.getName()))
-				numberOfTurns = Double.parseDouble(generalParameter.getValue());
-			else if (POPULATION_SIZE.equals(generalParameter.getName()))
-				populationSize = Integer.parseInt(generalParameter.getValue());
-			else if (POPULATION_RANDOM_SEED.equals(generalParameter.getName()))
-				populationGenerationSeed = Integer.parseInt(generalParameter.getValue());
-			else if (FIX_NUMBER_OF_GENERATIONS.equals(generalParameter.getName()))
-				fixNumberOfGenerations = Boolean.parseBoolean(generalParameter.getValue());
-			else if (NUMBER_OF_GENERATIONS.equals(generalParameter.getName()))
-				numberOfGenerations = Integer.parseInt(generalParameter.getValue());
-			else if (FITNESS_LIMIT_CRITERION.equals(generalParameter.getName()))
-				fitnessLimitCriterion = Double.parseDouble(generalParameter.getValue());
-			else if (OPTIMIZATION_DIRECTION.equals(generalParameter.getName()))
-				optimizationDirection = FitnessFunctionDirection.valueOf(generalParameter.getValue());
-			else if (FITNESS_FUNCTION.equals(generalParameter.getName()))
-				loadSelectedFitnessFunction(generalParameter.getValue());
-			else if (FITNESS_STATISTICS.equals(generalParameter.getName())) {
-				loadSelectedFitnessStatistics(generalParameter.getValue());
-			} else if (FITNESS_TIMESERIES_LENGTH.equals(generalParameter.getName())) {
-				fitnessTimeSeriesLength = Integer.parseInt(generalParameter.getValue());
-			}
-		}
-	}
-
-	private void loadSelectedFitnessStatistics(final String fitnessStatisticsName) {
-		for (IStatisticsPlugin statistics : fitnessStatistics) {
-			if (statistics.getName().equals(fitnessStatisticsName)) {
-				selectedFitnessStatistics = statistics;
-				break;
-			}
-		}
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	private void loadSelectedFitnessFunction(final String identifier) {
-		for (final RecordableInfo function : fitnessFunctions) {
-			//TODO: support 'the fitness function is part of a submodel parameter' case too
-			if (identifier.equals(function.getName())) {
-				selectedFunction = function;
-				break;
-			}
-		}
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private void loadSelectors(final List<Selector> selectorList) throws ModelInformationException {
-		selectedSelectionOperators.clear();
-		
-		for (final Selector selector : selectorList) {
-			final String selectorType = selector.getType();
-			final IGASelectorConfigurator matchedConfigurator = findSelectorConfigurator(selectorType);
-			final Map<String,String> config = convertPropertiesToMap(selector.getSelectorProperties());
-			matchedConfigurator.setConfiguration(config);
-			selectedSelectionOperators.add(matchedConfigurator);
-		}
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	private IGASelectorConfigurator findSelectorConfigurator(final String selectorType) throws ModelInformationException {
-		for (final IGASelectorConfigurator configurator : selectors) {
-			if (configurator.getName().equals(selectorType))
-				return configurator;
-		}
-		
-		throw new ModelInformationException("Unrecognized selector: " + selectorType + ".");
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private void loadOperators(final List<Operator> operatorList) throws ModelInformationException {
-		selectedGeneticOperators.clear();
-		
-		for (final Operator operator : operatorList) {
-			final String operatorType = operator.getType();
-			final IGAOperatorConfigurator matchedConfigurator = findOperatorConfigurator(operatorType);
-			final Map<String,String> config = convertPropertiesToMap(operator.getOperatorProperties());
-			matchedConfigurator.setConfiguration(config);
-			selectedGeneticOperators.add(matchedConfigurator);
-		}
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	private IGAOperatorConfigurator findOperatorConfigurator(final String operatorType) throws ModelInformationException {
-		for (final IGAOperatorConfigurator configurator : geneticOperators) {
-			if (configurator.getName().equals(operatorType))
-				return configurator;
-		}
-		
-		throw new ModelInformationException("Unrecognized genetic operator: " + operatorType + ".");
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private void loadChromosome(final eu.crisis_economics.abm.dashboard.generated.Chromosome chromosome, final List<ParameterInfo> parameters) 
-																																	throws ModelInformationException {
-		final int childCount = getChromosomeTree().getChildCount(getChromosomeTree().getRoot());
-		if (childCount > 0) {
-			final DefaultMutableTreeNode root = (DefaultMutableTreeNode) getChromosomeTree().getRoot();
-			for (int i = childCount - 1; i >= 0; --i) {
-				final MutableTreeNode node = (MutableTreeNode) root.getChildAt(i);
-				getChromosomeTree().removeNodeFromParent(node); 
-			}
-			genes = null;
-		}
-		
-		final DefaultMutableTreeNode root = (DefaultMutableTreeNode) getChromosomeTree().getRoot();
-		loadChromosomeTreeLevel(root,parameters,chromosome.getParameterList(),chromosome.getSubmodelParameterList(),chromosome.getGeneList());
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private void loadChromosomeTreeLevel(final DefaultMutableTreeNode parent, final List<ParameterInfo> infos, final List<Parameter> parameters, 
-										 final List<SubmodelParameter> submodelParameters, final List<eu.crisis_economics.abm.dashboard.generated.Gene> genes)
-												 																					throws ModelInformationException {
-		
-		for (final eu.crisis_economics.abm.dashboard.generated.Gene gene : genes) {
-			final ParameterInfo info = findParameterInfo(infos,gene.getName());
-			if (info == null)
-				throw new ModelInformationException("Unrecognized parameter: " + gene.getName() + ".");
-			
-			initializeParent(info,parent);
-			final ParameterOrGene userObj = initializeUserObjectFromGene(gene,info);
-			final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(userObj);
-			getChromosomeTree().insertNodeInto(newNode,parent,parent.getChildCount());
-			
-		}
-		
-		
-		for (final SubmodelParameter parameter : submodelParameters) {
-			final ParameterInfo info = findParameterInfo(infos,parameter.getName());
-			if (info == null)
-				throw new ModelInformationException("Unrecognized parameter: " + parameter.getName() + ".");
-			
-			initializeParent(info,parent);
-			final SubmodelInfo submodelInfo = (SubmodelInfo) info;
-			final String strType = parameter.getType();
-			try {
-				final Class<?> clazz = Class.forName(strType,true,currentModelHandler.getCustomClassLoader());
-				submodelInfo.setActualType(clazz);
-				
-				final ParameterOrGene userObj = new ParameterOrGene(info);
-				final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(userObj);
-				getChromosomeTree().insertNodeInto(newNode,parent,parent.getChildCount());
-				
-				final List<ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?>> batchSubparameters = ParameterTreeUtils.fetchSubparameters(currentModelHandler,
-																																			 submodelInfo);
-				final List<ParameterInfo> subparameters = new ArrayList<ParameterInfo>(batchSubparameters.size());
-				for (final ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?> parameterInfo : batchSubparameters) 
-					subparameters.add(InfoConverter.parameterInfo2ParameterInfo(parameterInfo));
-				
-				loadChromosomeTreeLevel(newNode,subparameters,parameter.getParameterList(),parameter.getSubmodelParameterList(),parameter.getGeneList());
-			} catch (final ClassNotFoundException e) {
-				throw new ModelInformationException("Invalid actual type " + strType + " for submodel parameter: " + submodelInfo.getName(),e);
-			}	
-		}
-		
-		for (final Parameter parameter : parameters) {
-			final ParameterInfo info = findParameterInfo(infos,parameter.getName());
-			if (info == null)
-				throw new ModelInformationException("Unrecognized parameter: " + parameter.getName() + ".");
-			
-			initializeParent(info,parent);
-			info.setDefinitionType(ParameterInfo.CONST_DEF);
-			String parameterValue = ParameterUtil.getParameterValue(parameter);
-			Object value;
-			if (info.getType().equals("File") && parameterValue == null){
-				value = new File("");
-			} else {
-				value = ParameterInfo.getValue(parameterValue,info.getJavaType());
-			}
-			info.setValue(value);
-			
-			final ParameterOrGene userObj = new ParameterOrGene(info);
-			final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(userObj);
-			getChromosomeTree().insertNodeInto(newNode,parent,parent.getChildCount());
-		}
-		
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	private ParameterInfo findParameterInfo(final List<ParameterInfo> parameters, final String name) {
-		for (final ParameterInfo info : parameters) {
-			if (name.equals(info.getName()))
-				return info;
-		}
-		
-		return null;
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private void initializeParent(final ParameterInfo parameterInfo, final DefaultMutableTreeNode parent) {
-		if (parent.getUserObject() != null && parameterInfo instanceof ISubmodelGUIInfo) {
-			final ISubmodelGUIInfo sgi = (ISubmodelGUIInfo) parameterInfo;
-			final ParameterOrGene parentUserObject = (ParameterOrGene) parent.getUserObject();
-			final SubmodelInfo parentInfo = (SubmodelInfo) parentUserObject.getInfo();
-			sgi.setParentValue(parentInfo.getActualType());
-		}
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private ParameterOrGene initializeUserObjectFromGene(final eu.crisis_economics.abm.dashboard.generated.Gene gene, final ParameterInfo info) {
-		if (GeneInfo.INTERVAL.equals(gene.getGeneType())) {
-			final boolean integerInterval = gene.isInteger();
-			return integerInterval ? new ParameterOrGene(info,gene.getMin().intValue(),gene.getMax().intValue()) :
-									 new ParameterOrGene(info,gene.getMin().doubleValue(),gene.getMax().doubleValue());
-		} else {
-			final List<Object> valueList = new ArrayList<Object>(gene.getGeneValueList().size());
-			
-			for (final String geneValue : gene.getGeneValueList()) 
-				valueList.add(parseListElement(info.getJavaType(),geneValue));
-			return new ParameterOrGene(info,valueList);
-		}
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	private Map<String,String> convertPropertiesToMap(final List<Property> properties) {
-		final Map<String,String> result = new HashMap<String,String>();
-		for (final Property property : properties) 
-			result.put(property.getKey(),property.getValue());
-		
-		return result;
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private Object parseListElement(final Class<?> type, final String strValue) {
-		if (type.equals(Double.class) || type.equals(Float.class) || type.equals(Double.TYPE) || type.equals(Float.TYPE))
-			return Double.parseDouble(strValue);
-		
-		return Long.parseLong(strValue);
-	}
 
 	//----------------------------------------------------------------------------------------------------
 	public void addFitnessFunction(final RecordableInfo fitnessFunction) {
-		fitnessFunctions.add((RecordableInfo) fitnessFunction);
+		fitnessFunctions.add(fitnessFunction);
 		
-		for (final ModelListener listener : listeners) 
-			listener.fitnessFunctionAdded();
+		if (listeners != null) {
+			for (final ModelListener listener : listeners) 
+				listener.fitnessFunctionAdded();
+		}
 	}
 	
 	//----------------------------------------------------------------------------------------------------
 	public void removeAllFitnessFunctions() {
 		fitnessFunctions.clear();
-		fitnessFunctions.add(new RecordableInfo("Please select a function!",Object.class,"Please select a function!"));
+		fitnessFunctions.add(new RecordableInfo("Please select a function!", Object.class, "Please select a function!"));
 		
-		for (final ModelListener listener : listeners) 
-			listener.fitnessFunctionsRemoved();
+		if (listeners != null) {
+			for (final ModelListener listener : listeners) 
+				listener.fitnessFunctionsRemoved();
+		}
 	}
 	
 	//----------------------------------------------------------------------------------------------------
 	public List<IGASelectorConfigurator> getSelectionOperators() { return selectors; }
 	public List<RecordableInfo> getFitnessFunctions() { return fitnessFunctions; }
-	@Override
-	public List<IStatisticsPlugin> getFitnessStatistics() {	return fitnessStatistics; }
 	public List<IGAOperatorConfigurator> getGeneticOperators() { return geneticOperators; }
-	public double getNumberOfTurns() { return numberOfTurns; }
 	public int getPopulationSize() { return populationSize; }
 	public int getPopulationRandomSeed() { return populationGenerationSeed;	}
 	public int getNumberOfGenerations() { return numberOfGenerations; }
 	public double getFitnessLimitCriterion() { return fitnessLimitCriterion; }
 	public FitnessFunctionDirection getFitnessFunctionDirection() { return optimizationDirection; }
 	public RecordableInfo getSelectedFitnessFunction() { return selectedFunction; }
-	@Override
-	public IStatisticsPlugin getSelectedFitnessStatistics() { return selectedFitnessStatistics;	}
-	@Override
-	public int getFitnessTimeSeriesLength() { return fitnessTimeSeriesLength; }
 	public List<IGAOperatorConfigurator> getSelectedGeneticOperators() { return selectedGeneticOperators; }
 	public List<IGASelectorConfigurator> getSelectedSelectionOperators() { return selectedSelectionOperators; }
 	public boolean isFixNumberOfGenerations() { return fixNumberOfGenerations; }
-	public File getWorkspace() { return workspace; }
 
 	//----------------------------------------------------------------------------------------------------
-	public void setNumberOfTurns(final double numberOfTurns) { this.numberOfTurns = numberOfTurns; }
 	public void setPopulationSize(final int populationSize) { this.populationSize = populationSize; }
 	public void setPopulationRandomSeed(final int seed) { this.populationGenerationSeed = seed; }
 	public void setNumberOfGenerations(final int numberOfGenerations) { this.numberOfGenerations = numberOfGenerations; }
 	public void setFitnessLimitCriterion(final double fitnessLimit) { this.fitnessLimitCriterion = fitnessLimit; }
 	public void setFitnessFunctionDirection(final FitnessFunctionDirection direction) { this.optimizationDirection = direction; }
-	@Override
 	public void setSelectedFitnessFunction(final RecordableInfo fitnessFunction) { this.selectedFunction = (RecordableInfo) fitnessFunction; }
-	public void setSelectedFitnessFunction(final String fitnessFunctionName){loadSelectedFitnessFunction(fitnessFunctionName);}
-	@Override
-	public void setSelectedFitnessStatistics(IStatisticsPlugin fitnessStatistics) { this.selectedFitnessStatistics = fitnessStatistics; }
-	public void setSelectedFitnessStatistics(final String fitnessStatisticsName) {loadSelectedFitnessStatistics(fitnessStatisticsName);}
-	@Override
-	public void setFitnessTimeSeriesLength(int fitnessTimeSeriesLength) { this.fitnessTimeSeriesLength = fitnessTimeSeriesLength; }
 	public void setFixNumberOfGenerations(final boolean fixNumberOfGenerations) { this.fixNumberOfGenerations = fixNumberOfGenerations; }
-	public void setWorkspace(final File workspace) { this.workspace = workspace; }
 
 	//----------------------------------------------------------------------------------------------------
 	public DefaultTreeModel getChromosomeTree() {
@@ -789,11 +248,19 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 	
 	//----------------------------------------------------------------------------------------------------
 	public boolean addModelListener(final ModelListener listener) {
+		if (listeners == null) {
+			listeners = new ArrayList<>();
+		}
+		
 		return listeners.add(listener);
 	}
 
 	//----------------------------------------------------------------------------------------------------
 	public boolean removeModelListener(final ModelListener listener) {
+		if (listeners == null) {
+			listeners = new ArrayList<>();
+		}
+		
 		return listeners.remove(listener);
 	}
 
@@ -808,8 +275,10 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 		final DefaultMutableTreeNode root = (DefaultMutableTreeNode) chromosomeTree.getRoot();
 		chromosomeTree.insertNodeInto(newNode,root,root.getChildCount());
 		
-		for (final ModelListener listener : listeners) 
-			listener.parameterAdded();
+		if (listeners != null) {
+			for (final ModelListener listener : listeners) 
+				listener.parameterAdded();
+		}
 	}
 	
 	//----------------------------------------------------------------------------------------------------
@@ -821,8 +290,10 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 		
 		genes = null;
 		
-		for (final ModelListener listener : listeners) 
-			listener.parametersRemoved();
+		if (listeners != null) {
+			for (final ModelListener listener : listeners) 
+				listener.parametersRemoved();
+		}
 	}
 	
 	//----------------------------------------------------------------------------------------------------
@@ -899,7 +370,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 		final ParameterTree nextTree = new ParameterTree();
 		
 		// this filters out duplicate chromosomes
-		List chromosomes = genotype.getPopulation().getChromosomes();
+		final List chromosomes = genotype.getPopulation().getChromosomes();
 		@SuppressWarnings("unchecked")
 		final Set<IChromosome> descendants = new HashSet<IChromosome>(chromosomes);
 		
@@ -911,8 +382,8 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 
 			final int genIdx = whichGene(calculateName(paramInfo));
 			// here we assume that the set iterates through the entries in deterministic order
-			for (IChromosome chromosome : descendants) {
-				if ( chromosome.getFitnessValueDirectly() == -1.0D ) { // the default fitness value 
+			for (final IChromosome chromosome : descendants) {
+				if (chromosome.getFitnessValueDirectly() == -1.0D) { // the default fitness value 
 					if (genIdx >= 0) {
 						final String strValue = String.valueOf(chromosome.getGene(genIdx).getAllele());
 						values.add(ParameterInfo.getValue(strValue,paramInfo.getType()));
@@ -1271,25 +742,6 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 		throw new UnsupportedOperationException(); // intentionally not implemented
 	}
 
-	//----------------------------------------------------------------------------------------------------
-	public String getDescription() {
-		throw new UnsupportedOperationException(); // intentionally not implemented
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	public int getMethodType() {
-		throw new UnsupportedOperationException(); // intentionally not implemented
-	}
-
-	//----------------------------------------------------------------------------------------------------
-	public boolean isImplemented() {
-		throw new UnsupportedOperationException(); // intentionally not implemented
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	public String getLocalizedName() {
-		throw new UnsupportedOperationException(); // intentionally not implemented
-	}
 
 	@Override
 	public RecordableInfo getSelectedFitnessStatisticsInfo() {
