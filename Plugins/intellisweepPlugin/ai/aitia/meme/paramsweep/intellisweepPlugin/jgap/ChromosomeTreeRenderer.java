@@ -42,7 +42,7 @@ public class ChromosomeTreeRenderer extends DefaultTreeCellRenderer {
 			return new JLabel("");
 		
 		final ParameterOrGene userObj = (ParameterOrGene) node.getUserObject();
-		final JLabel label = (JLabel) super.getTreeCellRendererComponent(tree,value,sel,expanded,leaf,row,hasFocus);
+		final JLabel label = new JLabel(userObj.toString());
 		
 		if (userObj.isGene()) 
 			label.setText("<html><b>" + label.getText() + "</b></html>");

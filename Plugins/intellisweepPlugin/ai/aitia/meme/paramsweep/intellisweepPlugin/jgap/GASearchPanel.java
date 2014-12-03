@@ -77,6 +77,7 @@ import ai.aitia.meme.paramsweep.ParameterSweepWizard;
 import ai.aitia.meme.paramsweep.batch.output.RecordableInfo;
 import ai.aitia.meme.paramsweep.gui.component.CheckList;
 import ai.aitia.meme.paramsweep.gui.component.CheckListModel;
+import ai.aitia.meme.paramsweep.gui.component.ListAsATree;
 import ai.aitia.meme.paramsweep.gui.info.MasonChooserParameterInfo;
 import ai.aitia.meme.paramsweep.gui.info.ParameterInfo;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.GASearchPanelModel.FitnessFunctionDirection;
@@ -533,7 +534,7 @@ public class GASearchPanel extends JPanel {
 				"1||" +
 				"2||" +
 				"3||" +
-				"4", 
+				"4 f:p:g", 
 				populationPanel,
 				stoppingPanel,
 				fitnessPanel,
@@ -542,7 +543,7 @@ public class GASearchPanel extends JPanel {
 		
 		// the chromosome panel
 	    final JScrollPane treeScrPane = new JScrollPane();
-	    geneTree = new JTree(model.getChromosomeTree()); 
+	    geneTree = new ListAsATree(model.getChromosomeTree()); 
 		geneTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		geneTree.setCellRenderer(new ChromosomeTreeRenderer());
 		
@@ -799,7 +800,6 @@ public class GASearchPanel extends JPanel {
 				"02 p",
 				gaSettingsPanel,rightTop,
 				operatorSettingsPanel).getPanel();
-		mainPanel.setBorder(BorderFactory.createTitledBorder(""));
 		
 		setLayout(new BorderLayout());
 		mainScrPane = new JScrollPane(mainPanel);

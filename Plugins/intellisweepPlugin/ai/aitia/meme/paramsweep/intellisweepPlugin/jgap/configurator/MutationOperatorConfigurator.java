@@ -107,11 +107,9 @@ public class MutationOperatorConfigurator implements IGAOperatorConfigurator {
 		});
 
 		return FormsUtils.build("p ~ p p f:p:g",
-				"___0||" +
-				"123_||" +
-				"_444", 
-				infoButton, CellConstraints.RIGHT,
-				"Mutation rate", new JLabel("1 / "), mutationRateSpinner,
+				"0123||" +
+				"444_", 
+				"Mutation rate", new JLabel("1 / "), mutationRateSpinner, infoButton, CellConstraints.RIGHT,
 				"(Zero value disables mutation entirely.)").getPanel();
 	}
 

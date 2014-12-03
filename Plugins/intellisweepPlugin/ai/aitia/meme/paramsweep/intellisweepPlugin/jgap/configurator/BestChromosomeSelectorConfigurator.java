@@ -169,10 +169,9 @@ public class BestChromosomeSelectorConfigurator implements IGASelectorConfigurat
 		});
 
 		return FormsUtils.build("p ~ p p p p:g",
-				"____0||" + 
-				"1234_",
-				infoButton, CellConstraints.RIGHT,
-				new JLabel("Rate of original population to survive"), originalRateValueField, new JLabel("%"), originalRateSlider).getPanel();
+				"01234",
+				new JLabel("Rate of original population to survive"), originalRateValueField, new JLabel("%"), originalRateSlider, infoButton, CellConstraints.RIGHT).
+				getPanel();
 	}
 
 	//----------------------------------------------------------------------------------------------------

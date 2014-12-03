@@ -94,6 +94,7 @@ import ai.aitia.meme.paramsweep.batch.IModelInformation.ModelInformationExceptio
 import ai.aitia.meme.paramsweep.batch.output.RecordableInfo;
 import ai.aitia.meme.paramsweep.generator.WizardSettingsManager;
 import ai.aitia.meme.paramsweep.gui.component.DefaultJButton;
+import ai.aitia.meme.paramsweep.gui.component.ListAsATree;
 import ai.aitia.meme.paramsweep.gui.info.AvailableParameter;
 import ai.aitia.meme.paramsweep.gui.info.MasonChooserParameterInfo;
 import ai.aitia.meme.paramsweep.gui.info.ParameterInATree;
@@ -550,7 +551,7 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 	    
 	    final JScrollPane treeScrPane = new JScrollPane();
 	    final DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode();
-	    final JTree tree = new JTree(treeRoot);
+	    final JTree tree = new ListAsATree(treeRoot);
 	    ToolTipManager.sharedInstance().registerComponent(tree);
 	    
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);

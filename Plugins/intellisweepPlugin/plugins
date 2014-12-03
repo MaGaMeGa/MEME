@@ -3,9 +3,9 @@ ai.aitia.meme.paramsweep.intellisweepPlugin.Static_LatinHypercube
 ai.aitia.meme.paramsweep.intellisweepPlugin.Static_BoxBehnken
 ai.aitia.meme.paramsweep.intellisweepPlugin.IterativeUniformInterpolation
 ai.aitia.meme.paramsweep.intellisweepPlugin.Dynamic_GeneticAlgANTS
+ai.aitia.meme.paramsweep.intellisweepPlugin.JgapGAPlugin
 ai.aitia.meme.paramsweep.intellisweepPlugin.Static_StandardDOE
 ai.aitia.meme.paramsweep.intellisweepPlugin.Static_ThreeLevelFactorial
 ai.aitia.meme.paramsweep.intellisweepPlugin.Static_CentralComposite
 ai.aitia.meme.paramsweep.intellisweepPlugin.OrderMethod
 ai.aitia.meme.paramsweep.intellisweepPlugin.DummyGAPlugin
-ai.aitia.meme.paramsweep.intellisweepPlugin.JgapGAPlugin

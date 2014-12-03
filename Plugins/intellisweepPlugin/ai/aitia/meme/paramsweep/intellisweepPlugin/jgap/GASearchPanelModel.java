@@ -257,9 +257,6 @@ public interface GASearchPanelModel {
 	public boolean removeModelListener(final ModelListener listener);
 	
 	//----------------------------------------------------------------------------------------------------
-	public String[] checkGAModel();
-	
-	//----------------------------------------------------------------------------------------------------
 	public boolean canBeFitnessFunction(final RecordableInfo candidate); //TODO: kell ez?
 	
 	//----------------------------------------------------------------------------------------------------

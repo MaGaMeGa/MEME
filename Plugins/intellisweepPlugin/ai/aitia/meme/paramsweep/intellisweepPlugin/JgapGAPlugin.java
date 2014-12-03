@@ -16,8 +16,14 @@
  ******************************************************************************/
 package ai.aitia.meme.paramsweep.intellisweepPlugin;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
@@ -27,18 +33,33 @@ import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
+import org.apache.commons.math3.random.MersenneTwister;
+import org.jgap.Chromosome;
+import org.jgap.Configuration;
+import org.jgap.FitnessEvaluator;
+import org.jgap.FitnessFunction;
+import org.jgap.Gene;
 import org.jgap.Genotype;
 import org.jgap.IChromosome;
+import org.jgap.InvalidConfigurationException;
 import org.jgap.Population;
+import org.jgap.RandomGenerator;
 import org.jgap.impl.DefaultConfiguration;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import ai.aitia.meme.Logger;
 import ai.aitia.meme.paramsweep.batch.IParameterSweepResultReader;
+import ai.aitia.meme.paramsweep.batch.ReadingException;
+import ai.aitia.meme.paramsweep.batch.ResultValueInfo;
 import ai.aitia.meme.paramsweep.batch.output.RecordableInfo;
 import ai.aitia.meme.paramsweep.batch.param.ParameterTree;
 import ai.aitia.meme.paramsweep.gui.info.ParameterInfo;
+import ai.aitia.meme.paramsweep.gui.info.RecordableElement;
+import ai.aitia.meme.paramsweep.gui.info.ResultInfo;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.GASearchPanel;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.GASearchPanelModel;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.IntelliBreeder;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.BestChromosomeSelectorConfigurator;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.CrossoverOperatorConfigurator;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.GeneAveragingCrossoverOperatorConfigurator;
@@ -47,15 +68,19 @@ import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.IGASelector
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.MutationOperatorConfigurator;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.TournamentSelectorConfigurator;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.WeightedRouletteSelectorConfigurator;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.gene.IIdentifiableGene;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.gene.IdentifiableDoubleGene;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.gene.IdentifiableListGene;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.gene.IdentifiableLongGene;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.gene.ParameterOrGene;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.operator.StandardPostSelectorFixed;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.utils.ga.GeneInfo;
 import ai.aitia.meme.paramsweep.internal.platform.InfoConverter;
 import ai.aitia.meme.paramsweep.plugin.IIntelliContext;
 import ai.aitia.meme.paramsweep.plugin.IIntelliDynamicMethodPlugin;
-import ai.aitia.meme.paramsweep.plugin.IOptimizationMethodPlugin;
 import ai.aitia.meme.paramsweep.utils.WizardLoadingException;
 
-public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationMethodPlugin, GASearchPanelModel {
+public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelModel {
 	
 	//====================================================================================================
 	// members
@@ -120,8 +145,11 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 	
 	private Genotype genotype;
 	private List<ParameterInfo> paramList;
+	private File workspace;
 
 	private transient List<ModelListener> listeners = new ArrayList<GASearchPanelModel.ModelListener>();
+	private transient String readyStatusDetail;
+	private transient JPanel content = null;
 	
 	//====================================================================================================
 	// methods
@@ -215,7 +243,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 	public void setNumberOfGenerations(final int numberOfGenerations) { this.numberOfGenerations = numberOfGenerations; }
 	public void setFitnessLimitCriterion(final double fitnessLimit) { this.fitnessLimitCriterion = fitnessLimit; }
 	public void setFitnessFunctionDirection(final FitnessFunctionDirection direction) { this.optimizationDirection = direction; }
-	public void setSelectedFitnessFunction(final RecordableInfo fitnessFunction) { this.selectedFunction = (RecordableInfo) fitnessFunction; }
+	public void setSelectedFitnessFunction(final RecordableInfo fitnessFunction) { this.selectedFunction = fitnessFunction; }
 	public void setFixNumberOfGenerations(final boolean fixNumberOfGenerations) { this.fixNumberOfGenerations = fixNumberOfGenerations; }
 
 	//----------------------------------------------------------------------------------------------------
@@ -297,7 +325,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	public String[] checkGAModel() {
+	private String[] checkGAModel() {
 		final List<String> errors = new ArrayList<String>();
 		
 		final RecordableInfo invalid = new RecordableInfo("Please select a function!",Object.class,"Please select a function!");
@@ -370,6 +398,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 		final ParameterTree nextTree = new ParameterTree();
 		
 		// this filters out duplicate chromosomes
+		@SuppressWarnings("rawtypes")
 		final List chromosomes = genotype.getPopulation().getChromosomes();
 		@SuppressWarnings("unchecked")
 		final Set<IChromosome> descendants = new HashSet<IChromosome>(chromosomes);
@@ -380,7 +409,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 
 			final List<Object> values = new ArrayList<Object>();
 
-			final int genIdx = whichGene(calculateName(paramInfo));
+			final int genIdx = whichGene(paramInfo.getName());
 			// here we assume that the set iterates through the entries in deterministic order
 			for (final IChromosome chromosome : descendants) {
 				if (chromosome.getFitnessValueDirectly() == -1.0D) { // the default fitness value 
@@ -405,7 +434,6 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 
 	//----------------------------------------------------------------------------------------------------
 	public boolean alterParameterTree(final IIntelliContext ctx) {
-
 		// create initial population
 		final DefaultMutableTreeNode root = ctx.getParameterTreeRootNode();
 		final DefaultMutableTreeNode newRoot = getAlteredParameterTreeRootNode(ctx);
@@ -432,7 +460,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 
 			final List<Object> values = new ArrayList<Object>();
 
-			final int genIdx = whichGene(calculateName(paramInfo));
+			final int genIdx = whichGene(paramInfo.getName());
 			for (int j = 0; j < populationSize; ++j) {
 				if (genIdx >= 0) {
 					final String strValue = String.valueOf(descendants.getChromosome(j).getGene(genIdx).getAllele());
@@ -498,25 +526,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 	//----------------------------------------------------------------------------------------------------
 	private void convertGeneName(final ParameterOrGene param) {
 		ParameterInfo info = param.getInfo();
-		final String newName = calculateName(info);  
-		param.getGeneInfo().setName(newName);
-	}
-	
-	//----------------------------------------------------------------------------------------------------
-	private String calculateName(final ParameterInfo info) {
-		ParameterInfo _info = info;
-		
-		if (_info != null) {
-			String resultName = _info.getName();
-			while ((_info instanceof ISubmodelGUIInfo) && ((ISubmodelGUIInfo)_info).getParent() != null) {
-				_info = ((ISubmodelGUIInfo)_info).getParent();
-				resultName = _info.getName() + "#" + resultName;
-			}
-			
-			return resultName;
-		}
-		
-		return null;
+		param.getGeneInfo().setName(info.getName());
 	}
 
 	//----------------------------------------------------------------------------------------------------
@@ -536,39 +546,60 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 			gaConfiguration.setPreservFittestIndividual(true);
 			gaConfiguration.setKeepPopulationSizeConstant(false);
 			gaConfiguration.setFitnessEvaluator(new FitnessEvaluator() {
-				public boolean isFitter(IChromosome a_chrom1, IChromosome a_chrom2) {
+				
+				//====================================================================================================
+				// methods
+				
+				//----------------------------------------------------------------------------------------------------
+				@Override
+				public boolean isFitter(final IChromosome a_chrom1, final IChromosome a_chrom2) {
 					return isFitter(a_chrom1.getFitnessValue(),a_chrom2.getFitnessValue());				}
 				
-				public boolean isFitter(double a_fitness_value1, double a_fitness_value2) {
+				//----------------------------------------------------------------------------------------------------
+				@Override
+				public boolean isFitter(final double a_fitness_value1, final double a_fitness_value2) {
 					return optimizationDirection == FitnessFunctionDirection.MINIMIZE ? a_fitness_value1 < a_fitness_value2 : a_fitness_value1 > a_fitness_value2;
 				}
 			});
 			gaConfiguration.setFitnessFunction(new ResultFileFitnessFunction());
 			gaConfiguration.setRandomGenerator(new RandomGenerator() {
+				
+				//====================================================================================================
+				// members
+				
 				private static final long serialVersionUID = 1L;
 
 				final MersenneTwister randomGenerator = new MersenneTwister(populationGenerationSeed);
-
+				
+				//====================================================================================================
+				// methods
+				
+				//----------------------------------------------------------------------------------------------------
 				public long nextLong() {
 					return randomGenerator.nextLong();
 				}
 
+				//----------------------------------------------------------------------------------------------------
 				public int nextInt(final int a_ceiling) {
 					return randomGenerator.nextInt(a_ceiling);
 				}
 
+				//----------------------------------------------------------------------------------------------------
 				public int nextInt() {
 					return randomGenerator.nextInt();
 				}
 
+				//----------------------------------------------------------------------------------------------------
 				public float nextFloat() {
 					return randomGenerator.nextFloat();
 				}
 
+				//----------------------------------------------------------------------------------------------------
 				public double nextDouble() {
 					return randomGenerator.nextDouble();
 				}
 
+				//----------------------------------------------------------------------------------------------------
 				public boolean nextBoolean() {
 					return randomGenerator.nextBoolean();
 				}
@@ -579,8 +610,8 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 			for (final GeneInfo geneInfo : getSelectedGenes()) {
 				if (GeneInfo.INTERVAL.equals(geneInfo.getValueType())) {
 					if (geneInfo.isIntegerVals()) {
-						initialGenes[i] = new IdentifiableLongGene(geneInfo.getName(),gaConfiguration,geneInfo.getMinValue().intValue(),
-																	  geneInfo.getMaxValue().intValue());
+						initialGenes[i] = new IdentifiableLongGene(geneInfo.getName(),gaConfiguration,geneInfo.getMinValue().longValue(),
+																	  geneInfo.getMaxValue().longValue());
 					} else {
 						initialGenes[i] = new IdentifiableDoubleGene(geneInfo.getName(),gaConfiguration,geneInfo.getMinValue().doubleValue(),
 																	 geneInfo.getMaxValue().doubleValue());
@@ -598,7 +629,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 				i++;
 			}
 			gaConfiguration.setMinimumPopSizePercent(100);
-			gaConfiguration.setBreeder(new DashboardBreeder());
+			gaConfiguration.setBreeder(new IntelliBreeder());
 			
 			final Chromosome sampleChromosome = new Chromosome(gaConfiguration,initialGenes);
 			gaConfiguration.setSampleChromosome(sampleChromosome);
@@ -607,7 +638,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 			for (final IGAOperatorConfigurator operator : selectedGeneticOperators) 
 				gaConfiguration.addGeneticOperator(operator.getConfiguredOperator(gaConfiguration));
 			
-			for (IGASelectorConfigurator selectorConfig : selectedSelectionOperators)
+			for (final IGASelectorConfigurator selectorConfig : selectedSelectionOperators)
 				gaConfiguration.addNaturalSelector(selectorConfig.getSelector(gaConfiguration),true);
 
 			gaConfiguration.addNaturalSelector(new StandardPostSelectorFixed(gaConfiguration),false);
@@ -616,7 +647,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 			
 			return initialGenotype;
 		} catch (final InvalidConfigurationException e) {
-			e.printStackTrace();
+			Logger.logException(e);
 			throw new RuntimeException(e);
 		}
 	}
@@ -649,7 +680,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 			popWriter.println();
 			popWriter.close();
 		} catch (final IOException e) {
-			log.error("Cannot print population to file:\n",e);
+			Logger.logExceptionCallStack("Cannot print population to file:\n",e);
 		}
 	}
 	
@@ -658,7 +689,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 		try {
 			final PrintWriter popWriter = new PrintWriter(new FileWriter(new File(workspace,populationFileName + ext),true));
 			
-			Population population = genotype.getPopulation();
+			final Population population = genotype.getPopulation();
 			for (int i = 0;i < population.size();++i) {
 				popWriter.print(iteration);
 				for (int j = 0;j < population.getChromosome(i).size(); ++j) 
@@ -669,10 +700,9 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 			}
 			popWriter.close();
 		} catch (final IOException e) {
-			log.error( "Cannot print population to file.",e);
+			Logger.logExceptionCallStack( "Cannot print population to file.",e);
 		}
 	}
-
 	
 	//----------------------------------------------------------------------------------------------------
 	private int calculateNumberOfGenes() {
@@ -693,116 +723,99 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 		return count;
 	}
 	
-	//====================================================================================================
-	// not implemented methods
-	
 	//----------------------------------------------------------------------------------------------------
 	public void setRecordableVariables(final DefaultMutableTreeNode root) {
-		throw new UnsupportedOperationException(); // intentionally not implemented
+		final List<RecordableInfo> newList = new ArrayList<RecordableInfo>();
+		
+		if (root.getChildCount() > 0) {
+			final DefaultMutableTreeNode recorder = (DefaultMutableTreeNode) root.getChildAt( 0 );
+			final ResultInfo resultInfo = (ResultInfo) recorder.getFirstLeaf().getUserObject();
+			workspace = new File(resultInfo.getFile()).getParentFile();
+			//first two children contains recorder meta data
+			for (int j = 2; j < recorder.getChildCount(); ++j) {
+				final RecordableElement re = (RecordableElement) ((DefaultMutableTreeNode)recorder.getChildAt(j)).getUserObject();
+				final RecordableInfo recInfo = new RecordableInfo(re.getAlias() != null ? re.getAlias() : re.getInfo().getName(),
+									   							  re.getInfo().getJavaType(), re.getInfo().getName());
+				if (!newList.contains(recInfo)) {
+					newList.add(recInfo);
+				}
+			}
+		}
+		
+		removeAllFitnessFunctions();
+		fitnessFunctions.addAll(newList);
+		
+		if (listeners != null) {
+			for (final ModelListener listener : listeners) {
+				listener.fitnessFunctionAdded(); 
+			}
+		}
 	}
 
 	//----------------------------------------------------------------------------------------------------
 	public String settingsOK(final DefaultMutableTreeNode recorders) {
-		throw new UnsupportedOperationException(); // intentionally not implemented
+		return getReadyStatusDetail();
 	}
 
 	//----------------------------------------------------------------------------------------------------
 	public void setParameterTreeRoot(final DefaultMutableTreeNode root) {
-		throw new UnsupportedOperationException(); // intentionally not implemented
+		//TODO: implement
 	}
 
 
 	//----------------------------------------------------------------------------------------------------
 	public boolean getReadyStatus() {
-		throw new UnsupportedOperationException(); // intentionally not implemented
+		String[] errors = checkGAModel();
+		
+		if (errors == null) {
+			return true;
+		} else {
+			readyStatusDetail = errors[0];
+			return  false;
+		}
 	}
 
 	//----------------------------------------------------------------------------------------------------
 	public String getReadyStatusDetail() { 
-		throw new UnsupportedOperationException(); // intentionally not implemented
+		return readyStatusDetail;
 	}
 
 	//----------------------------------------------------------------------------------------------------
 	public JPanel getSettingsPanel(final IIntelliContext ctx) {
-		throw new UnsupportedOperationException(); // intentionally not implemented
+		if (content == null) {
+			content = new GASearchPanel(this);
+			
+			removeAllParameters();
+			for (final ParameterInfo parameterInfo : ctx.getParameters()) {
+				addParameter(new ParameterOrGene(parameterInfo));
+			}
+			
+			if (listeners != null) {
+				for (final ModelListener listener : listeners) {
+					listener.fitnessFunctionAdded(); // added before, now just inform the gui
+				}
+			}
+		}
+		
+		
+		return content;
 	}
 
 	//----------------------------------------------------------------------------------------------------
 	public void save(final Node node) {
-		throw new UnsupportedOperationException(); // intentionally not implemented
+		//TODO: implement
 	}
 
 	//----------------------------------------------------------------------------------------------------
 	public void load(final IIntelliContext context, final Element element) throws WizardLoadingException {
-		throw new UnsupportedOperationException(); // intentionally not implemented
+		//TODO: implement
 	} 
 
 	//----------------------------------------------------------------------------------------------------
 	public void invalidatePlugin() {
-		throw new UnsupportedOperationException(); // intentionally not implemented
+		//TODO: implement
+		content = null;
 	}
-
-
-	@Override
-	public RecordableInfo getSelectedFitnessStatisticsInfo() {
-		final RecordableInfo selectedFitnessFunction = getSelectedFitnessFunction();
-		IStatisticsPlugin selectedFitnessStatistics = getSelectedFitnessStatistics();
-		int fitnessTimeSeriesLength = getFitnessTimeSeriesLength();
-		// this seems to be useless, as the GASearchPanelModel can directly return the selected fitness function
-//			final List<RecordableInfo> recordables = recorder.getRecordables();
-//			for (final RecordableInfo recordableInfo : recordables) {
-//				if (recordableInfo.equals(selectedFitnessFunction))
-//					return recordableInfo;
-//			}
-		
-		if (selectedFitnessStatistics.equals(GASearchHandler.noStatistics)){
-			return selectedFitnessFunction;
-		}
-		
-		// create a time series of the specified length using the selected fitness function
-		Operator_TimeSeries timeSeriesOperator = new Operator_TimeSeries();
-		OperatorsInfoGenerator timeSeriesInfoGenerator = new OperatorsInfoGenerator(timeSeriesOperator);
-		
-		List<Object> parameters = new ArrayList<Object>();
-		
-		MemberInfo fitnessMemberInfo = new MemberInfo(selectedFitnessFunction.getAccessibleName(), selectedFitnessFunction.getType().getSimpleName(), selectedFitnessFunction.getType());
-
-		parameters.add(fitnessMemberInfo);
-		parameters.add(fitnessTimeSeriesLength);
-		
-		OperatorGeneratedMemberInfo timeSeriesMemberInfo = timeSeriesInfoGenerator.generateInfoObject("timeseries", parameters.toArray());
-		List<String> errors = timeSeriesInfoGenerator.getError();
-		if (errors != null && errors.size() > 0) {
-			throw new IllegalStateException("Could not create the timeseries of the last '" + selectedFitnessFunction.getName() + "' values!\n" + Utils.join(errors,"\n"));
-		}
-		timeSeriesMemberInfo.setGeneratorName(timeSeriesOperator.getClass().getName());
-		timeSeriesMemberInfo.setBuildingBlock(parameters);
-		
-		// apply the selected statistics on the timeseries
-		IStatisticInfoGenerator statisticsInfoGenerator = new StatisticsInfoGenerator(selectedFitnessStatistics);
-		parameters = new ArrayList<Object>(selectedFitnessStatistics.getNumberOfParameters());
-		List<Object> collectionParameter = new ArrayList<Object>();
-		collectionParameter.add(timeSeriesMemberInfo);
-		parameters.add(collectionParameter);
-		SimpleGeneratedMemberInfo statMemberInfo = statisticsInfoGenerator.generateInfoObject(selectedFitnessStatistics.getName() + "_last" + fitnessTimeSeriesLength + "_" + selectedFitnessFunction.getName(), parameters.toArray());
-		errors = statisticsInfoGenerator.getError();
-		if (errors != null && errors.size() > 0) {
-			throw new IllegalStateException("Could not create the specified statistics (" + selectedFitnessStatistics.getName() + ") of '" + selectedFitnessFunction.getName() + "'!\n" + Utils.join(errors,"\n"));
-		}
-		statMemberInfo.clearBuildingBlocks();
-		statMemberInfo.setGeneratorName(selectedFitnessStatistics.getClass().getName());
-		
-		List<MemberInfo> l = new ArrayList<MemberInfo>(1);
-		l.add(timeSeriesMemberInfo);
-		statMemberInfo.addBuildingBlock(l);
-		
-		String alias = statMemberInfo.getName().endsWith("()") ? statMemberInfo.getName().substring(0, statMemberInfo.getName().length() - 2) : statMemberInfo.getName();
-		RecordableElement stdRecordableElement = new RecordableElement(statMemberInfo, alias); 
-		
-		
-		return InfoConverter.convertRecordableElement2RecordableInfo(stdRecordableElement);
-	}
-
 	
 	//====================================================================================================
 	// nested classes
@@ -829,17 +842,19 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 			
 			final List<ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?>> combination = createCombinationFromChromosome(a_subject);
 			try {
-				final List<ResultValueInfo> infos = currentReader.getResultValueInfos(getSelectedFitnessStatisticsInfo(),combination);
+				final List<ResultValueInfo> infos = currentReader.getResultValueInfos(getSelectedFitnessFunction(),combination);
 				if (infos == null || infos.size() == 0) {
-					return 1e19; // dirty hack to make Ross going; 
+					return getFitnessFunctionDirection() == FitnessFunctionDirection.MINIMIZE ? 1e19 : 0;  
 				}
 				
-				if(Double.isInfinite(getFitnessValue(infos).doubleValue())){
+				if (Double.isInfinite(getFitnessValue(infos).doubleValue())) {
 					return Double.MAX_VALUE;
 				}
-				if(Double.isNaN(getFitnessValue(infos).doubleValue())){
-					return 1e19;
+				
+				if (Double.isNaN(getFitnessValue(infos).doubleValue())) {
+					return getFitnessFunctionDirection() == FitnessFunctionDirection.MINIMIZE ? 1e19 : 0;
 				}
+				
 				return getFitnessValue(infos).doubleValue();
 			} catch (final ReadingException e) {
 				throw new RuntimeException(e);
@@ -851,7 +866,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 			final List<ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?>> combination = 
 																	new ArrayList<ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?>>(a_subject.getGenes().length);
 			
-			for (int i = 0;i < a_subject.getGenes().length;++i) {
+			for (int i = 0; i < a_subject.getGenes().length; ++i) {
 				final IIdentifiableGene geneWithId = (IIdentifiableGene) a_subject.getGene(i);
 				final GeneInfo geneInfo = genes.get(whichGene(geneWithId.getId()));
 				final ParameterInfo info = new ParameterInfo(geneInfo.getName(),geneInfo.getType(),geneInfo.getJavaType());
@@ -869,9 +884,9 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, IOptimizationM
 		private Number getFitnessValue(final List<ResultValueInfo> candidates) {
 			if (candidates == null || candidates.isEmpty())
 				return new Double(FitnessFunction.NO_FITNESS_VALUE);
-//					return new Double(optimizationDirection == FitnessFunctionDirection.MAXIMIZE ? 0. :  Double.MAX_VALUE);
 			
 			Collections.sort(candidates,new Comparator<ResultValueInfo>() {
+				@Override
 				public int compare(final ResultValueInfo info1, final ResultValueInfo info2) {
 					final double tick1 = (Double) info1.getLabel();
 					final double tick2 = (Double) info2.getLabel();

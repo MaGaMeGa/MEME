@@ -192,8 +192,8 @@ public class TournamentSelectorConfigurator implements IGASelectorConfigurator {
 		return FormsUtils.build("p ~ p p p p:g", 
 								"01112 ||" +
 								"3456_",
-								new JLabel("Tournament size"), tournamentSizeSpinner, new JLabel("Selection probability "),infoButton, CellConstraints.RIGHT,
-								selectionProbabilityValueField, new JLabel("%"), selectionProbability).getPanel();
+								new JLabel("Tournament size"), tournamentSizeSpinner, infoButton, CellConstraints.RIGHT,
+								new JLabel("Selection probability "), selectionProbabilityValueField, new JLabel("%"), selectionProbability).getPanel();
 	}
 
 	//----------------------------------------------------------------------------------------------------
