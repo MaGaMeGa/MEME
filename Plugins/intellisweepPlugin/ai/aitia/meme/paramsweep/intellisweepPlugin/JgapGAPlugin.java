@@ -100,15 +100,6 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 	protected static final String ext = ".txt";
 	protected static final String bckExt = ".bak";
 	
-	private static final List<Class<?>> acceptableReturnTypesForFitnessFunction;
-	
-	static {
-		final Class<?>[] array = { Byte.TYPE, Byte.class, Short.TYPE, Short.class, Integer.TYPE, Integer.class, Long.TYPE, Long.class, Float.TYPE, Float.class,
-							 	   Double.TYPE, Double.class };
-		acceptableReturnTypesForFitnessFunction = Arrays.asList(array);
-
-	}
-
 	private int populationSize = 12;
 	private int populationGenerationSeed = 1;
 	private int numberOfGenerations = 12;
@@ -201,19 +192,9 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 		selectedGeneticOperators.add(geneticOperators.get(0));
 		selectedGeneticOperators.add(geneticOperators.get(2));
 	}
-
-	//----------------------------------------------------------------------------------------------------
-	public void addFitnessFunction(final RecordableInfo fitnessFunction) {
-		fitnessFunctions.add(fitnessFunction);
-		
-		if (listeners != null) {
-			for (final ModelListener listener : listeners) 
-				listener.fitnessFunctionAdded();
-		}
-	}
 	
 	//----------------------------------------------------------------------------------------------------
-	public void removeAllFitnessFunctions() {
+	private void removeAllFitnessFunctions() {
 		fitnessFunctions.clear();
 		fitnessFunctions.add(new RecordableInfo("Please select a function!", Object.class, "Please select a function!"));
 		
@@ -293,7 +274,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 	}
 
 	//----------------------------------------------------------------------------------------------------
-	public void addParameter(final ParameterOrGene parameterOrGene) {
+	private void addParameter(final ParameterOrGene parameterOrGene) {
 		if (chromosomeTree == null) { 
 			chromosomeTree = new DefaultTreeModel(new DefaultMutableTreeNode());
 			genes = null;
@@ -310,7 +291,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	public void removeAllParameters() {
+	private void removeAllParameters() {
 		if (chromosomeTree == null)  
 			chromosomeTree = new DefaultTreeModel(new DefaultMutableTreeNode());
 		else 
@@ -344,11 +325,6 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 		return errors.size() == 0 ? null : errors.toArray(new String[0]);
 	}
 	
-	//----------------------------------------------------------------------------------------------------
-	public boolean canBeFitnessFunction(final RecordableInfo candidate) {
-		return acceptableReturnTypesForFitnessFunction.contains(candidate.getType());
-	}
-
 	//----------------------------------------------------------------------------------------------------
 	public int getNumberOfIterations() {
 		if (fixNumberOfGenerations)
@@ -759,7 +735,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 
 	//----------------------------------------------------------------------------------------------------
 	public void setParameterTreeRoot(final DefaultMutableTreeNode root) {
-		//TODO: implement
+		// we don't use this in this implementation
 	}
 
 
@@ -813,8 +789,11 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 
 	//----------------------------------------------------------------------------------------------------
 	public void invalidatePlugin() {
-		//TODO: implement
 		content = null;
+		selectors = Arrays.asList(new TournamentSelectorConfigurator(),new WeightedRouletteSelectorConfigurator(),new BestChromosomeSelectorConfigurator());
+		geneticOperators = Arrays.asList(new GeneAveragingCrossoverOperatorConfigurator(), new CrossoverOperatorConfigurator(),new MutationOperatorConfigurator());
+		
+		init();
 	}
 	
 	//====================================================================================================

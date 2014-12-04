@@ -23,7 +23,6 @@ import javax.swing.tree.DefaultTreeModel;
 import ai.aitia.meme.paramsweep.batch.output.RecordableInfo;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.IGAOperatorConfigurator;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.IGASelectorConfigurator;
-import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.gene.ParameterOrGene;
 
 /**
  * @author Tamás Máhr
@@ -49,17 +48,6 @@ public interface GASearchPanelModel {
 
 	//----------------------------------------------------------------------------------------------------
 	/**
-	 * Adds a new fitness function to the model. The object can be of any class. The {@link #getFitnessFunctions()} method returns the list of objects
-	 * added by this method. The implementation of this method should notify {@link ModelListener} instances by invoking the
-	 * {@link ModelListener#fitnessFunctionAdded()} method.
-	 * 
-	 * @param fitnessFunction
-	 *            a fitness function of any class.
-	 */
-	public void addFitnessFunction(final RecordableInfo fitnessFunction);
-	
-	//----------------------------------------------------------------------------------------------------
-	/**
 	 * Returns the fitness function name that should be selected in the list of fitness function names initially.
 	 * 
 	 * @return the default fitness function name
@@ -73,13 +61,6 @@ public interface GASearchPanelModel {
 	 * @param fitnessFunctionName the selected fitness function name
 	 */
 	public void setSelectedFitnessFunction(final RecordableInfo fitnessFunction);
-	
-	//----------------------------------------------------------------------------------------------------
-	/**
-	 * Removes all fitness functions from the model. The implementation of this method should notify {@link ModelListener} instances by invoking the
-	 * {@link ModelListener#fitnessFunctionsRemoved()} method.
-	 */
-	public void removeAllFitnessFunctions();
 	
 	//----------------------------------------------------------------------------------------------------
 	/**
@@ -237,27 +218,10 @@ public interface GASearchPanelModel {
 	public DefaultTreeModel getChromosomeTree();
 	
 	//----------------------------------------------------------------------------------------------------
-	/**
-	 * Adds the parameter (a gene or a constant parameter) to the model. This method can be used to initialize the chromosome tree. The implementation of
-	 * this method should notifiy {@link ModelListener} instances by invoking the {@link ModelListener#parameterAdded()} method.
-	 */
-	public void addParameter(final ParameterOrGene parameterOrGene);
-
-	//----------------------------------------------------------------------------------------------------
-	/**
-	 * Removes all genes and constant parameters from the model. The implementation of this method should notify {@link ModelListener} instances by invoking
-	 * the {@link ModelListener#parametersRemoved()} method. 
-	 */
-	public void removeAllParameters();
-	
-	//----------------------------------------------------------------------------------------------------
 	public boolean addModelListener(final ModelListener listener);
 	
 	//----------------------------------------------------------------------------------------------------
 	public boolean removeModelListener(final ModelListener listener);
-	
-	//----------------------------------------------------------------------------------------------------
-	public boolean canBeFitnessFunction(final RecordableInfo candidate); //TODO: kell ez?
 	
 	//----------------------------------------------------------------------------------------------------
 	public boolean isFixNumberOfGenerations();

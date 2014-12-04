@@ -63,10 +63,66 @@ public class IdentifiableListGene extends BaseGene implements IIdentifiableGene 
 
 	//----------------------------------------------------------------------------------------------------
 	public void setAllele(final Object a_newValue) {
-	    if (validValues.contains(a_newValue)) 
-	        value = a_newValue;
-	    else 
+		if (validValues.contains(a_newValue)) {
+			value = a_newValue;
+		} else if (a_newValue instanceof Number) {
+			value = findClosestValue((Number)a_newValue);
+		} else { 
 	        throw new IllegalArgumentException("Allele value being set is not an element of the list of permitted values.");
+		}
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private Object findClosestValue(final Number a_newValue) {
+		if (a_newValue instanceof Long) {
+			return findClosestLongValue(a_newValue.longValue());
+		} else if (a_newValue instanceof Double) {
+			return findClosestDoubleValue(a_newValue.doubleValue());
+		} else {
+	        throw new IllegalArgumentException("Invalid value type: " + a_newValue.getClass());
+		}
+	}
+
+	//----------------------------------------------------------------------------------------------------
+	private Object findClosestLongValue(final long a_newValue) {
+		int idx = -1;
+		long minDistance = Long.MAX_VALUE;
+		
+		for (int i = 0; i < validValues.size(); ++i) {
+			final long longValue = ((Number)validValues.get(i)).longValue();
+			final long distance = Math.abs(longValue - a_newValue);
+			if (distance < minDistance) {
+				minDistance = distance;
+				idx = i;
+			}
+		}
+		
+		if (idx >= 0) {
+			return validValues.get(idx);
+		}
+		
+        throw new IllegalArgumentException("Allele value being set is not an element of the list of permitted values.");
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private Object findClosestDoubleValue(final double a_newValue) {
+		int idx = -1;
+		double minDistance = Long.MAX_VALUE;
+		
+		for (int i = 0; i < validValues.size(); ++i) {
+			final double doubleValue = ((Number)validValues.get(i)).doubleValue();
+			final double distance = Math.abs(doubleValue - a_newValue);
+			if (distance < minDistance) {
+				minDistance = distance;
+				idx = i;
+			}
+		}
+		
+		if (idx >= 0) {
+			return validValues.get(idx);
+		}
+		
+        throw new IllegalArgumentException("Allele value being set is not an element of the list of permitted values.");
 	}
 
 	//----------------------------------------------------------------------------------------------------
