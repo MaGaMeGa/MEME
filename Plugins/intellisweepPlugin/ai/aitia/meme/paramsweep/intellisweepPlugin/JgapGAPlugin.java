@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,8 +27,8 @@ import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -61,7 +60,6 @@ import ai.aitia.meme.paramsweep.generator.WizardSettingsManager;
 import ai.aitia.meme.paramsweep.gui.info.ParameterInfo;
 import ai.aitia.meme.paramsweep.gui.info.RecordableElement;
 import ai.aitia.meme.paramsweep.gui.info.ResultInfo;
-import ai.aitia.meme.paramsweep.gui.info.SubmodelInfo;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.GASearchPanel;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.GASearchPanelModel;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.IntelliBreeder;
@@ -909,49 +907,34 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 		
 		final ParameterOrGene userObj = (ParameterOrGene) node.getUserObject();
 		final ParameterInfo info = userObj.getInfo();
-		//TODO: folyt
 		
-//		if (userObj.isGene()) {
-//			final GeneInfo geneInfo = userObj.getGeneInfo();
-//			
-//			final Element geneElement = document.createElement(GENE);
-//			chromosomeElement.appendChild(geneElement);
-//			
-//			geneElement.setAttribute(WizardSettingsManager.NAME, info.getName());
-//			geneElement.setAttribute(WizardSettingsManager.TYPE, geneInfo.getValueType());
-//			
-//			if (GeneInfo.INTERVAL.equals(geneInfo.getValueType())) {
-//				geneElement.setAttribute(IS_INTEGER, String.valueOf(geneInfo.isIntegerVals()));
-//				
-//				gene.setMin(geneInfo.isIntegerVals() ? new BigDecimal(geneInfo.getMinValue().longValue()) : new BigDecimal(geneInfo.getMinValue().doubleValue()));
-//				gene.setMax(geneInfo.isIntegerVals() ? new BigDecimal(geneInfo.getMaxValue().longValue()) : new BigDecimal(geneInfo.getMaxValue().doubleValue()));
-//			} else {
-//				final List<String> geneValues = gene.getGeneValueList();
-//				for (final Object value : geneInfo.getValueRange()) 
-//					geneValues.add(String.valueOf(value));
-//			}
-//			
-//			if (parent instanceof eu.crisis_economics.abm.dashboard.generated.Chromosome) {
-//				final eu.crisis_economics.abm.dashboard.generated.Chromosome chromosome = (eu.crisis_economics.abm.dashboard.generated.Chromosome) parent;
-//				chromosome.getGeneList().add(gene);
-//			} else if (parent instanceof SubmodelParameter) {
-//				final SubmodelParameter submodelParameter = (SubmodelParameter) parent;
-//				submodelParameter.getGeneList().add(gene);
-//			}
-//		} else {
-//			final Parameter parameter = factory.createParameter();
-//			parameter.setName(info.getName());
-//			parameter.setParameterType(ParameterType.CONSTANT);
-//			parameter.getContent().add(info.getValue().toString());
-//			
-//			if (parent instanceof eu.crisis_economics.abm.dashboard.generated.Chromosome) {
-//				final eu.crisis_economics.abm.dashboard.generated.Chromosome chromosome = (eu.crisis_economics.abm.dashboard.generated.Chromosome) parent;
-//				chromosome.getParameterList().add(parameter);
-//			} else if (parent instanceof SubmodelParameter) {
-//				final SubmodelParameter submodelParameter = (SubmodelParameter) parent;
-//				submodelParameter.getParameterList().add(parameter);
-//			}
-//		}
+		if (userObj.isGene()) {
+			final GeneInfo geneInfo = userObj.getGeneInfo();
+			
+			final Element geneElement = document.createElement(GENE);
+			chromosomeElement.appendChild(geneElement);
+			
+			geneElement.setAttribute(WizardSettingsManager.NAME, info.getName());
+			geneElement.setAttribute(WizardSettingsManager.TYPE, geneInfo.getValueType());
+			
+			if (GeneInfo.INTERVAL.equals(geneInfo.getValueType())) {
+				geneElement.setAttribute(IS_INTEGER, String.valueOf(geneInfo.isIntegerVals()));
+				geneElement.setAttribute(MIN_VALUE, String.valueOf(geneInfo.getMinValue()));
+				geneElement.setAttribute(MAX_VALUE, String.valueOf(geneInfo.getMaxValue()));
+			} else {
+				for (final Object value : geneInfo.getValueRange()) {
+					final Element element = document.createElement(LIST_VALUE);
+					geneElement.appendChild(element);
+					element.appendChild(document.createTextNode(String.valueOf(value)));
+				}
+			}
+		} else {
+			final Element paramElement = document.createElement(PARAMETER);
+			chromosomeElement.appendChild(paramElement);
+			
+			paramElement.setAttribute(WizardSettingsManager.NAME, info.getName());
+			paramElement.appendChild(document.createTextNode(String.valueOf(info.getValue())));
+		}
 	}
 
 	//----------------------------------------------------------------------------------------------------
