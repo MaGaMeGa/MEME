@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,6 +29,7 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -45,6 +47,7 @@ import org.jgap.InvalidConfigurationException;
 import org.jgap.Population;
 import org.jgap.RandomGenerator;
 import org.jgap.impl.DefaultConfiguration;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -54,9 +57,11 @@ import ai.aitia.meme.paramsweep.batch.ReadingException;
 import ai.aitia.meme.paramsweep.batch.ResultValueInfo;
 import ai.aitia.meme.paramsweep.batch.output.RecordableInfo;
 import ai.aitia.meme.paramsweep.batch.param.ParameterTree;
+import ai.aitia.meme.paramsweep.generator.WizardSettingsManager;
 import ai.aitia.meme.paramsweep.gui.info.ParameterInfo;
 import ai.aitia.meme.paramsweep.gui.info.RecordableElement;
 import ai.aitia.meme.paramsweep.gui.info.ResultInfo;
+import ai.aitia.meme.paramsweep.gui.info.SubmodelInfo;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.GASearchPanel;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.GASearchPanelModel;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.IntelliBreeder;
@@ -82,20 +87,34 @@ import ai.aitia.meme.paramsweep.utils.WizardLoadingException;
 
 public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelModel {
 	
+
+
 	//====================================================================================================
 	// members
 	
 	private static final long serialVersionUID = 2516082442494840822L;
 	
-	private static final String POPULATION_SIZE = "Population size";
-	private static final String POPULATION_RANDOM_SEED = "Population random seed";
-	private static final String FIX_NUMBER_OF_GENERATIONS = "Fix number of generations";
-	private static final String NUMBER_OF_GENERATIONS = "Number of generations";
-	private static final String FITNESS_LIMIT_CRITERION = "Fitness limit";
-	private static final String OPTIMIZATION_DIRECTION = "Optimization direction";
-	private static final String FITNESS_FUNCTION = "Fitness function"; 
-	private static final String FITNESS_STATISTICS = "Fitness statistics"; 
-	private static final String FITNESS_TIMESERIES_LENGTH = "Fitness time-series length"; 
+	private static final String GA_SETTINGS = "ga_settings";
+	private static final String POPULATION_SIZE = "population_size";
+	private static final String POPULATION_RANDOM_SEED = "population_random_seed";
+	private static final String FIX_NUMBER_OF_GENERATIONS = "fix_number_of_generations";
+	private static final String NUMBER_OF_GENERATIONS = "number_of_generations";
+	private static final String FITNESS_LIMIT_CRITERION = "fitness_limit";
+	private static final String OPTIMIZATION_DIRECTION = "optimization_direction";
+	private static final String FITNESS_FUNCTION = "fitness_function"; 
+	private static final String SELECTORS = "selectors";
+	private static final String SELECTOR = "selector";
+	private static final String PROPERTY = "property";
+	private static final String KEY = "key";
+	private static final String GENETIC_OPERATORS = "genetic_operators";
+	private static final String GENETIC_OPERATOR = "genetic_operator";
+	private static final String CHROMOSOME = "chromosome"; 
+	private static final String GENE = "gene";
+	private static final String IS_INTEGER = "is_integer"; 
+	private static final String MIN_VALUE = "min_value";
+	private static final String MAX_VALUE = "max_value";
+	private static final String LIST_VALUE = "list_value";
+	private static final String PARAMETER = "parameter";
 
 	protected static final String ext = ".txt";
 	protected static final String bckExt = ".bak";
@@ -779,7 +798,160 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 
 	//----------------------------------------------------------------------------------------------------
 	public void save(final Node node) {
-		//TODO: implement
+		final Document document = node.getOwnerDocument();
+		final Element pluginElement = (Element) node;
+		pluginElement.setAttribute(WizardSettingsManager.CLASS, this.getClass().getName());
+		
+		final Element gaSettingsElement = document.createElement(GA_SETTINGS);
+		node.appendChild(gaSettingsElement);
+		
+		saveGeneralParameters(gaSettingsElement);
+		saveSelectors(gaSettingsElement);
+		saveOperators(gaSettingsElement);
+		saveChromosome(gaSettingsElement);
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private void saveGeneralParameters(final Element gaSettingsElement) {
+		final Document document = gaSettingsElement.getOwnerDocument();
+		
+		Element element = document.createElement(POPULATION_SIZE);
+		element.appendChild(document.createTextNode(String.valueOf(populationSize)));
+		gaSettingsElement.appendChild(element);
+		
+		element = document.createElement(POPULATION_RANDOM_SEED);
+		element.appendChild(document.createTextNode(String.valueOf(populationGenerationSeed)));
+		gaSettingsElement.appendChild(element);
+		
+		element = document.createElement(FIX_NUMBER_OF_GENERATIONS);
+		element.appendChild(document.createTextNode(String.valueOf(fixNumberOfGenerations)));
+		gaSettingsElement.appendChild(element);
+		
+		element = document.createElement(NUMBER_OF_GENERATIONS);
+		element.appendChild(document.createTextNode(String.valueOf(numberOfGenerations)));
+		gaSettingsElement.appendChild(element);
+		
+		element = document.createElement(FITNESS_LIMIT_CRITERION);
+		element.appendChild(document.createTextNode(String.valueOf(fitnessLimitCriterion)));
+		gaSettingsElement.appendChild(element);
+		
+		element = document.createElement(OPTIMIZATION_DIRECTION);
+		element.appendChild(document.createTextNode(optimizationDirection.name()));
+		gaSettingsElement.appendChild(element);
+		
+		element = document.createElement(FITNESS_FUNCTION);
+		element.appendChild(document.createTextNode(selectedFunction.getName()));
+		gaSettingsElement.appendChild(element);
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private void saveSelectors(final Element gaSettingsElement) {
+		final Document document = gaSettingsElement.getOwnerDocument();
+		
+		final Element selectorsElement = document.createElement(SELECTORS);
+		gaSettingsElement.appendChild(selectorsElement);
+		
+		for (final IGASelectorConfigurator selectorOperator : selectedSelectionOperators) {
+			final Element selectorElement = document.createElement(SELECTOR);
+			selectorsElement.appendChild(selectorElement);
+			
+			selectorElement.setAttribute(WizardSettingsManager.TYPE, selectorOperator.getName());
+
+			for (final Entry<String,String> entry : selectorOperator.getConfiguration().entrySet()) {
+				final Element propertyElement = document.createElement(PROPERTY);
+				propertyElement.setAttribute(KEY, entry.getKey());
+				propertyElement.appendChild(document.createTextNode(entry.getValue()));
+				selectorElement.appendChild(propertyElement);
+			}
+		}
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private void saveOperators(final Element gaSettingsElement) {
+		final Document document = gaSettingsElement.getOwnerDocument();
+		
+		final Element geneticOperatorsElement = document.createElement(GENETIC_OPERATORS);
+		gaSettingsElement.appendChild(geneticOperatorsElement);
+		
+		for (final IGAOperatorConfigurator geneticOperator : selectedGeneticOperators) {
+			final Element operatorElement = document.createElement(GENETIC_OPERATOR);
+			geneticOperatorsElement.appendChild(operatorElement);
+			
+			operatorElement.setAttribute(WizardSettingsManager.TYPE, geneticOperator.getName());
+
+			for (final Entry<String,String> entry : geneticOperator.getConfiguration().entrySet()) {
+				final Element propertyElement = document.createElement(PROPERTY);
+				propertyElement.setAttribute(KEY, entry.getKey());
+				propertyElement.appendChild(document.createTextNode(entry.getValue()));
+				operatorElement.appendChild(propertyElement);
+			}
+		}
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private void saveChromosome(final Element gaSettingsElement) {
+		final Document document = gaSettingsElement.getOwnerDocument();
+		
+		final Element chromosomeElement = document.createElement(CHROMOSOME);
+		gaSettingsElement.appendChild(chromosomeElement);
+		
+		@SuppressWarnings("rawtypes")
+		final Enumeration nodes = ((DefaultMutableTreeNode)chromosomeTree.getRoot()).children();
+		while (nodes.hasMoreElements()) {
+			final DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes.nextElement();
+			saveParameterOrGene(node,chromosomeElement);
+		}
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private void saveParameterOrGene(final DefaultMutableTreeNode node, final Element chromosomeElement) {
+		final Document document = chromosomeElement.getOwnerDocument();
+		
+		final ParameterOrGene userObj = (ParameterOrGene) node.getUserObject();
+		final ParameterInfo info = userObj.getInfo();
+		//TODO: folyt
+		
+//		if (userObj.isGene()) {
+//			final GeneInfo geneInfo = userObj.getGeneInfo();
+//			
+//			final Element geneElement = document.createElement(GENE);
+//			chromosomeElement.appendChild(geneElement);
+//			
+//			geneElement.setAttribute(WizardSettingsManager.NAME, info.getName());
+//			geneElement.setAttribute(WizardSettingsManager.TYPE, geneInfo.getValueType());
+//			
+//			if (GeneInfo.INTERVAL.equals(geneInfo.getValueType())) {
+//				geneElement.setAttribute(IS_INTEGER, String.valueOf(geneInfo.isIntegerVals()));
+//				
+//				gene.setMin(geneInfo.isIntegerVals() ? new BigDecimal(geneInfo.getMinValue().longValue()) : new BigDecimal(geneInfo.getMinValue().doubleValue()));
+//				gene.setMax(geneInfo.isIntegerVals() ? new BigDecimal(geneInfo.getMaxValue().longValue()) : new BigDecimal(geneInfo.getMaxValue().doubleValue()));
+//			} else {
+//				final List<String> geneValues = gene.getGeneValueList();
+//				for (final Object value : geneInfo.getValueRange()) 
+//					geneValues.add(String.valueOf(value));
+//			}
+//			
+//			if (parent instanceof eu.crisis_economics.abm.dashboard.generated.Chromosome) {
+//				final eu.crisis_economics.abm.dashboard.generated.Chromosome chromosome = (eu.crisis_economics.abm.dashboard.generated.Chromosome) parent;
+//				chromosome.getGeneList().add(gene);
+//			} else if (parent instanceof SubmodelParameter) {
+//				final SubmodelParameter submodelParameter = (SubmodelParameter) parent;
+//				submodelParameter.getGeneList().add(gene);
+//			}
+//		} else {
+//			final Parameter parameter = factory.createParameter();
+//			parameter.setName(info.getName());
+//			parameter.setParameterType(ParameterType.CONSTANT);
+//			parameter.getContent().add(info.getValue().toString());
+//			
+//			if (parent instanceof eu.crisis_economics.abm.dashboard.generated.Chromosome) {
+//				final eu.crisis_economics.abm.dashboard.generated.Chromosome chromosome = (eu.crisis_economics.abm.dashboard.generated.Chromosome) parent;
+//				chromosome.getParameterList().add(parameter);
+//			} else if (parent instanceof SubmodelParameter) {
+//				final SubmodelParameter submodelParameter = (SubmodelParameter) parent;
+//				submodelParameter.getParameterList().add(parameter);
+//			}
+//		}
 	}
 
 	//----------------------------------------------------------------------------------------------------
