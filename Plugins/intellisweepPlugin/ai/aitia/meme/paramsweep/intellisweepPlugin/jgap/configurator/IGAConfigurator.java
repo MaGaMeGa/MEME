@@ -21,7 +21,7 @@ import java.util.Map;
 
 import javax.swing.JPanel;
 
-import ai.aitia.meme.paramsweep.batch.IModelInformation.ModelInformationException;
+import ai.aitia.meme.paramsweep.utils.WizardLoadingException;
 
 public interface IGAConfigurator extends Serializable {
 	
@@ -56,5 +56,5 @@ public interface IGAConfigurator extends Serializable {
 	public Map<String,String> getConfiguration();
 	
 	//----------------------------------------------------------------------------------------------------
-	public void setConfiguration(final Map<String,String> configuration) throws ModelInformationException;
+	public void setConfiguration(final Map<String,String> configuration) throws WizardLoadingException;
 }

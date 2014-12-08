@@ -194,7 +194,7 @@ public class GASearchPanel extends JPanel {
 			fitnessMinimizeRadioButton.setSelected(true);
 		else 
 			fitnessMaximizeRadioButton.setSelected(true);
-		fitnessFunctionList.setSelectedItem(model.getSelectedFitnessFunction());
+//		fitnessFunctionList.setSelectedItem(model.getSelectedFitnessFunction()); // set fitness function later
 		
 		final CardLayout settingslayout = (CardLayout) operatorSettingsPanel.getLayout();
 		settingslayout.show(operatorSettingsPanel,OPERATOR_SETTINGS_PANEL_DEFAULT_PANEL);
@@ -253,6 +253,11 @@ public class GASearchPanel extends JPanel {
 				fitnessFunctionList.removeAllItems();
 			}
 
+			//----------------------------------------------------------------------------------------------------
+			public void fitnessFunctionSelected(final RecordableInfo selectedFunction) {
+				fitnessFunctionList.setSelectedItem(selectedFunction);
+			}
+			
 			//----------------------------------------------------------------------------------------------------
 			public void parameterAdded() {
 				final DefaultTreeModel treeModel = model.getChromosomeTree();

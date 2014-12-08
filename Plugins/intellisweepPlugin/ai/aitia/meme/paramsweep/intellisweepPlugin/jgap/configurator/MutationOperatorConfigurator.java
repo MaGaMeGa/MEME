@@ -33,13 +33,13 @@ import org.jgap.GeneticOperator;
 import org.jgap.InvalidConfigurationException;
 import org.jgap.impl.MutationOperator;
 
-import com.jgoodies.forms.layout.CellConstraints;
-
-import ai.aitia.meme.paramsweep.batch.IModelInformation.ModelInformationException;
 import ai.aitia.meme.paramsweep.gui.DescriptionPopupFactory;
 import ai.aitia.meme.paramsweep.gui.Page_IntelliExtension;
 import ai.aitia.meme.paramsweep.gui.component.DefaultJButton;
+import ai.aitia.meme.paramsweep.utils.WizardLoadingException;
 import ai.aitia.meme.utils.FormsUtils;
+
+import com.jgoodies.forms.layout.CellConstraints;
 
 /**
  * @author Tamás Máhr
@@ -128,10 +128,10 @@ public class MutationOperatorConfigurator implements IGAOperatorConfigurator {
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	public void setConfiguration(final Map<String,String> configuration) throws ModelInformationException {
+	public void setConfiguration(final Map<String,String> configuration) throws WizardLoadingException {
 		final String mutationRateStr = configuration.get("mutationRate");
 		if (mutationRateStr == null)
-			throw new ModelInformationException("Missing setting: mutationRate.");
+			throw new WizardLoadingException(true, "Missing setting: mutationRate.");
 		
 		try {
 			final int mutationRate = Integer.parseInt(mutationRateStr.trim());
@@ -139,7 +139,7 @@ public class MutationOperatorConfigurator implements IGAOperatorConfigurator {
 				throw new NumberFormatException();
 			model.setValue(mutationRate);
 		} catch (final NumberFormatException e) {
-			throw new ModelInformationException("Invalid setting for 'mutationRate': " + mutationRateStr + ".");
+			throw new WizardLoadingException(true, "Invalid setting for 'mutationRate': " + mutationRateStr + ".");
 
 		}
 	}

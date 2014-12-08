@@ -43,13 +43,13 @@ import org.jgap.InvalidConfigurationException;
 import org.jgap.NaturalSelector;
 import org.jgap.impl.BestChromosomesSelector;
 
-import com.jgoodies.forms.layout.CellConstraints;
-
-import ai.aitia.meme.paramsweep.batch.IModelInformation.ModelInformationException;
 import ai.aitia.meme.paramsweep.gui.DescriptionPopupFactory;
 import ai.aitia.meme.paramsweep.gui.Page_IntelliExtension;
 import ai.aitia.meme.paramsweep.gui.component.DefaultJButton;
+import ai.aitia.meme.paramsweep.utils.WizardLoadingException;
 import ai.aitia.meme.utils.FormsUtils;
+
+import com.jgoodies.forms.layout.CellConstraints;
 
 public class BestChromosomeSelectorConfigurator implements IGASelectorConfigurator {
 	
@@ -196,10 +196,10 @@ public class BestChromosomeSelectorConfigurator implements IGASelectorConfigurat
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	public void setConfiguration(final Map<String,String> configuration) throws ModelInformationException {
+	public void setConfiguration(final Map<String,String> configuration) throws WizardLoadingException {
 		final String originalRateStr = configuration.get("originalRate");
 		if (originalRateStr == null)
-			throw new ModelInformationException("Missing setting: originalRate.");
+			throw new WizardLoadingException(true, "Missing setting: originalRate.");
 		
 		try {
 			final int originalRate = Integer.parseInt(originalRateStr.trim());
@@ -207,7 +207,7 @@ public class BestChromosomeSelectorConfigurator implements IGASelectorConfigurat
 				throw new NumberFormatException();
 			model.setValue(originalRate);
 		} catch (final NumberFormatException e) {
-			throw new ModelInformationException("Invalid setting for 'originalRate': " + originalRateStr + ".");
+			throw new WizardLoadingException(true, "Invalid setting for 'originalRate': " + originalRateStr + ".");
 		}
 	}
 }

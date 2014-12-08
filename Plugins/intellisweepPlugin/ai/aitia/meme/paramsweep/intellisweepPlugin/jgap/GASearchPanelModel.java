@@ -267,6 +267,9 @@ public interface GASearchPanelModel {
 		 * Fired when all parameters and genes are removed from the model.
 		 */
 		public void parametersRemoved();
+		
+		//----------------------------------------------------------------------------------------------------
+		public void fitnessFunctionSelected(final RecordableInfo selectedFunction); 
 	}
 
 }

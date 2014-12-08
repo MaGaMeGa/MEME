@@ -46,13 +46,13 @@ import org.jgap.InvalidConfigurationException;
 import org.jgap.NaturalSelector;
 import org.jgap.impl.TournamentSelector;
 
-import com.jgoodies.forms.layout.CellConstraints;
-
-import ai.aitia.meme.paramsweep.batch.IModelInformation.ModelInformationException;
 import ai.aitia.meme.paramsweep.gui.DescriptionPopupFactory;
 import ai.aitia.meme.paramsweep.gui.Page_IntelliExtension;
 import ai.aitia.meme.paramsweep.gui.component.DefaultJButton;
+import ai.aitia.meme.paramsweep.utils.WizardLoadingException;
 import ai.aitia.meme.utils.FormsUtils;
+
+import com.jgoodies.forms.layout.CellConstraints;
 
 /**
  * @author Tamás Máhr
@@ -221,10 +221,10 @@ public class TournamentSelectorConfigurator implements IGASelectorConfigurator {
 	}
 
 	//----------------------------------------------------------------------------------------------------
-	public void setConfiguration(final Map<String,String> configuration) throws ModelInformationException {
+	public void setConfiguration(final Map<String,String> configuration) throws WizardLoadingException {
 		final String tournamentSizeStr = configuration.get("tournamentSize");
 		if (tournamentSizeStr == null)
-			throw new ModelInformationException("Missing setting: tournamentSize.");
+			throw new WizardLoadingException(true, "Missing setting: tournamentSize.");
 
 		try {
 			final int tournamentSize = Integer.parseInt(tournamentSizeStr.trim());
@@ -232,13 +232,13 @@ public class TournamentSelectorConfigurator implements IGASelectorConfigurator {
 				throw new NumberFormatException();
 			tournamentSizeModel.setValue(tournamentSize);
 		} catch (final NumberFormatException e) {
-			throw new ModelInformationException("Invalid setting for 'tournamentSize': "
+			throw new WizardLoadingException(true, "Invalid setting for 'tournamentSize': "
 					+ tournamentSizeStr + ".");
 		}
 
 		final String selectionProbabilityStr = configuration.get("selectionProbability");
 		if (selectionProbabilityStr == null)
-			throw new ModelInformationException("Missing setting: selectionProbability.");
+			throw new WizardLoadingException(true, "Missing setting: selectionProbability.");
 
 		try {
 			final int selectionProbabilityNumber = Integer.parseInt(selectionProbabilityStr.trim());
@@ -247,7 +247,7 @@ public class TournamentSelectorConfigurator implements IGASelectorConfigurator {
 				throw new NumberFormatException();
 			selectionProbabilityModel.setValue(selectionProbabilityNumber);
 		} catch (final NumberFormatException e) {
-			throw new ModelInformationException("Invalid setting for 'selectionProbability': "
+			throw new WizardLoadingException(true, "Invalid setting for 'selectionProbability': "
 					+ selectionProbabilityStr + ".");
 		}
 	}

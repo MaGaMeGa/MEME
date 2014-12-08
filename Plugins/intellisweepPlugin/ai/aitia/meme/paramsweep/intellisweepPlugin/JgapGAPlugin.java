@@ -25,14 +25,17 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.jgap.Chromosome;
@@ -49,6 +52,8 @@ import org.jgap.impl.DefaultConfiguration;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 
 import ai.aitia.meme.Logger;
 import ai.aitia.meme.paramsweep.batch.IParameterSweepResultReader;
@@ -157,7 +162,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 
 	private transient List<ModelListener> listeners = new ArrayList<GASearchPanelModel.ModelListener>();
 	private transient String readyStatusDetail;
-	private transient JPanel content = null;
+	private transient GASearchPanel content = null;
 	
 	//====================================================================================================
 	// methods
@@ -743,6 +748,28 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 				listener.fitnessFunctionAdded(); 
 			}
 		}
+		
+		if (selectedFunction != null) {
+			RecordableInfo selectedFunctionInTheList = null;
+			for (final RecordableInfo ri : fitnessFunctions)
+			{
+				if (ri.equals(selectedFunction)) {
+					// accessible name equality
+					selectedFunctionInTheList = ri;
+				}
+			}
+			
+			if (selectedFunctionInTheList != null) {
+				selectedFunction = selectedFunctionInTheList;
+				if (listeners != null) {
+					for (final ModelListener listener : listeners) {
+						listener.fitnessFunctionSelected(selectedFunction);
+					}
+				}
+			}
+					
+		}
+		
 	}
 
 	//----------------------------------------------------------------------------------------------------
@@ -825,20 +852,22 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 		element.appendChild(document.createTextNode(String.valueOf(fixNumberOfGenerations)));
 		gaSettingsElement.appendChild(element);
 		
-		element = document.createElement(NUMBER_OF_GENERATIONS);
-		element.appendChild(document.createTextNode(String.valueOf(numberOfGenerations)));
-		gaSettingsElement.appendChild(element);
-		
-		element = document.createElement(FITNESS_LIMIT_CRITERION);
-		element.appendChild(document.createTextNode(String.valueOf(fitnessLimitCriterion)));
-		gaSettingsElement.appendChild(element);
+		if (fixNumberOfGenerations) {
+			element = document.createElement(NUMBER_OF_GENERATIONS);
+			element.appendChild(document.createTextNode(String.valueOf(numberOfGenerations)));
+			gaSettingsElement.appendChild(element);
+		} else {
+			element = document.createElement(FITNESS_LIMIT_CRITERION);
+			element.appendChild(document.createTextNode(String.valueOf(fitnessLimitCriterion)));
+			gaSettingsElement.appendChild(element);
+		}
 		
 		element = document.createElement(OPTIMIZATION_DIRECTION);
 		element.appendChild(document.createTextNode(optimizationDirection.name()));
 		gaSettingsElement.appendChild(element);
 		
 		element = document.createElement(FITNESS_FUNCTION);
-		element.appendChild(document.createTextNode(selectedFunction.getName()));
+		element.appendChild(document.createTextNode(selectedFunction.getAccessibleName()));
 		gaSettingsElement.appendChild(element);
 	}
 	
@@ -939,8 +968,446 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 
 	//----------------------------------------------------------------------------------------------------
 	public void load(final IIntelliContext context, final Element element) throws WizardLoadingException {
-		//TODO: implement
-	} 
+		selectors = Arrays.asList(new TournamentSelectorConfigurator(),new WeightedRouletteSelectorConfigurator(),new BestChromosomeSelectorConfigurator());
+		geneticOperators = Arrays.asList(new GeneAveragingCrossoverOperatorConfigurator(), new CrossoverOperatorConfigurator(),new MutationOperatorConfigurator());
+		
+		init();
+		readyStatusDetail = null;
+		content = (GASearchPanel) getSettingsPanel(context);
+		
+		final NodeList nl = element.getElementsByTagName(GA_SETTINGS);
+		if (nl != null && nl.getLength() > 0) {
+			final Element gaSettingsElement = (Element) nl.item(0);
+			loadGeneralParameters(gaSettingsElement);
+			loadSelectors(gaSettingsElement);
+			loadOperators(gaSettingsElement);
+			loadChromosome(gaSettingsElement, context.getParameters());
+			content.reset(this);
+		} else {
+			throw new WizardLoadingException(true, "missing node: " + GA_SETTINGS);
+		}
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private void loadGeneralParameters(final Element gaSettingsElement) throws WizardLoadingException {
+		NodeList nl = gaSettingsElement.getElementsByTagName(POPULATION_SIZE);
+		if (nl != null && nl.getLength() > 0) {
+			final Element element = (Element) nl.item(0);
+			final NodeList content = element.getChildNodes();
+			if (content == null || content.getLength() == 0) {
+				throw new WizardLoadingException(true, "missing content at node: " + POPULATION_SIZE);
+			}
+			
+			final String populationSizeStr = ((Text)content.item(0)).getNodeValue().trim();
+			try {
+				populationSize = Integer.parseInt(populationSizeStr);
+			} catch (final NumberFormatException e) {
+				throw new WizardLoadingException(true,  "invalid content (" + populationSizeStr + ") at node: " + POPULATION_SIZE + " (expected: integer number)");
+			}
+		} else {
+			throw new WizardLoadingException(true, "missing node: " + POPULATION_SIZE);
+		}
+
+		nl = gaSettingsElement.getElementsByTagName(POPULATION_RANDOM_SEED);
+		if (nl != null && nl.getLength() > 0) {
+			final Element element = (Element) nl.item(0);
+			final NodeList content = element.getChildNodes();
+			if (content == null || content.getLength() == 0) {
+				throw new WizardLoadingException(true, "missing content at node: " + POPULATION_RANDOM_SEED);
+			}
+			
+			final String populationGenerationSeedStr = ((Text)content.item(0)).getNodeValue().trim();
+			try {
+				populationGenerationSeed = Integer.parseInt(populationGenerationSeedStr);
+			} catch (final NumberFormatException e) {
+				throw new WizardLoadingException(true,  "invalid content (" + populationGenerationSeedStr + ") at node: " + POPULATION_RANDOM_SEED +
+												 " (expected: integer number)");
+			}
+		} else {
+			throw new WizardLoadingException(true, "missing node: " + POPULATION_RANDOM_SEED);
+		}
+		
+		nl = gaSettingsElement.getElementsByTagName(FIX_NUMBER_OF_GENERATIONS);
+		if (nl != null && nl.getLength() > 0) {
+			final Element element = (Element) nl.item(0);
+			final NodeList content = element.getChildNodes();
+			if (content == null || content.getLength() == 0) {
+				throw new WizardLoadingException(true, "missing content at node: " + FIX_NUMBER_OF_GENERATIONS);
+			}
+			
+			final String fixNumberOfGenerationsStr = ((Text)content.item(0)).getNodeValue().trim();
+			fixNumberOfGenerations = Boolean.parseBoolean(fixNumberOfGenerationsStr);
+		} else {
+			throw new WizardLoadingException(true, "missing node: " + FIX_NUMBER_OF_GENERATIONS);
+		}
+		
+		if (fixNumberOfGenerations) {
+			nl = gaSettingsElement.getElementsByTagName(NUMBER_OF_GENERATIONS);
+			if (nl != null && nl.getLength() > 0) {
+				final Element element = (Element) nl.item(0);
+				final NodeList content = element.getChildNodes();
+				if (content == null || content.getLength() == 0) {
+					throw new WizardLoadingException(true, "missing content at node: " + NUMBER_OF_GENERATIONS);
+				}
+				
+				final String numberOfGenerationsStr = ((Text)content.item(0)).getNodeValue().trim();
+				try {
+					numberOfGenerations = Integer.parseInt(numberOfGenerationsStr);
+				} catch (final NumberFormatException e) {
+					throw new WizardLoadingException(true,  "invalid content (" + numberOfGenerationsStr + ") at node: " + NUMBER_OF_GENERATIONS +
+													 " (expected: integer number)");
+				}
+			} else {
+				throw new WizardLoadingException(true, "missing node: " + NUMBER_OF_GENERATIONS);
+			}
+		} else {
+			nl = gaSettingsElement.getElementsByTagName(FITNESS_LIMIT_CRITERION);
+			if (nl != null && nl.getLength() > 0) {
+				final Element element = (Element) nl.item(0);
+				final NodeList content = element.getChildNodes();
+				if (content == null || content.getLength() == 0) {
+					throw new WizardLoadingException(true, "missing content at node: " + FITNESS_LIMIT_CRITERION);
+				}
+				
+				final String fitnessLimitCriterionStr = ((Text)content.item(0)).getNodeValue().trim();
+				try {
+					fitnessLimitCriterion = Double.parseDouble(fitnessLimitCriterionStr);
+				} catch (final NumberFormatException e) {
+					throw new WizardLoadingException(true,  "invalid content (" + fitnessLimitCriterionStr + ") at node: " + FITNESS_LIMIT_CRITERION +
+													 " (expected: real number)");
+				}
+			} else {
+				throw new WizardLoadingException(true, "missing node: " + FITNESS_LIMIT_CRITERION);
+			}
+		}
+		
+		nl = gaSettingsElement.getElementsByTagName(OPTIMIZATION_DIRECTION);
+		if (nl != null && nl.getLength() > 0) {
+			final Element element = (Element) nl.item(0);
+			final NodeList content = element.getChildNodes();
+			if (content == null || content.getLength() == 0) {
+				throw new WizardLoadingException(true, "missing content at node: " + OPTIMIZATION_DIRECTION);
+			}
+			
+			final String optimizationDirectionStr = ((Text)content.item(0)).getNodeValue().trim();
+			try {
+				optimizationDirection = FitnessFunctionDirection.valueOf(optimizationDirectionStr);
+			} catch (final IllegalArgumentException e) {
+				throw new WizardLoadingException(true,  "invalid content (" + optimizationDirectionStr + ") at node: " + OPTIMIZATION_DIRECTION +
+												 " (expected: MINIMIZE or MAXIMIZE)");
+			}
+		} else {
+			throw new WizardLoadingException(true, "missing node: " + OPTIMIZATION_DIRECTION);
+		}
+		
+		nl = gaSettingsElement.getElementsByTagName(FITNESS_FUNCTION);
+		if (nl != null && nl.getLength() > 0) {
+			final Element element = (Element) nl.item(0);
+			final NodeList content = element.getChildNodes();
+			if (content == null || content.getLength() == 0) {
+				throw new WizardLoadingException(true, "missing content at node: " + FITNESS_FUNCTION);
+			}
+			
+			final String fitnessFunctionStr = ((Text)content.item(0)).getNodeValue().trim();
+			selectedFunction = new RecordableInfo(fitnessFunctionStr, Void.TYPE, fitnessFunctionStr); // dummy object to store accessible name
+		} else {
+			throw new WizardLoadingException(true, "missing node: " + FITNESS_FUNCTION);
+		}
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private void loadSelectors(final Element gaSettingsElement) throws WizardLoadingException {
+		NodeList nl = gaSettingsElement.getElementsByTagName(SELECTORS);
+		if (nl != null && nl.getLength() > 0) {
+			final Element selectorsElement = (Element) nl.item(0);
+			
+			nl = selectorsElement.getElementsByTagName(SELECTOR);
+			if (nl != null && nl.getLength() > 0) {
+				for (int i = 0; i < nl.getLength(); ++i) {
+					final Element selectorElement = (Element) nl.item(i);
+					final String type = selectorElement.getAttribute(WizardSettingsManager.TYPE);
+					if (type == null || type.trim().isEmpty()) {
+						throw new WizardLoadingException(true, "missing '" + WizardSettingsManager.TYPE + "' attribute at node: " + SELECTOR);
+					}
+					final IGASelectorConfigurator configurator = findSelectorConfigurator(type.trim());
+					
+					final Map<String,String> config = readProperties(selectorElement);
+					configurator.setConfiguration(config);
+				}
+			}
+		} else {
+			throw new WizardLoadingException(true, "missing node: " + SELECTORS);
+		}
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private void loadOperators(final Element gaSettingsElement) throws WizardLoadingException {
+		NodeList nl = gaSettingsElement.getElementsByTagName(GENETIC_OPERATORS);
+		if (nl != null && nl.getLength() > 0) {
+			 final Element geneticOperatorsElement = (Element) nl.item(0);
+			 
+			 nl = geneticOperatorsElement.getElementsByTagName(GENETIC_OPERATOR);
+			 if (nl != null && nl.getLength() >0) {
+				 for (int i = 0; i < nl.getLength(); ++i) {
+					 final Element goElement = (Element) nl.item(i);
+					 final String type = goElement.getAttribute(WizardSettingsManager.TYPE);
+					 if (type == null || type.trim().isEmpty()) {
+						 throw new WizardLoadingException(true, "missing '" + WizardSettingsManager.TYPE + "' attribute at node: " + GENETIC_OPERATOR);
+					 }
+					 final IGAOperatorConfigurator configurator = findOperatorConfigurator(type.trim());
+					 
+					 final Map<String,String> config = readProperties(goElement);
+					 configurator.setConfiguration(config);
+				 }
+			 }
+		} else {
+			throw new WizardLoadingException(true, "missing node: " + GENETIC_OPERATORS);
+		}
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private void loadChromosome(final Element gaSettingsElement, final List<ParameterInfo> params) throws WizardLoadingException {
+		final int childCount = getChromosomeTree().getChildCount(getChromosomeTree().getRoot());
+		if (childCount > 0) {
+			final DefaultMutableTreeNode root = (DefaultMutableTreeNode) getChromosomeTree().getRoot();
+			for (int i = childCount - 1; i >= 0; --i) {
+				final MutableTreeNode node = (MutableTreeNode) root.getChildAt(i);
+				getChromosomeTree().removeNodeFromParent(node); 
+			}
+			genes = null;
+		}
+		
+		final DefaultMutableTreeNode root = (DefaultMutableTreeNode) getChromosomeTree().getRoot();
+		
+		NodeList nl = gaSettingsElement.getElementsByTagName(CHROMOSOME);
+		if (nl != null && nl.getLength() > 0) {
+			final Element chromosomeElement = (Element) nl.item(0);
+			
+			nl = chromosomeElement.getElementsByTagName(GENE);
+			loadGene(nl, params, root);
+			
+			nl = chromosomeElement.getElementsByTagName(PARAMETER);
+			loadParameter(nl, params, root);
+		} else {
+			throw new WizardLoadingException(true, "missing node: " + CHROMOSOME);
+		}
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private void loadGene(final NodeList geneList, final List<ParameterInfo> params, final DefaultMutableTreeNode root) throws WizardLoadingException {
+		if (geneList != null) {
+			for (int i = 0; i < geneList.getLength(); ++i) {
+				final Element geneElement = (Element) geneList.item(i);
+				final String geneName = geneElement.getAttribute(WizardSettingsManager.NAME);
+				
+				if (geneName == null || geneName.trim().isEmpty()) {
+					throw new WizardLoadingException(true, "missing attribute '" + WizardSettingsManager.NAME + "' at node: " + GENE);
+				}
+				
+				final ParameterInfo info = findParameterInfo(params,geneName.trim());
+				if (info != null) {
+					final ParameterOrGene userObj = initializeUserObjectFromGene(geneElement,info);
+					final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(userObj);
+					getChromosomeTree().insertNodeInto(newNode,root,root.getChildCount());
+				} else {
+					throw new WizardLoadingException(false, "Unrecognized gene: " + geneName + " (ignored)");
+				}
+			}
+		}
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private void loadParameter(final NodeList parameterList, final List<ParameterInfo> params, final DefaultMutableTreeNode root) throws WizardLoadingException {
+		if (parameterList != null) {
+			for (int i = 0; i < parameterList.getLength(); ++i) {
+				final Element parameterElement = (Element) parameterList.item(i);
+				final String paramName = parameterElement.getAttribute(WizardSettingsManager.NAME);
+				
+				if (paramName == null || paramName.trim().isEmpty()) {
+					throw new WizardLoadingException(true, "missing attribute '" + WizardSettingsManager.NAME + "' at node: " + PARAMETER);
+				}
+				
+				final ParameterInfo info = findParameterInfo(params,paramName.trim());
+				if (info != null) {
+					final NodeList content = parameterElement.getChildNodes();
+					if (content == null || content.getLength() == 0) {
+						throw new WizardLoadingException(true, "missing content at node: " + PARAMETER);
+					}
+					final String parameterValue = ((Text)content.item(0)).getNodeValue().trim();
+					Object value;
+					if (info.getType().equals("File") && parameterValue.isEmpty()) {
+						value = new File("");
+					} else {
+						value = ParameterInfo.getValue(parameterValue,info.getJavaType());
+					}
+					info.setValue(value);
+					
+					final ParameterOrGene userObj = new ParameterOrGene(info);
+					final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(userObj);
+					getChromosomeTree().insertNodeInto(newNode,root,root.getChildCount());
+				} else {
+					throw new WizardLoadingException(false, "Unrecognized gene: " + paramName + " (ignored)");
+				}
+			}
+		}
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private ParameterOrGene initializeUserObjectFromGene(final Element geneElement, final ParameterInfo info) throws WizardLoadingException {
+		final String geneType = geneElement.getAttribute(WizardSettingsManager.TYPE);
+		if (geneType == null || geneType.trim().isEmpty()) {
+			throw new WizardLoadingException(true, "missing attribute '" + WizardSettingsManager.TYPE + "' at node: " + GENE);
+		}
+		
+		if (GeneInfo.INTERVAL.equals(geneType.trim())) {
+			final String isIntegerStr = geneElement.getAttribute(IS_INTEGER);
+			if (isIntegerStr == null || isIntegerStr.trim().isEmpty()) {
+				throw new WizardLoadingException(true, "missing attribute '" + IS_INTEGER + "' at node: " + GENE);
+			}
+			final boolean isInteger = Boolean.parseBoolean(isIntegerStr.trim());
+			
+			final String minStr = geneElement.getAttribute(MIN_VALUE);
+			if (minStr == null || minStr.trim().isEmpty()) {
+				throw new WizardLoadingException(true, "missing attribute '" + MIN_VALUE + "' at node: " + GENE);
+			}
+			
+			final String maxStr = geneElement.getAttribute(MAX_VALUE);
+			if (maxStr == null || maxStr.trim().isEmpty()) {
+				throw new WizardLoadingException(true, "missing attribute '" + MAX_VALUE + "' at node: " + GENE);
+			}
+			
+			if (isInteger) {
+				long min = Long.MIN_VALUE;
+				try {
+					min = Long.parseLong(minStr);
+				} catch (final NumberFormatException e) {
+					throw new WizardLoadingException(true, "invalid attribute value (" + MIN_VALUE + "=" + minStr + ") at node: " + GENE + 
+							" (expected: integer number)");
+				}
+				
+				long max = Long.MAX_VALUE;
+				try {
+					max = Long.parseLong(maxStr);
+				} catch (final NumberFormatException e) {
+					throw new WizardLoadingException(true, "invalid attribute value (" + MAX_VALUE + "=" + maxStr + ") at node: " + GENE +
+							" (expected: integer number)");
+				}
+				
+				return new ParameterOrGene(info,min,max);
+			} else {
+				double min = - Double.MAX_VALUE;
+				try {
+					min = Double.parseDouble(minStr);
+				} catch (final NumberFormatException e) {
+					throw new WizardLoadingException(true, "invalid attribute value (" + MIN_VALUE + "=" + minStr + ") at node: " + GENE + 
+							" (expected: real number)");
+				}
+				
+				double max = Double.MAX_VALUE;
+				try {
+					max = Double.parseDouble(maxStr);
+				} catch (final NumberFormatException e) {
+					throw new WizardLoadingException(true, "invalid attribute value (" + MAX_VALUE + "=" + maxStr + ") at node: " + GENE + 
+							" (expected: real number)");
+				}
+				
+				return new ParameterOrGene(info,min,max);
+			}
+		} else if (GeneInfo.LIST.equals(geneType.trim())) {
+			final NodeList nl = geneElement.getElementsByTagName(LIST_VALUE);
+			if (nl != null && nl.getLength() > 0) {
+				final List<Object> valueList = new ArrayList<>(nl.getLength());
+				
+				for (int i = 0; i < nl.getLength(); ++i) {
+					final Element element = (Element) nl.item(i);
+					final NodeList content = element.getChildNodes();
+					if (content == null || content.getLength() == 0) {
+						throw new WizardLoadingException(true, "missing content at node: " + LIST_VALUE);
+					}
+					final String strValue = ((Text)content.item(0)).getNodeValue().trim();
+					valueList.add(parseListElement(info.getJavaType(),strValue));
+				}
+				
+				return new ParameterOrGene(info, valueList);
+			} else {
+				throw new WizardLoadingException(true, "missing node: " + LIST_VALUE);
+			}
+		} else {
+			throw new WizardLoadingException(true, "invalid attribute value (" + WizardSettingsManager.TYPE + "=" + geneType.trim() + ") at node: " + GENE);
+		}
+	}
+
+	//----------------------------------------------------------------------------------------------------
+	private Object parseListElement(final Class<?> type, final String strValue) throws WizardLoadingException {
+		if (type.equals(Double.class) || type.equals(Float.class) || type.equals(Double.TYPE) || type.equals(Float.TYPE)) {
+			try {
+				return Double.parseDouble(strValue);
+			} catch (final NumberFormatException e) {
+				throw new WizardLoadingException(true, "invalid content (" + strValue + ") at node: " + LIST_VALUE + 
+						" (expected: real number)");
+			}
+		}
+		
+		try {
+			return Long.parseLong(strValue);
+		} catch (final NumberFormatException e) {
+			throw new WizardLoadingException(true, "invalid content (" + strValue + ") at node: " + LIST_VALUE + 
+					" (expected: integer number)");
+		}
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private ParameterInfo findParameterInfo(final List<ParameterInfo> parameters, final String name) {
+		for (final ParameterInfo info : parameters) {
+			if (name.equals(info.getName()))
+				return info;
+		}
+		
+		return null;
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private IGASelectorConfigurator findSelectorConfigurator(final String selectorType) throws WizardLoadingException {
+		for (final IGASelectorConfigurator configurator : selectors) {
+			if (configurator.getName().equals(selectorType))
+				return configurator;
+		}
+		
+		throw new WizardLoadingException(true, "Unrecognized selector: " + selectorType + ".");
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private IGAOperatorConfigurator findOperatorConfigurator(final String operatorType) throws WizardLoadingException {
+		for (final IGAOperatorConfigurator configurator : geneticOperators) {
+			if (configurator.getName().equals(operatorType))
+				return configurator;
+		}
+		
+		throw new WizardLoadingException(true, "Unrecognized genetic operator: " + operatorType + ".");
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private Map<String,String> readProperties(final Node node) {
+		final Map<String,String> prop = new HashMap<String,String>();
+		final NodeList nodes = node.getChildNodes();
+		if (nodes != null) {
+			for (int i = 0; i < nodes.getLength(); ++i) {
+				if (!(nodes.item(i) instanceof Element)) continue;
+				final Element element = (Element) nodes.item(i);
+				if (!element.getTagName().equals(PROPERTY)) continue;
+				final String key = element.getAttribute(KEY);
+				final Text text = (Text) element.getChildNodes().item(0);
+				if (text == null) { 
+					prop.put(key.trim(),"");
+				} else {
+					final String value = text.getNodeValue();
+					prop.put(key.trim(),value.trim());
+				}
+			}
+		}
+		
+		return prop;
+	}
 
 	//----------------------------------------------------------------------------------------------------
 	public void invalidatePlugin() {
