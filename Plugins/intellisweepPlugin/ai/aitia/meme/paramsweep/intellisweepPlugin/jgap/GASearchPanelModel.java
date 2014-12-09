@@ -227,7 +227,10 @@ public interface GASearchPanelModel {
 	public boolean isFixNumberOfGenerations();
 	
 	//----------------------------------------------------------------------------------------------------
-	void setFixNumberOfGenerations(final boolean fixNumberOfGenerations);
+	public void setFixNumberOfGenerations(final boolean fixNumberOfGenerations);
+	
+	//----------------------------------------------------------------------------------------------------
+	public void addParametersToChromosomeTree();
 	
 	//====================================================================================================
 	// nested classes, interfaces

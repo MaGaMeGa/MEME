@@ -148,6 +148,9 @@ public class GASearchPanel extends JPanel {
 	private JTextField fileTextField;
 	private JButton fileBrowseButton;
 
+	private JButton localNewParametersButton;
+	private JButton remoteNewParametersButton;
+
 	private JRadioButton constantRButton;
 	private JRadioButton doubleGeneValueRangeRButton;
 	private JRadioButton intGeneValueRangeRButton;
@@ -163,12 +166,14 @@ public class GASearchPanel extends JPanel {
 	private CheckList operatorList;
 
 	private DefaultMutableTreeNode editedNode;
+
 	
 	//====================================================================================================
 	// methods
 	
 	//----------------------------------------------------------------------------------------------------
-	public GASearchPanel(final GASearchPanelModel model) {
+	public GASearchPanel(final GASearchPanelModel model, final JButton remoteNewParametersButton) {
+		this.remoteNewParametersButton = remoteNewParametersButton;
 		initSearchPanel(model);
 	}
 	
@@ -227,6 +232,7 @@ public class GASearchPanel extends JPanel {
 		
 		resetSettings();
 		enableDisableSettings(false);
+		updateNumberOfGenes();
 	}
 	
 	//====================================================================================================
@@ -795,9 +801,24 @@ public class GASearchPanel extends JPanel {
 		
 		geneSetterPanel.setBorder(BorderFactory.createTitledBorder(null,"Gene/parameter settings",TitledBorder.LEADING,TitledBorder.BELOW_TOP));
 		
-		final JPanel rightTop = FormsUtils.build("f:p:g p",
-												 "01 f:p:g",
-												 treePanel,geneSetterPanel).getPanel();
+		localNewParametersButton = new JButton("Add new parameters...");
+		localNewParametersButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				if (remoteNewParametersButton != null) {
+					remoteNewParametersButton.doClick();
+					model.addParametersToChromosomeTree();
+					updateNumberOfGenes();
+				} else {
+					Utilities.userAlert(mainScrPane,"Sorry, this feature is not available.");
+				}
+			}
+		});
+		
+		final JPanel rightTop = FormsUtils.build("f:p:g p ' p",
+												 "001 f:p:g||" + 
+												 "_21 p",
+												 treePanel,geneSetterPanel,localNewParametersButton).getPanel();
 		rightTop.setBorder(BorderFactory.createTitledBorder(null,"Chromosome",TitledBorder.LEADING,TitledBorder.BELOW_TOP));
 		
 		final JPanel mainPanel = FormsUtils.build("p f:p:g", 
@@ -846,6 +867,7 @@ public class GASearchPanel extends JPanel {
 		valuesArea.setEnabled(enabled);
 		modifyButton.setEnabled(enabled);
 		cancelButton.setEnabled(enabled);
+		localNewParametersButton.setEnabled(PlatformSettings.getGUIControllerForPlatform().isNewParametersEnabled() && !enabled);
 	}
 
 	//------------------------------------------------------------------------------

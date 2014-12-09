@@ -122,6 +122,8 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 	protected static final String ext = ".txt";
 	protected static final String bckExt = ".bak";
 	
+	private IIntelliContext context;
+	
 	private int populationSize = 12;
 	private int populationGenerationSeed = 1;
 	private int numberOfGenerations = 12;
@@ -804,12 +806,10 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 	//----------------------------------------------------------------------------------------------------
 	public JPanel getSettingsPanel(final IIntelliContext ctx) {
 		if (content == null) {
-			content = new GASearchPanel(this);
+			context = ctx;
+			content = new GASearchPanel(this, ctx.getNewParametersButton());
 			
-			removeAllParameters();
-			for (final ParameterInfo parameterInfo : ctx.getParameters()) {
-				addParameter(new ParameterOrGene(parameterInfo));
-			}
+			addParametersToChromosomeTree();
 			
 			if (listeners != null) {
 				for (final ModelListener listener : listeners) {
@@ -820,6 +820,14 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 		
 		
 		return content;
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	public void addParametersToChromosomeTree() {
+		removeAllParameters();
+		for (final ParameterInfo parameterInfo : context.getParameters()) {
+			addParameter(new ParameterOrGene(parameterInfo));
+		}
 	}
 
 	//----------------------------------------------------------------------------------------------------
