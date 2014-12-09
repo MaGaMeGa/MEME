@@ -242,10 +242,13 @@ public class TournamentSelectorConfigurator implements IGASelectorConfigurator {
 
 		try {
 			final int selectionProbabilityNumber = Integer.parseInt(selectionProbabilityStr.trim());
-			if (selectionProbabilityNumber < 1
-					|| selectionProbabilityNumber > 100)
+			if (selectionProbabilityNumber < 1 || selectionProbabilityNumber > 100) {
 				throw new NumberFormatException();
+			}
 			selectionProbabilityModel.setValue(selectionProbabilityNumber);
+			if (selectionProbabilityValueField != null) {
+				selectionProbabilityValueField.setText(selectionProbabilityStr.trim());
+			}
 		} catch (final NumberFormatException e) {
 			throw new WizardLoadingException(true, "Invalid setting for 'selectionProbability': "
 					+ selectionProbabilityStr + ".");

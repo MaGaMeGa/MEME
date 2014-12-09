@@ -206,6 +206,9 @@ public class BestChromosomeSelectorConfigurator implements IGASelectorConfigurat
 			if (originalRate < 0 || originalRate > 100)
 				throw new NumberFormatException();
 			model.setValue(originalRate);
+			if (originalRateValueField != null) {
+				originalRateValueField.setText(originalRateStr.trim());
+			}
 		} catch (final NumberFormatException e) {
 			throw new WizardLoadingException(true, "Invalid setting for 'originalRate': " + originalRateStr + ".");
 		}

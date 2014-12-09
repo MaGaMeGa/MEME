@@ -537,6 +537,7 @@ public class ParameterSweepWizard extends Wizard implements IPSWInformationProvi
 		PlatformType platform = PlatformManager.platformTypeFromString(platformID);
 		platformPage.setSelectedPlatform(platform);
 		PlatformSettings.setSelectedPlatform(platform);
+		modelInformation = null;
 		writeUsedPlatformToRegistry();
 		
 		NodeList nl = root.getElementsByTagName(WizardSettingsManager.PARAMETER_FILE);

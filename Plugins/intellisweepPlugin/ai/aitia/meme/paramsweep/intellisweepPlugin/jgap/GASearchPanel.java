@@ -438,7 +438,7 @@ public class GASearchPanel extends JPanel {
 		
 		operatorSettingsPanel = new JPanel(new CardLayout());
 		operatorSettingsPanel.setBorder(BorderFactory.createTitledBorder(null,OPERATOR_SETTINGS_PANEL_TITLE_POSTFIX,TitledBorder.LEADING,TitledBorder.BELOW_TOP));
-		operatorSettingsPanel.add(new JLabel("Here come the operator settings!"), OPERATOR_SETTINGS_PANEL_DEFAULT_PANEL);
+		operatorSettingsPanel.add(new JLabel(""), OPERATOR_SETTINGS_PANEL_DEFAULT_PANEL);
 		
 		final List<IGASelectorConfigurator> selectionOperators = model.getSelectionOperators();
 		final List<IGASelectorConfigurator> selectedSelectionOperators = model.getSelectedSelectionOperators();
@@ -639,7 +639,7 @@ public class GASearchPanel extends JPanel {
 		fileBrowseButton = new JButton(FileSystemView.getFileSystemView().getSystemIcon(new File(".")));
 		fileBrowseButton.setActionCommand("FILE_BROWSE");
 		
-		final JPanel fileDefPanel = FormsUtils.build("p ~ p:g ~ p",
+		final JPanel fileDefPanel = FormsUtils.build("p ~ p:g ' p",
 									   "[DialogBorder]012",
 									   "File",fileTextField,fileBrowseButton).getPanel();
 

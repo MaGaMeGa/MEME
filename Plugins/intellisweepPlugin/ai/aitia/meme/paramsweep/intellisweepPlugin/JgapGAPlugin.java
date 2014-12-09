@@ -459,15 +459,15 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 			final List<Object> values = new ArrayList<Object>();
 
 			final int genIdx = whichGene(paramInfo.getName());
-			for (int j = 0; j < populationSize; ++j) {
-				if (genIdx >= 0) {
+			if (genIdx >= 0) {
+				for (int j = 0; j < populationSize; ++j) {
 					final String strValue = String.valueOf(descendants.getChromosome(j).getGene(genIdx).getAllele());
 					values.add(ParameterInfo.getValue(strValue,paramInfo.getType()));
 					paramInfo.setDefinitionType(ParameterInfo.LIST_DEF);
-				} else {
-					values.add(paramInfo.getValue());
-					paramInfo.setDefinitionType(ParameterInfo.CONST_DEF);
 				}
+			} else {
+				values.add(paramInfo.getValue());
+				paramInfo.setDefinitionType(ParameterInfo.CONST_DEF);
 			}
 
 			paramInfo.setValues(values);
@@ -740,6 +740,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 			}
 		}
 		
+		final RecordableInfo oldSelectedFunction = selectedFunction;
 		removeAllFitnessFunctions();
 		fitnessFunctions.addAll(newList);
 		
@@ -749,11 +750,11 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 			}
 		}
 		
-		if (selectedFunction != null) {
+		if (oldSelectedFunction != null) {
 			RecordableInfo selectedFunctionInTheList = null;
 			for (final RecordableInfo ri : fitnessFunctions)
 			{
-				if (ri.equals(selectedFunction)) {
+				if (ri.equals(oldSelectedFunction)) {
 					// accessible name equality
 					selectedFunctionInTheList = ri;
 				}
@@ -972,6 +973,8 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 		geneticOperators = Arrays.asList(new GeneAveragingCrossoverOperatorConfigurator(), new CrossoverOperatorConfigurator(),new MutationOperatorConfigurator());
 		
 		init();
+		selectedSelectionOperators.clear();
+		selectedGeneticOperators.clear();
 		readyStatusDetail = null;
 		content = (GASearchPanel) getSettingsPanel(context);
 		
@@ -1133,6 +1136,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 					
 					final Map<String,String> config = readProperties(selectorElement);
 					configurator.setConfiguration(config);
+					selectedSelectionOperators.add(configurator);
 				}
 			}
 		} else {
@@ -1158,6 +1162,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 					 
 					 final Map<String,String> config = readProperties(goElement);
 					 configurator.setConfiguration(config);
+					 selectedGeneticOperators.add(configurator);
 				 }
 			 }
 		} else {
