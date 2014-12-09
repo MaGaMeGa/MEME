@@ -88,7 +88,7 @@ public class ResultProcessingFrameV2 implements ActionListener {
 	// nested classes
 	
 	//----------------------------------------------------------------------------------------------------
-	static class NoSuchPluginException extends Exception {
+	public static class NoSuchPluginException extends Exception {
 		private static final long serialVersionUID = 0L;
 
 		public NoSuchPluginException(String message) {

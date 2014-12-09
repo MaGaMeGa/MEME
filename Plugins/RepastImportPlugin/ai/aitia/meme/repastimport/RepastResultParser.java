@@ -54,6 +54,7 @@ import ai.aitia.meme.database.Run;
 import ai.aitia.meme.database.ColumnType.ValueNotSupportedException;
 import ai.aitia.meme.gui.lop.UserBreakException;
 import ai.aitia.meme.processing.ResultProcessingFrame;
+import ai.aitia.meme.processing.ResultProcessingFrame.NoSuchPluginException;
 import ai.aitia.meme.utils.Utils;
 
 /** The class represents a parser that parse a Repast result file and loads its content
@@ -806,6 +807,9 @@ public class RepastResultParser {
 				endTime);
 		} catch (final ValueNotSupportedException e) {
 			warnings += "\nDatabase warnings: see the error log for details.\n";
+		} catch (final NoSuchPluginException e) {
+			Logger.logWarning(e.getMessage());
+			write(db, modelName, version, null, isPluginXMLFileName);
 		}
 
 	}

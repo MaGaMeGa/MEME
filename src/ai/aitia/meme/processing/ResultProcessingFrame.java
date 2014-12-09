@@ -84,7 +84,7 @@ public class ResultProcessingFrame implements ActionListener {
 	private Vector<String> chartConfigViews = null;
 	private int chartAdditiveId = 0;
 
-	class NoSuchPluginException extends Exception {
+	public static class NoSuchPluginException extends Exception {
 		private static final long serialVersionUID = 0L;
 
 		public NoSuchPluginException(String message) {
