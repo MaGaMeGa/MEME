@@ -232,6 +232,7 @@ public class GASearchPanel extends JPanel {
 		
 		resetSettings();
 		enableDisableSettings(false);
+		localNewParametersButton.setVisible(PlatformSettings.getGUIControllerForPlatform().isNewParametersEnabled());
 		updateNumberOfGenes();
 	}
 	
@@ -814,6 +815,7 @@ public class GASearchPanel extends JPanel {
 				}
 			}
 		});
+		localNewParametersButton.setVisible(PlatformSettings.getGUIControllerForPlatform().isNewParametersEnabled());
 		
 		final JPanel rightTop = FormsUtils.build("f:p:g p ' p",
 												 "001 f:p:g||" + 
