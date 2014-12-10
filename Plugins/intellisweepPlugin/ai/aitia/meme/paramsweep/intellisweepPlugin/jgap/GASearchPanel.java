@@ -152,6 +152,7 @@ public class GASearchPanel extends JPanel {
 	private JButton remoteNewParametersButton;
 
 	private JRadioButton constantRButton;
+	private JRadioButton geneRButton;
 	private JRadioButton doubleGeneValueRangeRButton;
 	private JRadioButton intGeneValueRangeRButton;
 	private JRadioButton listGeneValueRButton;
@@ -614,10 +615,11 @@ public class GASearchPanel extends JPanel {
 		geneSettingsValuePanel = new JPanel(new CardLayout());
 
 		constantRButton = new JRadioButton("Constant");
+		geneRButton = new JRadioButton("Gene");
 		doubleGeneValueRangeRButton = new JRadioButton("Double value range");
 		intGeneValueRangeRButton = new JRadioButton("Integer value range");
 		listGeneValueRButton = new JRadioButton("Value list");
-		GUIUtils.createButtonGroup(constantRButton,doubleGeneValueRangeRButton,intGeneValueRangeRButton,listGeneValueRButton);
+		GUIUtils.createButtonGroup(constantRButton,geneRButton,doubleGeneValueRangeRButton,intGeneValueRangeRButton,listGeneValueRButton);
 
 		constantField = new JTextField();
 		constantField.setActionCommand("CONST_FIELD");
@@ -708,6 +710,8 @@ public class GASearchPanel extends JPanel {
 							layout.show(geneSettingsValuePanel,PARAM_SETTINGS_FILE_VALUE_PANEL);
 						else
 							layout.show(geneSettingsValuePanel,PARAM_SETTINGS_CONSTANT_VALUE_PANEL);
+					} else if (geneRButton.isSelected()) {
+						layout.show(geneSettingsValuePanel, "NULL");
 					}
 				} else {
 					resetSettings();
@@ -716,6 +720,7 @@ public class GASearchPanel extends JPanel {
 			}
 		};
 		constantRButton.addItemListener(itemListener);
+		geneRButton.addItemListener(itemListener);
 		doubleGeneValueRangeRButton.addItemListener(itemListener);
 		intGeneValueRangeRButton.addItemListener(itemListener);
 		listGeneValueRButton.addItemListener(itemListener);
@@ -724,8 +729,10 @@ public class GASearchPanel extends JPanel {
 													"0||" +
 													"1||" +
 													"2||" +
-													"3",
+													"3||" +
+													"4",
 													constantRButton,
+													geneRButton,
 													doubleGeneValueRangeRButton,
 													intGeneValueRangeRButton,
 													listGeneValueRButton ).getPanel();
@@ -855,6 +862,7 @@ public class GASearchPanel extends JPanel {
 	 */
 	private void enableDisableSettings(final boolean enabled) {
 		constantRButton.setEnabled(enabled);
+		geneRButton.setEnabled(enabled);
 		intGeneValueRangeRButton.setEnabled(enabled);
 		doubleGeneValueRangeRButton.setEnabled(enabled);
 		listGeneValueRButton.setEnabled(enabled);
@@ -876,9 +884,10 @@ public class GASearchPanel extends JPanel {
 	/** Resets the parameter editing related components. */
 	private void resetSettings() { 
 		constantRButton.setSelected(false);
+		geneRButton.setSelected(false);
 		intGeneValueRangeRButton.setSelected(false);
-		doubleGeneValueRangeRButton.setSelected(false);;
-		listGeneValueRButton.setSelected(false);;
+		doubleGeneValueRangeRButton.setSelected(false);
+		listGeneValueRButton.setSelected(false);
 		constantField.setText("");
 		fileTextField.setText("");
 		intMinField.setText("");
@@ -889,6 +898,11 @@ public class GASearchPanel extends JPanel {
 		modifyButton.setEnabled(false);
 		cancelButton.setEnabled(false);
 		
+		geneRButton.setVisible(false);
+		intGeneValueRangeRButton.setVisible(true);
+		doubleGeneValueRangeRButton.setVisible(true);
+		listGeneValueRButton.setVisible(true);
+		
 		final CardLayout cl = (CardLayout) geneSettingsValuePanel.getLayout();
 		cl.show(geneSettingsValuePanel,"NULL");
 	}
@@ -896,6 +910,14 @@ public class GASearchPanel extends JPanel {
 	//----------------------------------------------------------------------------------------------------
 	private void edit(final ParameterOrGene param) {
 		enableDisableSettings(true);
+		
+		if (param.getInfo().isBoolean()) {
+			geneRButton.setVisible(true);
+			intGeneValueRangeRButton.setVisible(false);
+			doubleGeneValueRangeRButton.setVisible(false);
+			listGeneValueRButton.setVisible(false);
+		}
+		
 		String view = PARAM_SETTINGS_CONSTANT_VALUE_PANEL;
 		if (param.isGene()) {
 			editGene(param.getGeneInfo());
@@ -946,7 +968,7 @@ public class GASearchPanel extends JPanel {
 		if (!param.getInfo().isNumeric()) {
 			intGeneValueRangeRButton.setEnabled(false);
 			doubleGeneValueRangeRButton.setEnabled(false);
-			listGeneValueRButton.setEnabled(false);
+			listGeneValueRButton.setEnabled("String".equals(param.getInfo().getType()));
 		}
 	}
 	
@@ -957,7 +979,7 @@ public class GASearchPanel extends JPanel {
 			view = GENE_SETTINGS_LIST_VALUE_PANEL;
 			listGeneValueRButton.setSelected(true);
 			valuesArea.setText(Utils.join(geneInfo.getValueRange()," "));
-		} else {
+		} else if (GeneInfo.INTERVAL.equals(geneInfo.getValueType())) {
 			if (geneInfo.isIntegerVals()) {
 				view = GENE_SETTINGS_INT_RANGE_VALUE_PANEL;
 				intGeneValueRangeRButton.setSelected(true);
@@ -969,6 +991,9 @@ public class GASearchPanel extends JPanel {
 				doubleMinField.setText(String.valueOf(geneInfo.getMinValue()));
 				doubleMaxField.setText(String.valueOf(geneInfo.getMaxValue()));
 			}
+		} else {
+			view = "NULL";
+			geneRButton.setSelected(true);
 		}
 		
 		final CardLayout cl = (CardLayout) geneSettingsValuePanel.getLayout();
@@ -1131,6 +1156,9 @@ public class GASearchPanel extends JPanel {
 	
 	//----------------------------------------------------------------------------------------------------
 	private Object parseListElement(final Class<?> type, final String strValue) {
+		if (String.class.equals(type)) 
+			return strValue;
+		
 		if (type.equals(Double.class) || type.equals(Float.class) || type.equals(Double.TYPE) || type.equals(Float.TYPE))
 			return Double.parseDouble(strValue);
 		
@@ -1193,6 +1221,8 @@ public class GASearchPanel extends JPanel {
 			while (tokenizer.hasMoreTokens()) 
 				valueList.add(parseListElement(param.getInfo().getJavaType(),tokenizer.nextToken()));
 			param.setGene(valueList);
+		} else if (geneRButton.isSelected()) {
+			param.setBooleanGene();
 		}
 	}
 

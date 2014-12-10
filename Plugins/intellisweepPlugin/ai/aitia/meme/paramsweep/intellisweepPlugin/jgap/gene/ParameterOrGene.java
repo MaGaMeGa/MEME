@@ -89,6 +89,12 @@ public class ParameterOrGene implements Serializable {
 	}
 	
 	//----------------------------------------------------------------------------------------------------
+	public void setBooleanGene() {
+		this.gene = true;
+		this.geneInfo = new GeneInfo(info.getName(), info.getType(), info.getJavaType());
+	}
+	
+	//----------------------------------------------------------------------------------------------------
 	public void setConstant(final Object value) {
 		this.info.setValue(value);
 		this.gene = false;
@@ -104,13 +110,15 @@ public class ParameterOrGene implements Serializable {
 		if (gene) {
 			if (GeneInfo.INTERVAL.equals(geneInfo.getValueType())) 
 				result += "min=" + geneInfo.getMinValue().toString() + ", max=" + geneInfo.getMaxValue().toString();
-			else {
+			else if (GeneInfo.LIST.equals(geneInfo.getValueType())){
 				result += "list=";
 				for (int i = 0;i < geneInfo.getValueRange().size();++i) {
 					 if  (i != 0) 
 						 result += " ";
 					 result += geneInfo.getValueRange().get(i).toString();
 				 }
+			} else {
+				result += "gene";
 			}
 		} else if (info.getValue() != null) {
 			result += "value=";

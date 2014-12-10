@@ -77,6 +77,7 @@ import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.MutationOpe
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.TournamentSelectorConfigurator;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.configurator.WeightedRouletteSelectorConfigurator;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.gene.IIdentifiableGene;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.gene.IdentifiableBooleanGene;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.gene.IdentifiableDoubleGene;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.gene.IdentifiableListGene;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.gene.IdentifiableLongGene;
@@ -610,20 +611,22 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 			for (final GeneInfo geneInfo : getSelectedGenes()) {
 				if (GeneInfo.INTERVAL.equals(geneInfo.getValueType())) {
 					if (geneInfo.isIntegerVals()) {
-						initialGenes[i] = new IdentifiableLongGene(geneInfo.getName(),gaConfiguration,geneInfo.getMinValue().longValue(),
+						initialGenes[i] = new IdentifiableLongGene(geneInfo.getName(), gaConfiguration, geneInfo.getMinValue().longValue(),
 																	  geneInfo.getMaxValue().longValue());
 					} else {
-						initialGenes[i] = new IdentifiableDoubleGene(geneInfo.getName(),gaConfiguration,geneInfo.getMinValue().doubleValue(),
+						initialGenes[i] = new IdentifiableDoubleGene(geneInfo.getName(), gaConfiguration, geneInfo.getMinValue().doubleValue(),
 																	 geneInfo.getMaxValue().doubleValue());
 					}
-				} else {
-					final IdentifiableListGene listGene = new IdentifiableListGene(geneInfo.getName(),gaConfiguration);
+				} else if (GeneInfo.LIST.equals(geneInfo.getValueType())) {
+					final IdentifiableListGene listGene = new IdentifiableListGene(geneInfo.getName(), gaConfiguration);
 					final List<Object> values = geneInfo.getValueRange();
 					for (final Object value : values) {
 						listGene.addAllele(value);
 					}
 					listGene.setAllele(values.get(0));
 					initialGenes[i] = listGene;
+				} else {
+					initialGenes[i] = new IdentifiableBooleanGene(geneInfo.getName(), gaConfiguration);
 				}
 
 				i++;
@@ -782,7 +785,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 
 	//----------------------------------------------------------------------------------------------------
 	public void setParameterTreeRoot(final DefaultMutableTreeNode root) {
-		// we don't use this in this implementation
+		// we don't use this method in this implementation
 	}
 
 
@@ -959,7 +962,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 				geneElement.setAttribute(IS_INTEGER, String.valueOf(geneInfo.isIntegerVals()));
 				geneElement.setAttribute(MIN_VALUE, String.valueOf(geneInfo.getMinValue()));
 				geneElement.setAttribute(MAX_VALUE, String.valueOf(geneInfo.getMaxValue()));
-			} else {
+			} else if (GeneInfo.LIST.equals(geneInfo.getValueType())) {
 				for (final Object value : geneInfo.getValueRange()) {
 					final Element element = document.createElement(LIST_VALUE);
 					geneElement.appendChild(element);
@@ -1345,6 +1348,10 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 			} else {
 				throw new WizardLoadingException(true, "missing node: " + LIST_VALUE);
 			}
+		} else if (GeneInfo.BOOLEAN.equals(geneType.trim())) {
+			ParameterOrGene result = new ParameterOrGene(info);
+			result.setBooleanGene();
+			return result;
 		} else {
 			throw new WizardLoadingException(true, "invalid attribute value (" + WizardSettingsManager.TYPE + "=" + geneType.trim() + ") at node: " + GENE);
 		}
@@ -1352,6 +1359,10 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 
 	//----------------------------------------------------------------------------------------------------
 	private Object parseListElement(final Class<?> type, final String strValue) throws WizardLoadingException {
+		if (String.class.equals(type)) {
+			return strValue;
+		}
+		
 		if (type.equals(Double.class) || type.equals(Float.class) || type.equals(Double.TYPE) || type.equals(Float.TYPE)) {
 			try {
 				return Double.parseDouble(strValue);

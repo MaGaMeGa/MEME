@@ -26,6 +26,7 @@ import org.jgap.InvalidConfigurationException;
 import org.jgap.RandomGenerator;
 import org.jgap.impl.CrossoverOperator;
 
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.gene.IdentifiableBooleanGene;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.gene.IdentifiableDoubleGene;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.gene.IdentifiableListGene;
 import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.gene.IdentifiableLongGene;
@@ -189,6 +190,26 @@ public class GeneAveragingCrossoverOperator extends CrossoverOperator {
 						final double newValue = (((Number) allele1).doubleValue() + ((Number) allele2).doubleValue()) / 2.;
 						genes1[i].setAllele(newValue);
 					}
+				} else {
+					final IdentifiableListGene lGene1 = (IdentifiableListGene) genes1[i];
+					final IdentifiableListGene lGene2 = (IdentifiableListGene) genes2[i];
+					
+					final int idx1 = lGene1.getValidValues().indexOf(allele1);
+					final int idx2 = lGene2.getValidValues().indexOf(allele2);
+					
+					final int newIdx = (int) ((idx1 + idx2) / 2. + 0.5);
+					lGene1.setAllele(lGene1.getValidValues().get(newIdx));
+				}
+			}
+			
+			if (genes1[i] instanceof IdentifiableBooleanGene) {
+				final boolean boolAllele1 = (Boolean) allele1;
+				final boolean boolAllele2 = (Boolean) allele2;
+				
+				if (boolAllele1 == boolAllele2) { 
+					genes1[i].setAllele(boolAllele1 && boolAllele2);
+				} else {
+					genes1[i].setToRandomValue(generator);
 				}
 			}
 		}

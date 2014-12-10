@@ -57,6 +57,9 @@ public class IdentifiableListGene extends BaseGene implements IIdentifiableGene 
 	public String getId() { return id; }
 	
 	//----------------------------------------------------------------------------------------------------
+	public List<Object> getValidValues() { return validValues; }
+	
+	//----------------------------------------------------------------------------------------------------
 	public void addAllele(final Object allele) {
 		validValues.add(allele);
 	}

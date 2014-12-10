@@ -25,20 +25,21 @@ import java.util.List;
  * interval or a list of assignable values.)
  * 
  * @author Attila Szabo
- *
- * @param <T> is the value type of the class.
+ * 
+ * @param <T>
+ *            is the value type of the class.
  */
 public class GeneInfo implements Serializable {
-	//=========================================================================
-	//members
 	
+	//=========================================================================
+	// members
+
 	private static final long serialVersionUID = 2001753160099291123L;
 	/** Types of assignable values. */
-	public static String LIST = "list";
-	public static String INTERVAL = "interval";
-	
-	/** The actual gene value. */
-	//protected ai.aitia.meme.paramsweep.gui.info.ParameterInfo info;
+	public static final String LIST = "list";
+	public static final String INTERVAL = "interval";
+	public static final String BOOLEAN = "boolean";
+
 	protected String name;
 	/** The minimum value of the gene. */
 	protected Number minValue;
@@ -47,25 +48,32 @@ public class GeneInfo implements Serializable {
 	/** The value range of the gene. */
 	protected List<Object> valueRange;
 	/** The gene value. */
-	//protected Object value;
+	// protected Object value;
 	/** The actual type: list or interval. */
 	protected String valueType = null;
 	/** The java type's name. */
 	protected String type = null;
 	/** The java type. */
 	protected Class<?> javaType = null;
-	/** Indicates that the gene takes integer values only. It's checked
-	 * when the type is double or float. */
+	/**
+	 * Indicates that the gene takes integer values only. It's checked when the
+	 * type is double or float.
+	 */
 	protected boolean integerVals = false;
 
-	/** Specifies whether the gene will be the part of the chromosome. */
-	//protected boolean inChromosome = false;
-
 	//=========================================================================
-	//constructors
-	public GeneInfo( /*ai.aitia.meme.paramsweep.gui.info.ParameterInfo info*/ String name, 
-				 Number min, Number max, String type, Class<?> javaType ){
-		//this.info = info;
+	// constructors
+
+	//----------------------------------------------------------------------------------------------------
+	public GeneInfo(final String name, final String type, final Class<?> javaType) {
+		this.name = name;
+		this.type = type;
+		this.javaType = javaType;
+		valueType = BOOLEAN;
+	}
+
+	//----------------------------------------------------------------------------------------------------
+	public GeneInfo(final String name, final Number min, final Number max, final String type, final Class<?> javaType) {
 		this.name = name;
 		minValue = min;
 		maxValue = max;
@@ -74,144 +82,79 @@ public class GeneInfo implements Serializable {
 		this.javaType = javaType;
 	}
 
-	public GeneInfo( /*ai.aitia.meme.paramsweep.gui.info.ParameterInfo info*/ String name, 
-				 List<Object> values, String type, Class<?> javaType){
-		//this.info = info;
+	//----------------------------------------------------------------------------------------------------
+	public GeneInfo(final String name, final List<Object> values, final String type, final Class<?> javaType) {
 		this.name = name;
 		valueRange = values;
 		valueType = LIST;
 		this.type = type;
 		this.javaType = javaType;
 	}
-	
+
 	//=========================================================================
-	//public functions
-	/* public ai.aitia.meme.paramsweep.gui.info.ParameterInfo getInfo() {
-		return info;
-	}
+	// public functions
 
-	public void setInfo(ai.aitia.meme.paramsweep.gui.info.ParameterInfo info) {
-		this.info = info;
-	}*/
-	
-	public String getName(){
-		return name;
-	}
-	
-	public void setName( String name ){
-		this.name = name;
-	}
+	//----------------------------------------------------------------------------------------------------
+	public String getName() { return name; }
+	public Number getMinValue() { return minValue; }
+	public Number getMaxValue() { return maxValue; }
+	public List<Object> getValueRange() { return valueRange; }
+	public String getValueType() { return valueType; }
+	public String getType() { return type; }
+	public Class<?> getJavaType() { return javaType; }
+	public boolean isIntegerVals() { return integerVals; }
 
-	public Number getMinValue() {
-		return minValue;
-	}
+	//----------------------------------------------------------------------------------------------------
+	public void setName(final String name) { this.name = name; }
+	public void setMinValue(final Number minValue) { this.minValue = minValue; }
+	public void setMaxValue(final Number maxValue) { this.maxValue = maxValue; }
+	public void setValueRange(final List<Object> valueRange) { this.valueRange = valueRange; }
+	public void setValueType(final String type) { this.valueType = type; }
+	public void setType(final String type) { this.type = type; }
+	public void setJavaType(final Class<?> type) { this.javaType = type; }
+	public void setIntegerVals(final boolean integerVals) { this.integerVals = integerVals; }
 
-	public void setMinValue(Number minValue) {
-		this.minValue = minValue;
-	}
-
-	public Number getMaxValue() {
-		return maxValue;
-	}
-
-	public void setMaxValue(Number maxValue) {
-		this.maxValue = maxValue;
-	}
-
-	public List<Object> getValueRange() {
-		return valueRange;
-	}
-
-	public void setValueRange(List<Object> valueRange) {
-		this.valueRange = valueRange;
-	}
-	
-	public String getValueType() {
-		return valueType;
-	}
-
-	public void setValueType(String type) {
-		this.valueType = type;
-	}
-	
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
-	}
-	
-	public Class<?> getJavaType() {
-		return javaType;
-	}
-
-	public void setJavaType(Class<?> type) {
-		this.javaType = type;
-	}
-	
-	public boolean isIntegerVals() {
-		return integerVals;
-	}
-
-	public void setIntegerVals(boolean integerVals) {
-		this.integerVals = integerVals;
-	}
-	
-	/*public Object getValue() {
-		return value;
-	}
-
-	public void setValue(Object value) {
-		this.value = value;
-	}*/
-
-	
-	public Object getRandomValue(){
-		//TODO: implement
-		if( valueType == LIST ){
-			
-		}else{
-			
-		}
-		
-		return null;
-	}
-	
+	//----------------------------------------------------------------------------------------------------
 	@Override
-	public String toString(){
-		//String str = info.getName() + " - " + info.getType();
+	public String toString() {
 		String str = name + " - " + type;
-		
-		if( minValue != null || maxValue != null || valueRange != null ){
+
+		if (minValue != null || maxValue != null || valueRange != null) {
 			str += " - [";
-		
-			if( valueType == INTERVAL ){
+
+			if (valueType == INTERVAL) {
 				str += "type: ";
-				if( ("double".equalsIgnoreCase( type ) || "float".equalsIgnoreCase( type ) ) &&
-						integerVals )
+				if (("double".equalsIgnoreCase(type) || "float".equalsIgnoreCase(type))
+						&& integerVals)
 					str += "integer ";
 				str += "interval [" + (minValue == null ? "?" : minValue) + ";";
 				str += (maxValue == null ? "?" : maxValue) + "]";
-			}else if ( valueType == LIST ){
+			} else if (valueType == LIST) {
 				str += "type: list";
 			}
-			
+
 			str += "]";
 		}
-		
+
 		return str;
 	}
-	
-	public GeneInfo cloneGeneInfo(){
-		GeneInfo clone = valueType.equals( GeneInfo.INTERVAL ) ?
-							new GeneInfo( new String( name ), new Double( minValue.doubleValue() ),
-									      new Double( maxValue.doubleValue() ), new String( type ), javaType ) :
-							new GeneInfo( new String( name ), null, new String( type ), javaType );
-		if( clone.getValueType().equals( GeneInfo.LIST ) ){
-			clone.setValueRange( new ArrayList<Object>( valueRange ) );
+
+	//----------------------------------------------------------------------------------------------------
+	public GeneInfo cloneGeneInfo() {
+		GeneInfo clone = null;
+		switch (valueType) {
+		case BOOLEAN : clone = new GeneInfo(name, type, javaType);
+					   break;
+		case INTERVAL : clone = (minValue instanceof Double) ? new GeneInfo(name, new Double(minValue.doubleValue()), new Double(maxValue.doubleValue()), type, javaType) :
+															   new GeneInfo(name, new Long(minValue.longValue()), new Long(maxValue.longValue()), type, javaType);
+						break;
+		case LIST : clone = new GeneInfo(name, null, type, javaType);
+					clone.setValueRange(new ArrayList<Object>(valueRange));
 		}
-		clone.setIntegerVals( integerVals );
+		if (clone != null) {
+			clone.setIntegerVals(integerVals);
+		}
+		
 		return clone;
 	}
 }
