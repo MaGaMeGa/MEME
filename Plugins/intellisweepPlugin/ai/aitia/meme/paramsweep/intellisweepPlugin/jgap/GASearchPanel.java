@@ -19,6 +19,8 @@ package ai.aitia.meme.paramsweep.intellisweepPlugin.jgap;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -26,6 +28,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -36,12 +40,15 @@ import java.util.StringTokenizer;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.InputVerifier;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -49,11 +56,13 @@ import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTree;
+import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
@@ -77,6 +86,7 @@ import ai.aitia.meme.paramsweep.ParameterSweepWizard;
 import ai.aitia.meme.paramsweep.batch.output.RecordableInfo;
 import ai.aitia.meme.paramsweep.gui.component.CheckList;
 import ai.aitia.meme.paramsweep.gui.component.CheckListModel;
+import ai.aitia.meme.paramsweep.gui.component.DefaultJButton;
 import ai.aitia.meme.paramsweep.gui.component.ListAsATree;
 import ai.aitia.meme.paramsweep.gui.info.MasonChooserParameterInfo;
 import ai.aitia.meme.paramsweep.gui.info.ParameterInfo;
@@ -108,9 +118,26 @@ public class GASearchPanel extends JPanel {
    
 	private static final long serialVersionUID = 7957280032992002080L;
 	
+	private static final int ICON_WIDTH_AND_HEIGHT = 25;
+	
+	private static final ImageIcon ENUM_ADD_ICON_DIS = new ImageIcon(new ImageIcon(ParameterSweepWizard.class.getResource("gui/icons/arrow_button_metal_silver_right.png")).
+															getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
+	private static final ImageIcon ENUM_ADD_ICON = new ImageIcon(new ImageIcon(ParameterSweepWizard.class.getResource("gui/icons/arrow_button_metal_green_right.png")).
+														getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
+	private static final ImageIcon ENUM_ADD_ICON_RO = new ImageIcon(new ImageIcon(ParameterSweepWizard.class.getResource("gui/icons/arrow_button_metal_red_right.png")).
+														   getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
+	
+	private static final ImageIcon ENUM_REMOVE_ICON_DIS = new ImageIcon(new ImageIcon(ParameterSweepWizard.class.getResource("gui/icons/arrow_button_metal_silver_left.png")).
+														   	   getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
+	private static final ImageIcon ENUM_REMOVE_ICON = new ImageIcon(new ImageIcon(ParameterSweepWizard.class.getResource("gui/icons/arrow_button_metal_green_left.png")).
+														   getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
+	private static final ImageIcon ENUM_REMOVE_ICON_RO = new ImageIcon(new ImageIcon(ParameterSweepWizard.class.getResource("gui/icons/arrow_button_metal_red_left.png")).
+															  getImage().getScaledInstance(ICON_WIDTH_AND_HEIGHT, ICON_WIDTH_AND_HEIGHT, Image.SCALE_SMOOTH));
+	
 	private static final String GENE_SETTINGS_INT_RANGE_VALUE_PANEL = "int_range";
 	private static final String GENE_SETTINGS_DOUBLE_RANGE_VALUE_PANEL = "double_range";
 	private static final String GENE_SETTINGS_LIST_VALUE_PANEL = "list";
+	private static final String GENE_SETTINGS_ENUM_LIST_PANEL = "enum_list"; 
 	private static final String PARAM_SETTINGS_CONSTANT_VALUE_PANEL = "constant";
 	private static final String PARAM_SETTINGS_ENUM_VALUE_PANEL = "enum";
 	private static final String PARAM_SETTINGS_FILE_VALUE_PANEL = "file";
@@ -145,6 +172,10 @@ public class GASearchPanel extends JPanel {
 	private JTextField doubleMaxField;
 	private JTextArea valuesArea;
 	private JComboBox<Object> enumDefBox;
+	private JList<Object> leftEnumValueList;
+	private JList<Object> rightEnumValueList;
+	private JButton addEnumButton;
+	private JButton removeEnumButton;
 	private JTextField fileTextField;
 	private JButton fileBrowseButton;
 
@@ -635,6 +666,71 @@ public class GASearchPanel extends JPanel {
 								"[DialogBorder]01 p", 
 								"Constant value",enumDefBox).getPanel();
 		
+		leftEnumValueList = new JList<Object>(new DefaultListModel<Object>());
+		rightEnumValueList = new JList<Object>(new DefaultListModel<Object>());
+		final JScrollPane leftEnumValuePane = new JScrollPane(leftEnumValueList,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		final JScrollPane rightEnumValuePane = new JScrollPane(rightEnumValueList,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		leftEnumValuePane.setPreferredSize(new Dimension(125,100)); //TODO: check
+		rightEnumValuePane.setPreferredSize(new Dimension(125,100)); //TODO: check
+		
+		addEnumButton = new DefaultJButton();
+		addEnumButton.setOpaque(false);
+		addEnumButton.setRolloverEnabled(true);
+		addEnumButton.setIcon(ENUM_ADD_ICON);
+		addEnumButton.setRolloverIcon(ENUM_ADD_ICON_RO);
+		addEnumButton.setDisabledIcon(ENUM_ADD_ICON_DIS);
+		addEnumButton.setBorder(null);
+		addEnumButton.setBorderPainted(false);
+		addEnumButton.setContentAreaFilled(false);
+		addEnumButton.setFocusPainted(false);
+		addEnumButton.setToolTipText("Add selected value");
+		addEnumButton.setActionCommand("ADD_ENUM");
+		
+		removeEnumButton = new DefaultJButton();
+		removeEnumButton.setOpaque(false);
+		removeEnumButton.setRolloverEnabled(true);
+		removeEnumButton.setIcon(ENUM_REMOVE_ICON);
+		removeEnumButton.setRolloverIcon(ENUM_REMOVE_ICON_RO);
+		removeEnumButton.setDisabledIcon(ENUM_REMOVE_ICON_DIS);
+		removeEnumButton.setBorder(null);
+		removeEnumButton.setBorderPainted(false);
+		removeEnumButton.setContentAreaFilled(false);
+		removeEnumButton.setFocusPainted(false);
+		removeEnumButton.setToolTipText("Remove selected value");
+		removeEnumButton.setActionCommand("REMOVE_ENUM");
+				
+		final JPanel enumListPanel = FormsUtils.build("p:g ~ p ' p ~ p:g",
+				 				"[DialogBorder]0011 f:p:g||" +
+				 							  "_23_ p||",
+							   leftEnumValuePane,rightEnumValuePane,
+							   removeEnumButton,addEnumButton).getPanel();
+		
+		leftEnumValueList.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(final MouseEvent e) {
+				if (SwingUtilities.isLeftMouseButton(e) && e.getComponent().isEnabled() && e.getClickCount() == 2) {
+					final DefaultListModel<Object> model = (DefaultListModel<Object>) rightEnumValueList.getModel();
+					
+					for (final Object element : leftEnumValueList.getSelectedValuesList()) {
+						model.addElement(element);
+					}
+				}
+			}
+		});
+		rightEnumValueList.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mouseClicked(final MouseEvent e) {
+				if (SwingUtilities.isLeftMouseButton(e) && e.getComponent().isEnabled() && e.getClickCount() == 2) {
+					final DefaultListModel<Object> model = (DefaultListModel<Object>) rightEnumValueList.getModel();
+					
+					for (final Object element : rightEnumValueList.getSelectedValuesList()) {
+						model.removeElement(element);
+					}
+				}
+			}
+		});
+
+		
 		fileTextField = new JTextField();
 		fileTextField.setActionCommand("FILE_FIELD");
 		fileTextField.addKeyListener(new KeyAdapter() {
@@ -690,6 +786,7 @@ public class GASearchPanel extends JPanel {
 		geneSettingsValuePanel.add(doublePanel,GENE_SETTINGS_DOUBLE_RANGE_VALUE_PANEL);
 		geneSettingsValuePanel.add(intPanel,GENE_SETTINGS_INT_RANGE_VALUE_PANEL);
 		geneSettingsValuePanel.add(valuesPanel,GENE_SETTINGS_LIST_VALUE_PANEL);
+		geneSettingsValuePanel.add(enumListPanel,GENE_SETTINGS_ENUM_LIST_PANEL);
 		
 		final ItemListener itemListener = new ItemListener() {
 			@Override
@@ -700,9 +797,14 @@ public class GASearchPanel extends JPanel {
 						layout.show(geneSettingsValuePanel,GENE_SETTINGS_DOUBLE_RANGE_VALUE_PANEL);
 					else if (intGeneValueRangeRButton.isSelected())
 						layout.show(geneSettingsValuePanel,GENE_SETTINGS_INT_RANGE_VALUE_PANEL);
-					else if (listGeneValueRButton.isSelected())
-						layout.show(geneSettingsValuePanel,GENE_SETTINGS_LIST_VALUE_PANEL);
-					else if (constantRButton.isSelected()) {
+					else if (listGeneValueRButton.isSelected()) {
+						final ParameterOrGene param = (ParameterOrGene) editedNode.getUserObject();
+						if (param.getInfo().isEnum() || param.getInfo() instanceof MasonChooserParameterInfo) {
+							layout.show(geneSettingsValuePanel,GENE_SETTINGS_ENUM_LIST_PANEL);
+						} else {
+							layout.show(geneSettingsValuePanel,GENE_SETTINGS_LIST_VALUE_PANEL);
+						}
+					} else if (constantRButton.isSelected()) {
 						final ParameterOrGene param = (ParameterOrGene) editedNode.getUserObject();
 						if (param.getInfo().isEnum() || param.getInfo() instanceof MasonChooserParameterInfo)
 							layout.show(geneSettingsValuePanel,PARAM_SETTINGS_ENUM_VALUE_PANEL);
@@ -763,6 +865,11 @@ public class GASearchPanel extends JPanel {
 					doubleMaxField.grabFocus();
 				else if ("FILE_BROWSE".equals(cmd)) 
 					chooseFile();
+				else if ("ADD_ENUM".equals(cmd)) {
+					addEnum();
+				} else if ("REMOVE_ENUM".equals(cmd)) {
+					removeEnum();
+				}
 			}
 			
 			//----------------------------------------------------------------------------------------------------
@@ -795,7 +902,26 @@ public class GASearchPanel extends JPanel {
 					}
 				}
 			}
-		},modifyButton,cancelButton,constantField,fileTextField,intMinField,intMaxField,doubleMinField,doubleMaxField,fileBrowseButton);
+			
+			//----------------------------------------------------------------------------------------------------
+			private void addEnum() {
+				final DefaultListModel<Object> model = (DefaultListModel<Object>) rightEnumValueList.getModel();
+				
+				for (final Object element : leftEnumValueList.getSelectedValuesList()) {
+					model.addElement(element);
+				}
+			}
+			
+			//----------------------------------------------------------------------------------------------------
+			private void removeEnum() {
+				final DefaultListModel<Object> model = (DefaultListModel<Object>) rightEnumValueList.getModel();
+				
+				for (final Object element : rightEnumValueList.getSelectedValuesList()) {
+					model.removeElement(element);
+				}
+			}
+ 			
+		},modifyButton,cancelButton,constantField,fileTextField,intMinField,intMaxField,doubleMinField,doubleMaxField,fileBrowseButton,addEnumButton,removeEnumButton);
 		buttonsPanel.add(modifyButton);
 		buttonsPanel.add(cancelButton);
 		
@@ -868,6 +994,8 @@ public class GASearchPanel extends JPanel {
 		listGeneValueRButton.setEnabled(enabled);
 		constantField.setEnabled(enabled);
 		enumDefBox.setEnabled(enabled);
+		addEnumButton.setEnabled(enabled);
+		removeEnumButton.setEnabled(enabled);
 		fileTextField.setEnabled(enabled);
 		fileBrowseButton.setEnabled(enabled);
 		intMinField.setEnabled(enabled);
@@ -897,6 +1025,8 @@ public class GASearchPanel extends JPanel {
 		valuesArea.setText("");
 		modifyButton.setEnabled(false);
 		cancelButton.setEnabled(false);
+		leftEnumValueList.setModel(new DefaultListModel<Object>());
+		rightEnumValueList.setModel(new DefaultListModel<Object>());
 		
 		geneRButton.setVisible(false);
 		intGeneValueRangeRButton.setVisible(true);
@@ -920,7 +1050,7 @@ public class GASearchPanel extends JPanel {
 		
 		String view = PARAM_SETTINGS_CONSTANT_VALUE_PANEL;
 		if (param.isGene()) {
-			editGene(param.getGeneInfo());
+			editGene(param);
 			return;
 		} else if (param.getInfo().isEnum() || param.getInfo() instanceof MasonChooserParameterInfo) {
 			view = PARAM_SETTINGS_ENUM_VALUE_PANEL;
@@ -968,17 +1098,52 @@ public class GASearchPanel extends JPanel {
 		if (!param.getInfo().isNumeric()) {
 			intGeneValueRangeRButton.setEnabled(false);
 			doubleGeneValueRangeRButton.setEnabled(false);
-			listGeneValueRButton.setEnabled("String".equals(param.getInfo().getType()));
+			boolean listEnabled = "String".equals(param.getInfo().getType()) || param.getInfo().isEnum() || param.getInfo() instanceof MasonChooserParameterInfo;
+			listGeneValueRButton.setEnabled(listEnabled);
 		}
 	}
 	
 	//----------------------------------------------------------------------------------------------------
-	private void editGene(final GeneInfo geneInfo) {
+	private void editGene(final ParameterOrGene param) {
+		final GeneInfo geneInfo = param.getGeneInfo();
 		String view = null;
 		if (GeneInfo.LIST.equals(geneInfo.getValueType())) {
-			view = GENE_SETTINGS_LIST_VALUE_PANEL;
-			listGeneValueRButton.setSelected(true);
-			valuesArea.setText(Utils.join(geneInfo.getValueRange()," "));
+			final ParameterInfo info = param.getInfo();
+			if (info.isEnum() || info instanceof MasonChooserParameterInfo) {
+				view = "ENUMLIST";
+				intGeneValueRangeRButton.setEnabled(false);
+				doubleGeneValueRangeRButton.setEnabled(false);
+				listGeneValueRButton.setSelected(true);
+				Object[] elements = null;
+				if (info.isEnum()){
+					@SuppressWarnings("unchecked")
+					final Class<Enum<?>> type = (Class<Enum<?>>) info.getJavaType();
+					elements = type.getEnumConstants();
+				} else {
+					final MasonChooserParameterInfo chooserInfo = (MasonChooserParameterInfo) info;
+					elements = chooserInfo.getValidStrings();
+				}
+				
+				final DefaultListModel<Object> leftEnumModel = (DefaultListModel<Object>) leftEnumValueList.getModel();
+				leftEnumModel.removeAllElements();
+				for (final Object object : elements)
+					leftEnumModel.addElement(object);
+				
+				final DefaultListModel<Object> rightEnumModel = (DefaultListModel<Object>) rightEnumValueList.getModel();
+				rightEnumModel.removeAllElements();
+				for (final Object object : info.getValues()) {
+					if (info.isEnum())
+						rightEnumModel.addElement(object);
+					else {
+						final MasonChooserParameterInfo chooserInfo = (MasonChooserParameterInfo) info;
+						rightEnumModel.addElement(chooserInfo.getValidStrings()[(Integer) object]);
+					}
+				}
+			} else {
+				view = GENE_SETTINGS_LIST_VALUE_PANEL;
+				listGeneValueRButton.setSelected(true);
+				valuesArea.setText(Utils.join(geneInfo.getValueRange()," "));
+			}
 		} else if (GeneInfo.INTERVAL.equals(geneInfo.getValueType())) {
 			if (geneInfo.isIntegerVals()) {
 				view = GENE_SETTINGS_INT_RANGE_VALUE_PANEL;
@@ -1111,7 +1276,12 @@ public class GASearchPanel extends JPanel {
 			}
 
 		} else if (listGeneValueRButton.isSelected()) {
-			if (valuesArea.getText() == null || valuesArea.getText().trim().isEmpty())
+			if (param.getInfo().isEnum() || param.getInfo() instanceof MasonChooserParameterInfo) {
+				final ListModel<Object> model = rightEnumValueList.getModel();
+				if (model.getSize() == 0) {
+					errors.add("The list on the right cannot be empty.");
+				}
+			} else if (valuesArea.getText() == null || valuesArea.getText().trim().isEmpty())
 				errors.add("'Value list' cannot be empty.");
 			else {
 				try {
@@ -1155,9 +1325,15 @@ public class GASearchPanel extends JPanel {
 	}
 	
 	//----------------------------------------------------------------------------------------------------
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private Object parseListElement(final Class<?> type, final String strValue) {
 		if (String.class.equals(type)) 
 			return strValue;
+		
+		if (Enum.class.isAssignableFrom(type)) {
+			final Class<? extends Enum> clazz = (Class<? extends Enum>) type;
+			return Enum.valueOf(clazz, strValue);
+		}
 		
 		if (type.equals(Double.class) || type.equals(Float.class) || type.equals(Double.TYPE) || type.equals(Float.TYPE))
 			return Double.parseDouble(strValue);
@@ -1195,8 +1371,8 @@ public class GASearchPanel extends JPanel {
 	
 	//------------------------------------------------------------------------------
 	private void modifyParameterOrGene(final ParameterOrGene param) {
+		final ParameterInfo info = param.getInfo();
 		if (constantRButton.isSelected()) {
-			final ParameterInfo info = param.getInfo();
 			if (info.isEnum()) 
 				param.setConstant(enumDefBox.getSelectedItem());
 			else if (info instanceof MasonChooserParameterInfo) 
@@ -1214,13 +1390,38 @@ public class GASearchPanel extends JPanel {
 			final Double maxValue = new Double(doubleMaxField.getText().trim());
 			param.setGene(minValue,maxValue);
 		} else if (listGeneValueRButton.isSelected()) {
-			final List<Object> valueList = new ArrayList<Object>();
-			String values = valuesArea.getText().trim();
-			values = values.replaceAll("\\s+"," ");
-			final StringTokenizer tokenizer = new StringTokenizer(values, " ");
-			while (tokenizer.hasMoreTokens()) 
-				valueList.add(parseListElement(param.getInfo().getJavaType(),tokenizer.nextToken()));
-			param.setGene(valueList);
+			if (info.isEnum()) {
+				final DefaultListModel<Object> model = (DefaultListModel<Object>) rightEnumValueList.getModel();
+				final List<Object> result = new ArrayList<Object>();
+				for (int i = 0; i < model.size(); result.add(model.get(i++)));
+				param.setGene(result);
+			} else if (info instanceof MasonChooserParameterInfo) {
+				final MasonChooserParameterInfo chooserInfo = (MasonChooserParameterInfo) info;
+				final String[] validStrings = chooserInfo.getValidStrings();
+				final List<Object> result = new ArrayList<Object>();
+				final DefaultListModel<Object> model = (DefaultListModel<Object>) rightEnumValueList.getModel();
+				for (int i = 0; i < model.size(); ++i) {
+					int idx = -1;
+					for (int j = 0; j < validStrings.length; ++j) {
+						if (validStrings[j].equals(model.get(i))) {
+							idx = j;
+							break;
+						}
+					}
+					
+					if (idx >= 0)
+						result.add(idx);
+				}
+				param.setGene(result);
+			} else {
+				final List<Object> valueList = new ArrayList<Object>();
+				String values = valuesArea.getText().trim();
+				values = values.replaceAll("\\s+"," ");
+				final StringTokenizer tokenizer = new StringTokenizer(values, " ");
+				while (tokenizer.hasMoreTokens()) 
+					valueList.add(parseListElement(param.getInfo().getJavaType(),tokenizer.nextToken()));
+				param.setGene(valueList);
+			}
 		} else if (geneRButton.isSelected()) {
 			param.setBooleanGene();
 		}
