@@ -62,6 +62,7 @@ import ai.aitia.meme.paramsweep.batch.ResultValueInfo;
 import ai.aitia.meme.paramsweep.batch.output.RecordableInfo;
 import ai.aitia.meme.paramsweep.batch.param.ParameterTree;
 import ai.aitia.meme.paramsweep.generator.WizardSettingsManager;
+import ai.aitia.meme.paramsweep.gui.info.MasonChooserParameterInfo;
 import ai.aitia.meme.paramsweep.gui.info.ParameterInfo;
 import ai.aitia.meme.paramsweep.gui.info.RecordableElement;
 import ai.aitia.meme.paramsweep.gui.info.ResultInfo;
@@ -353,7 +354,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 	//----------------------------------------------------------------------------------------------------
 	public int getNumberOfIterations() {
 		if (fixNumberOfGenerations)
-			return numberOfGenerations - 1;
+			return numberOfGenerations; 
 		else
 			return Integer.MAX_VALUE;
 	}
@@ -416,7 +417,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 				if (chromosome.getFitnessValueDirectly() == -1.0D) { // the default fitness value 
 					if (genIdx >= 0) {
 						final String strValue = String.valueOf(chromosome.getGene(genIdx).getAllele());
-						values.add(ParameterInfo.getValue(strValue,paramInfo.getType()));
+						values.add(ParameterInfo.getValue(strValue,paramInfo.getJavaType()));
 						paramInfo.setDefinitionType(ParameterInfo.LIST_DEF);
 					} else {
 						values.add(paramInfo.getValue());
@@ -465,7 +466,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 			if (genIdx >= 0) {
 				for (int j = 0; j < populationSize; ++j) {
 					final String strValue = String.valueOf(descendants.getChromosome(j).getGene(genIdx).getAllele());
-					values.add(ParameterInfo.getValue(strValue,paramInfo.getType()));
+					values.add(ParameterInfo.getValue(strValue,paramInfo.getJavaType()));
 					paramInfo.setDefinitionType(ParameterInfo.LIST_DEF);
 				}
 			} else {
@@ -1341,7 +1342,17 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 						throw new WizardLoadingException(true, "missing content at node: " + LIST_VALUE);
 					}
 					final String strValue = ((Text)content.item(0)).getNodeValue().trim();
-					valueList.add(parseListElement(info.getJavaType(),strValue));
+					
+					if (info instanceof MasonChooserParameterInfo) {
+						try {
+							valueList.add(new Integer(strValue));
+						} catch (final NumberFormatException e) {
+							throw new WizardLoadingException(true, "invalid content (" + strValue + ") at node: " + LIST_VALUE + 
+									" (expected: integer number)");
+						}
+					} else {
+						valueList.add(parseListElement(info.getJavaType(),strValue));
+					}
 				}
 				
 				return new ParameterOrGene(info, valueList);
@@ -1358,9 +1369,15 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 	}
 
 	//----------------------------------------------------------------------------------------------------
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private Object parseListElement(final Class<?> type, final String strValue) throws WizardLoadingException {
 		if (String.class.equals(type)) {
 			return strValue;
+		}
+		
+		if (Enum.class.isAssignableFrom(type)) {
+			final Class<? extends Enum> clazz = (Class<? extends Enum>) type;
+			return Enum.valueOf(clazz, strValue);
 		}
 		
 		if (type.equals(Double.class) || type.equals(Float.class) || type.equals(Double.TYPE) || type.equals(Float.TYPE)) {
@@ -1497,7 +1514,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 				final ParameterInfo info = new ParameterInfo(geneInfo.getName(),geneInfo.getType(),geneInfo.getJavaType());
 				
 				final String strValue = String.valueOf(geneWithId.getAllele());
-				info.setValue(ParameterInfo.getValue(strValue,info.getType()));
+				info.setValue(ParameterInfo.getValue(strValue,info.getJavaType()));
 				
 				combination.add((ai.aitia.meme.paramsweep.batch.param.ParameterInfo<?>)InfoConverter.parameterInfo2ParameterInfo(info));
 			}

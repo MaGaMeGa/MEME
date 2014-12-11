@@ -1714,6 +1714,8 @@ public class Page_ParametersV2 implements IWizardPage, IArrowsInHeader, ActionLi
 			
 			for (final Object element : leftEnumValueList.getSelectedValuesList())
 				model.addElement(element);
+			
+			leftEnumValueList.clearSelection();
 		} else if (ACTIONCOMMAND_REMOVE_ENUM.equals(command)) {
 			final DefaultListModel<Object> model = (DefaultListModel<Object>) rightEnumValueList.getModel();
 			

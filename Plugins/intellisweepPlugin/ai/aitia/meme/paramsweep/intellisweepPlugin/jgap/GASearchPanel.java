@@ -800,6 +800,34 @@ public class GASearchPanel extends JPanel {
 					else if (listGeneValueRButton.isSelected()) {
 						final ParameterOrGene param = (ParameterOrGene) editedNode.getUserObject();
 						if (param.getInfo().isEnum() || param.getInfo() instanceof MasonChooserParameterInfo) {
+							Object[] elements = null;
+							if (param.getInfo().isEnum()){
+								@SuppressWarnings("unchecked")
+								final Class<Enum<?>> type = (Class<Enum<?>>) param.getInfo().getJavaType();
+								elements = type.getEnumConstants();
+							} else {
+								final MasonChooserParameterInfo chooserInfo = (MasonChooserParameterInfo) param.getInfo();
+								elements = chooserInfo.getValidStrings();
+							}
+							
+							final DefaultListModel<Object> leftEnumModel = (DefaultListModel<Object>) leftEnumValueList.getModel();
+							leftEnumModel.removeAllElements();
+							for (final Object object : elements) {
+								leftEnumModel.addElement(object);
+							}
+							
+							final DefaultListModel<Object> rightEnumModel = (DefaultListModel<Object>) rightEnumValueList.getModel();
+							rightEnumModel.removeAllElements();
+							if (param.isGene()) {
+								for (final Object object : param.getGeneInfo().getValueRange()) {
+									if (param.getInfo().isEnum()) {
+										rightEnumModel.addElement(object);
+									} else {
+										final MasonChooserParameterInfo chooserInfo = (MasonChooserParameterInfo) param.getInfo();
+										rightEnumModel.addElement(chooserInfo.getValidStrings()[(Integer) object]);
+									}
+								}
+							}
 							layout.show(geneSettingsValuePanel,GENE_SETTINGS_ENUM_LIST_PANEL);
 						} else {
 							layout.show(geneSettingsValuePanel,GENE_SETTINGS_LIST_VALUE_PANEL);
@@ -910,6 +938,8 @@ public class GASearchPanel extends JPanel {
 				for (final Object element : leftEnumValueList.getSelectedValuesList()) {
 					model.addElement(element);
 				}
+				
+				leftEnumValueList.clearSelection();
 			}
 			
 			//----------------------------------------------------------------------------------------------------
@@ -1056,7 +1086,7 @@ public class GASearchPanel extends JPanel {
 			view = PARAM_SETTINGS_ENUM_VALUE_PANEL;
 			intGeneValueRangeRButton.setEnabled(false);
 			doubleGeneValueRangeRButton.setEnabled(false);
-			listGeneValueRButton.setEnabled(false);
+			listGeneValueRButton.setEnabled(true);
 			constantRButton.setSelected(true);
 			
 			final ParameterInfo info = param.getInfo();
@@ -1098,7 +1128,7 @@ public class GASearchPanel extends JPanel {
 		if (!param.getInfo().isNumeric()) {
 			intGeneValueRangeRButton.setEnabled(false);
 			doubleGeneValueRangeRButton.setEnabled(false);
-			boolean listEnabled = "String".equals(param.getInfo().getType()) || param.getInfo().isEnum() || param.getInfo() instanceof MasonChooserParameterInfo;
+			boolean listEnabled = "String".equals(param.getInfo().getType()) || param.getInfo().isEnum() || (param.getInfo() instanceof MasonChooserParameterInfo);
 			listGeneValueRButton.setEnabled(listEnabled);
 		}
 	}
@@ -1110,7 +1140,7 @@ public class GASearchPanel extends JPanel {
 		if (GeneInfo.LIST.equals(geneInfo.getValueType())) {
 			final ParameterInfo info = param.getInfo();
 			if (info.isEnum() || info instanceof MasonChooserParameterInfo) {
-				view = "ENUMLIST";
+				view = GENE_SETTINGS_ENUM_LIST_PANEL;
 				intGeneValueRangeRButton.setEnabled(false);
 				doubleGeneValueRangeRButton.setEnabled(false);
 				listGeneValueRButton.setSelected(true);
@@ -1131,10 +1161,10 @@ public class GASearchPanel extends JPanel {
 				
 				final DefaultListModel<Object> rightEnumModel = (DefaultListModel<Object>) rightEnumValueList.getModel();
 				rightEnumModel.removeAllElements();
-				for (final Object object : info.getValues()) {
-					if (info.isEnum())
+				for (final Object object : geneInfo.getValueRange()) {
+					if (info.isEnum()) {
 						rightEnumModel.addElement(object);
-					else {
+					} else {
 						final MasonChooserParameterInfo chooserInfo = (MasonChooserParameterInfo) info;
 						rightEnumModel.addElement(chooserInfo.getValidStrings()[(Integer) object]);
 					}

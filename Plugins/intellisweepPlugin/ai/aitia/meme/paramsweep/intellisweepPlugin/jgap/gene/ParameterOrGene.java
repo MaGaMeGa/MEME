@@ -115,7 +115,13 @@ public class ParameterOrGene implements Serializable {
 				for (int i = 0;i < geneInfo.getValueRange().size();++i) {
 					 if  (i != 0) 
 						 result += " ";
-					 result += geneInfo.getValueRange().get(i).toString();
+					 
+					 if (info instanceof MasonChooserParameterInfo) {
+						final MasonChooserParameterInfo mpInfo = (MasonChooserParameterInfo) info;
+						result += mpInfo.getValidStrings()[((Integer)geneInfo.getValueRange().get(i))];
+					 } else {
+						 result += geneInfo.getValueRange().get(i).toString();
+					 }
 				 }
 			} else {
 				result += "gene";

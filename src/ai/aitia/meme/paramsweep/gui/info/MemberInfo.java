@@ -17,13 +17,10 @@
 package ai.aitia.meme.paramsweep.gui.info;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 import _.unknown;
-import ai.aitia.meme.Logger;
 import ai.aitia.meme.paramsweep.utils.Util;
 
 /** This class represents the relevant members (variables and methods too) of the model. */
@@ -83,7 +80,7 @@ public class MemberInfo extends NodeInfo {
 	public Class<?> getInnerType() { return innerType; }
 	public void setInnerType(Class<?> innerType) { this.innerType = innerType; }
 	/** Tests if the member has a numeric type. */
-	public boolean isNumeric() { return numericTypes.contains(this.type); }
+	public boolean isNumeric() { return numericTypes.contains(this.type) && !(this instanceof MasonChooserParameterInfo); }
 	/** Tests if the member has logical type. */
 	public boolean isBoolean() { return ("boolean".equals(type) || "Boolean".equals(type)); }
 	
@@ -164,6 +161,7 @@ public class MemberInfo extends NodeInfo {
 	 *  null. If <code>type</code> is a primitive type the the method uses its wrapper
 	 *  type instead.
 	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static Object getValue(String value, Class<?> type) {
 		if (Byte.TYPE.equals(type) || Byte.class.equals(type))
 			return getByteValue(value.trim());
@@ -184,27 +182,29 @@ public class MemberInfo extends NodeInfo {
 		if (File.class.isAssignableFrom(type)) {
 			return new File(value.trim());
 		}
-		if (type.isEnum()){
-			try {
-				Object[] candidates = type.getEnumConstants();
-				for (Object candidate : candidates) {
-					Method nameMethod = type.getMethod("name");
-					if (nameMethod.invoke(candidate).equals(value)) {
-						return candidate;
-					}
-				}
-			} catch (NoSuchMethodException e){
-				Logger.logException("Could not infer the value (" + value + ") of enum type (" + type + ")", e, true);
-			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InvocationTargetException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+		if (type.isEnum()) {
+			final Class<Enum> clazz = ((Class<Enum>) type);
+			return Enum.valueOf(clazz, value);
+//			try {
+//				Object[] candidates = type.getEnumConstants();
+//				for (Object candidate : candidates) {
+//					Method nameMethod = type.getMethod("name");
+//					if (nameMethod.invoke(candidate).equals(value)) {
+//						return candidate;
+//					}
+//				}
+//			} catch (NoSuchMethodException e){
+//				Logger.logException("Could not infer the value (" + value + ") of enum type (" + type + ")", e, true);
+//			} catch (IllegalAccessException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			} catch (IllegalArgumentException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			} catch (InvocationTargetException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
 		}
 		return null;
 	}

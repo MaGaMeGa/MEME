@@ -216,7 +216,7 @@ public class IntelliSweepRepastResultParser implements IParameterSweepResultRead
 	//----------------------------------------------------------------------------------------------------
 	private ResultValueInfo getResultValueInfo(RecordableInfo info, List<ParameterInfo<?>> parameterCombination, String[] names, String[] values,
 											   double tick) {
-		for (ParameterInfo p : parameterCombination) {
+		for (@SuppressWarnings("rawtypes") ParameterInfo p : parameterCombination) {
 			int idx = find(names,p.getName());
 			if (idx == -1) continue; // constant parameter
 			//Class<?> type = parseType(values[idx]);
@@ -283,6 +283,7 @@ public class IntelliSweepRepastResultParser implements IParameterSweepResultRead
 	}
 	
 	//-------------------------------------------------------------------------------
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private Object getValue(String value, Class<?> type) {
 		if (Byte.TYPE.equals(type) || Byte.class.equals(type))
 			return getByteValue(value.trim());
@@ -300,6 +301,13 @@ public class IntelliSweepRepastResultParser implements IParameterSweepResultRead
 			return new Boolean(value.trim());
 		if (String.class.equals(type))
 			return value;
+		if (File.class.isAssignableFrom(type)) {
+			return new File(value.trim());
+		}
+		if (type.isEnum()) {
+			final Class<Enum> clazz = ((Class<Enum>) type);
+			return Enum.valueOf(clazz, value);
+		}
 		return null;
 	}
 	

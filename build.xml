@@ -90,6 +90,7 @@
 			<fileset dir="${activation}" includes="ai/aitia/Activation*.class" />
 			<fileset dir="${src}/ai/aitia/meme/gui" includes="ai/aitia/Activation*.class" />
 			<fileset dir="${src}" includes="**/ai/aitia/meme/gui/icons/**"/>
+			<fileset dir="${src}" includes="**/ai/aitia/meme/paramsweep/gui/icons/**"/>
 			<fileset dir="test" includes="**/ai/aitia/testing/fest/KeyMap.txt"/>
 			<fileset dir="${tmp}" />
 		</jar>
