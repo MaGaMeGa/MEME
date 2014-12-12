@@ -188,8 +188,6 @@
 			<src path="${basedir}" />
 			<include name="${src}/**" />
 			<include name="test/ai/aitia/testing/fest/**" />
-			<include name="${plugins}/intellisweepPlugin/**" />
-			<include name="${plugins}/IntelliResultProcessPlugin/**" /> 
 			<!-- <exclude name="${src}/ai/aitia/meme/paramsweep/platform/mason/impl/*" /> -->
 			<compilerarg value="-time" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" />
 			<classpath refid="javac-classpath"/>
