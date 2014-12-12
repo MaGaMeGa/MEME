@@ -58,6 +58,7 @@
 		<fileset dir ="${plugins}" includes="*.jar"/>
 		<fileset dir ="${platforms}" includes="*.jar"/>
 		<fileset dir ="testlibs" includes="*.jar"/>
+		<fileset dir ="resources" includes="meme.custom.model.jar"/>
 	</path>
 
 	<path id="javac-classpath2">
@@ -187,9 +188,8 @@
 			<src path="${basedir}" />
 			<include name="${src}/**" />
 			<include name="test/ai/aitia/testing/fest/**" />
-			<include name="${platforms}/CustomJavaPlugin/**" />
 			<include name="${plugins}/intellisweepPlugin/**" />
-			<include name="${plugins}/IntelliResultProcessPlugin/**" />
+			<include name="${plugins}/IntelliResultProcessPlugin/**" /> 
 			<!-- <exclude name="${src}/ai/aitia/meme/paramsweep/platform/mason/impl/*" /> -->
 			<compilerarg value="-time" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" />
 			<classpath refid="javac-classpath"/>

@@ -439,11 +439,14 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 		// create initial population
 		final DefaultMutableTreeNode root = ctx.getParameterTreeRootNode();
 		final DefaultMutableTreeNode newRoot = getAlteredParameterTreeRootNode(ctx);
-		root.removeAllChildren();
-		final int count = newRoot.getChildCount();
-
-		for (int i = 0; i < count; ++i) 
-			root.add((DefaultMutableTreeNode) newRoot.getChildAt(0));
+		
+		if (root != null) {
+			root.removeAllChildren();
+			final int count = newRoot.getChildCount();
+			
+			for (int i = 0; i < count; ++i) 
+				root.add((DefaultMutableTreeNode) newRoot.getChildAt(0));
+		}
 		
 		return true;
 	}
@@ -476,7 +479,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 
 			paramInfo.setValues(values);
 
-			// add and save the node
+			// add the node
 			root.add(new DefaultMutableTreeNode(paramInfo));
 		}
 
@@ -661,6 +664,10 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 	 * Prints the header of the population file.
 	 */
 	protected void initPopFile() {
+		if (workspace == null) {
+			workspace = new File(".");
+		}
+		
 		// create backup file when file already exists
 		final File file = new File(workspace,populationFileName + ext);
 		if (file.exists()) {
@@ -998,6 +1005,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 			loadOperators(gaSettingsElement);
 			loadChromosome(gaSettingsElement, context.getParameters());
 			content.reset(this);
+			alterParameterTree(context);
 		} else {
 			throw new WizardLoadingException(true, "missing node: " + GA_SETTINGS);
 		}
