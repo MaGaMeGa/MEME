@@ -747,7 +747,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 				final RecordableElement re = (RecordableElement) ((DefaultMutableTreeNode)recorder.getChildAt(j)).getUserObject();
 				final RecordableInfo recInfo = new RecordableInfo(re.getAlias() != null ? re.getAlias() : re.getInfo().getName(),
 									   							  re.getInfo().getJavaType(), re.getInfo().getName());
-				if (!newList.contains(recInfo)) {
+				if (!newList.contains(recInfo) && re.getInfo().isNumeric()) {
 					newList.add(recInfo);
 				}
 			}
@@ -1132,7 +1132,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 			}
 			
 			final String fitnessFunctionStr = ((Text)content.item(0)).getNodeValue().trim();
-			selectedFunction = new RecordableInfo(fitnessFunctionStr, Void.TYPE, fitnessFunctionStr); // dummy object to store accessible name
+			selectedFunction = new RecordableInfo(fitnessFunctionStr, Double.TYPE, fitnessFunctionStr); // dummy object to store accessible name
 		} else {
 			throw new WizardLoadingException(true, "missing node: " + FITNESS_FUNCTION);
 		}
@@ -1477,7 +1477,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 		//====================================================================================================
 		// members
 		
-		private IParameterSweepResultReader currentReader;
+		private transient IParameterSweepResultReader currentReader;
 		
 		//====================================================================================================
 		// methods
