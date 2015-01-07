@@ -32,19 +32,18 @@ import javassist.Modifier;
 import javassist.NotFoundException;
 import ai.aitia.meme.paramsweep.batch.IBatchController;
 import ai.aitia.meme.paramsweep.batch.IModelInformation;
-import ai.aitia.meme.paramsweep.batch.IParameterSweepResultReader;
 import ai.aitia.meme.paramsweep.batch.IParameterPartitioner;
+import ai.aitia.meme.paramsweep.batch.IParameterSweepResultReader;
 import ai.aitia.meme.paramsweep.batch.output.RecorderInfo;
 import ai.aitia.meme.paramsweep.platform.IPSWInformationProvider;
 import ai.aitia.meme.paramsweep.platform.IResultFileTool;
 import ai.aitia.meme.paramsweep.platform.Platform;
 import ai.aitia.meme.paramsweep.platform.repast.impl.ConditionParser;
+import ai.aitia.meme.paramsweep.platform.repast.impl.IntelliSweepRepastResultParser;
 import ai.aitia.meme.paramsweep.platform.repast.impl.ModelGenerator;
 import ai.aitia.meme.paramsweep.platform.repast.impl.RepastBatchController;
 import ai.aitia.meme.paramsweep.platform.repast.impl.RepastModelInformation;
-import ai.aitia.meme.paramsweep.platform.repast.impl.IntelliSweepRepastResultParser;
 import ai.aitia.meme.paramsweep.platform.repast.impl.RepastResultFileTool;
-import ai.aitia.meme.paramsweep.platform.repast.impl.RepastResultLineTool;
 import ai.aitia.meme.paramsweep.platform.repast.impl.ResultFileMerger;
 import ai.aitia.meme.paramsweep.util.DefaultParameterPartitioner;
 import ai.aitia.meme.paramsweep.utils.ClassPathPair;
@@ -95,7 +94,7 @@ public class RepastPlatform implements Platform {
 	}
 	
 	public IParameterPartitioner getParameterPartitioner() { return new DefaultParameterPartitioner(); }
-	public IParameterSweepResultReader getReader(List<RecorderInfo> recorders) { return new IntelliSweepRepastResultParser(recorders); }
+	public IParameterSweepResultReader getReader(List<RecorderInfo> recorders) { return new IntelliSweepRepastResultParser(recorders, local); }
 	public IModelInformation getModelInformation(IPSWInformationProvider provider) { return new RepastModelInformation(provider,modelClass); }
 	public List<File> prepareResult(List<RecorderInfo> recorders, File workingDir) { return new ResultFileMerger().merge(recorders, workingDir); }
 	

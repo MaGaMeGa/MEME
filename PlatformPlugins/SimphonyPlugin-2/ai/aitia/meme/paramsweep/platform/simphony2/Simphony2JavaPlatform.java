@@ -95,7 +95,7 @@ public class Simphony2JavaPlatform extends DefaultPluginPlatform {
 	
 	//----------------------------------------------------------------------------------------------------
 	public IParameterPartitioner getParameterPartitioner() { return new DefaultParameterPartitioner(); }
-	public IParameterSweepResultReader getReader(List<RecorderInfo> recorders) { return new IntelliSweepRepastResultParser(recorders); }
+	public IParameterSweepResultReader getReader(List<RecorderInfo> recorders) { return new IntelliSweepRepastResultParser(recorders, local); }
 	public IModelInformation getModelInformation(IPSWInformationProvider provider) { return new Simphony2ModelInformation(provider,modelClass); }
 	public List<File> prepareResult(List<RecorderInfo> recorders, File workingDir) { return new ResultFileMerger().merge(recorders,workingDir); }
 	

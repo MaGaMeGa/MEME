@@ -82,7 +82,7 @@ public class MasonPlatform extends DefaultPluginPlatform {
 	
 	//----------------------------------------------------------------------------------------------------
 	public IParameterPartitioner getParameterPartitioner() { return new DefaultParameterPartitioner(); }
-	public IParameterSweepResultReader getReader(List<RecorderInfo> recorders) { return new IntelliSweepRepastResultParser(recorders); }
+	public IParameterSweepResultReader getReader(List<RecorderInfo> recorders) { return new IntelliSweepRepastResultParser(recorders, local); }
 //	public IModelInformation getModelInformation(IPSWInformationProvider provider) { return new MasonModelInformation(provider,modelClass); }
 	public IModelInformation getModelInformation(final IPSWInformationProvider provider) { 
 		try {

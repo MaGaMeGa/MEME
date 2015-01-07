@@ -40,14 +40,16 @@ public class IntelliSweepRepastResultParser implements IParameterSweepResultRead
 	/** The Repast result file object. */
 	private File file = null;
 	private String delimiter = null;
+	private boolean local;
 
 	//=========================================================================
 	// Constructor
 	
 	//----------------------------------------------------------------------------------------------------
-	public IntelliSweepRepastResultParser(List<RecorderInfo> recorders) {
+	public IntelliSweepRepastResultParser(List<RecorderInfo> recorders, boolean local) {
 		file = recorders.get(0).getOutputFile();
 		delimiter = recorders.get(0).getDelimiter();
+		this.local = local;
 	}
 
 	
@@ -55,10 +57,11 @@ public class IntelliSweepRepastResultParser implements IParameterSweepResultRead
 	 * @param file
 	 * @param delimiter
 	 */
-	public IntelliSweepRepastResultParser(File file, String delimiter) {
+	public IntelliSweepRepastResultParser(File file, String delimiter, boolean local) {
 		super();
 		this.file = file;
 		this.delimiter = delimiter;
+		this.local = local;
 	}
 	
 	//=========================================================================
@@ -222,14 +225,66 @@ public class IntelliSweepRepastResultParser implements IParameterSweepResultRead
 			//Class<?> type = parseType(values[idx]);
 			String valueStr = parseValue(values[idx]);
 			Class<?> type = p.getDefaultValue().getClass();
-			if (!getValue(p.getValues().get(0).toString(),type).equals(getValue(valueStr,type))) return null;
+			String expectedValueStr = p.getValues().get(0).toString();
+			
+			if (!local) {
+				if (Double.TYPE.equals(type) || Double.class.equals(type) || Float.TYPE.equals(type) || Float.class.equals(type)) {
+					expectedValueStr = convertUsingStreamTokenizerAlgorithm(expectedValueStr);
+				}
+			}
+			
+			if (!getValue(expectedValueStr,type).equals(getValue(valueStr,type))) return null;
 		}
 		int idx = find(names,info.getName()); // idx != -1 we checked this before
 		Object value = getValue(parseValue(values[idx]),info.getType());
 		return new ResultValueInfo(info,value,tick);
 	}
 	
-	
+	//----------------------------------------------------------------------------------------------------
+	private String convertUsingStreamTokenizerAlgorithm(final String valueStr) {
+		final String _valueStr = valueStr + " ";
+		int c = _valueStr.charAt(0);
+		int idx = 1;
+        boolean neg = false;
+        if (c == '-') {
+            c = _valueStr.charAt(idx++);
+            neg = true;
+        }
+	    double v = 0;
+	    int decexp = 0;
+	    int seendot = 0;
+	    
+	    while (true) {
+	    	if (c == '.' && seendot == 0)
+	    		seendot = 1;
+	        else if ('0' <= c && c <= '9') {
+	        	v = v * 10 + (c - '0');
+	            decexp += seendot;
+	        } else break;
+	    	
+	        c = _valueStr.charAt(idx++);
+	   }
+	    
+	   if (decexp != 0) {
+		   double denom = 10;
+	       decexp--;
+	       
+	       while (decexp > 0) {
+	    	   denom *= 10;
+	           decexp--;
+	       }
+	       
+	       /* Do one division of a likely-to-be-more-accurate number */
+	       v = v / denom;
+	   }
+	   
+	   if (neg) {
+		   v = -v;
+	   }
+	   
+	   return String.valueOf(v);
+	}
+
 	//----------------------------------------------------------------------------------------------------
 	private Class<?> parseType(String valueStr) {
 		Class<?> type = null;
