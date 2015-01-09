@@ -74,6 +74,7 @@ import ai.aitia.meme.paramsweep.batch.BatchException;
 import ai.aitia.meme.paramsweep.batch.IBatchController;
 import ai.aitia.meme.paramsweep.batch.InvalidEntryPointException;
 import ai.aitia.meme.paramsweep.batch.output.RecorderInfo;
+import ai.aitia.meme.paramsweep.batch.param.AbstractParameterInfo;
 import ai.aitia.meme.paramsweep.cloud.util.IFileTranserService;
 import ai.aitia.meme.paramsweep.cloud.util.SFTPFileTransferService;
 import ai.aitia.meme.paramsweep.cloud.util.IFileTranserService.OperationFailedException;
@@ -89,6 +90,7 @@ import ai.aitia.meme.paramsweep.generator.QCGJobDescriptorGenerator.JobDescripto
 import ai.aitia.meme.paramsweep.gui.MonitorConfigurationDialog;
 import ai.aitia.meme.paramsweep.gui.MonitorGUI;
 import ai.aitia.meme.paramsweep.gui.VCloudAuthenticationDialog;
+import ai.aitia.meme.paramsweep.gui.info.ParameterInfo;
 import ai.aitia.meme.paramsweep.internal.platform.PlatformSettings;
 import ai.aitia.meme.paramsweep.messages.ErrorMessage;
 import ai.aitia.meme.paramsweep.messages.Message;
@@ -1042,7 +1044,10 @@ public class Launcher {
 			job.setJobConfiguration(jc);
 		}
 		
-		job.setParameterTree(wizard.getPublicParameterTree());
+		// don't use this because parameter tree may contain parameters with user-defined types (which will cause ClassNotFoundException on the other side)
+//		job.setParameterTree(wizard.getPublicParameterTree());  
+		job.setParametersDescription(createParametersDescription(wizard.getOriginalParameterInfos()));
+		
 		job.setStoppingCondition(wizard.getStoppingCondition());
 		job.setRecorders(outputFileNames == null ? wizard.getRecorders() : getDummyRecorders());
 		if (wizard.getSweepingMethodID() == 2) {
@@ -1060,6 +1065,14 @@ public class Launcher {
 		job.setJarOrder(jarOrder);
 		
 		return job;
+	}
+	
+	//----------------------------------------------------------------------------------------------------
+	private String createParametersDescription(final List<ParameterInfo> parameters) {
+		String result = "'";
+		for (final ParameterInfo info : parameters) 
+			result += info.getName() + "[" + info.getJavaType().getName() + "],";
+		return result.substring(0,result.length() - 1) + "'";
 	}
 	
 	//----------------------------------------------------------------------------------------------------

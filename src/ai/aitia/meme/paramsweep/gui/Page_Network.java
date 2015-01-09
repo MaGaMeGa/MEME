@@ -72,9 +72,10 @@ public class Page_Network extends PreferencesPage implements ActionListener,
     																						Type.LOCAL),
     																	 new ExperimentType("VCLOUD","Run simulations on the Model Exploration Server",
     																			 			Type.VCLOUD),
-    																	 new ExperimentType("NETWORK","Run simulations on a dedicated cluster/grid",
-    																			 		    Type.REMOTE),
-    																	 new ExperimentType("QCG","Create simulation job for QosCosGrid",Type.QCG)};
+//    																	 new ExperimentType("NETWORK","Run simulations on a dedicated cluster/grid",
+//    																			 		    Type.REMOTE),
+//    																	 new ExperimentType("QCG","Create simulation job for QosCosGrid",Type.QCG)
+    																   };
 
 	
 	/** The owner of the page. */
