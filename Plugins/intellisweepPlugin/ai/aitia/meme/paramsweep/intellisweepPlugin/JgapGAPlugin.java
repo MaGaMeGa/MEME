@@ -887,6 +887,7 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 		gaSettingsElement.appendChild(element);
 		
 		element = document.createElement(FITNESS_FUNCTION);
+		element.setAttribute(WizardSettingsManager.ALIAS, selectedFunction.getName());
 		element.appendChild(document.createTextNode(selectedFunction.getAccessibleName()));
 		gaSettingsElement.appendChild(element);
 	}
@@ -1126,13 +1127,17 @@ public class JgapGAPlugin implements IIntelliDynamicMethodPlugin, GASearchPanelM
 		nl = gaSettingsElement.getElementsByTagName(FITNESS_FUNCTION);
 		if (nl != null && nl.getLength() > 0) {
 			final Element element = (Element) nl.item(0);
+			
+			String fitnessFunctionAlias = element.getAttribute(WizardSettingsManager.ALIAS);
+			
 			final NodeList content = element.getChildNodes();
 			if (content == null || content.getLength() == 0) {
 				throw new WizardLoadingException(true, "missing content at node: " + FITNESS_FUNCTION);
 			}
 			
 			final String fitnessFunctionStr = ((Text)content.item(0)).getNodeValue().trim();
-			selectedFunction = new RecordableInfo(fitnessFunctionStr, Double.TYPE, fitnessFunctionStr); // dummy object to store accessible name
+			fitnessFunctionAlias = (fitnessFunctionAlias != null && !fitnessFunctionAlias.trim().isEmpty()) ? fitnessFunctionAlias.trim() : fitnessFunctionStr;
+			selectedFunction = new RecordableInfo(fitnessFunctionAlias, Double.TYPE, fitnessFunctionStr); // dummy object to store accessible name
 		} else {
 			throw new WizardLoadingException(true, "missing node: " + FITNESS_FUNCTION);
 		}

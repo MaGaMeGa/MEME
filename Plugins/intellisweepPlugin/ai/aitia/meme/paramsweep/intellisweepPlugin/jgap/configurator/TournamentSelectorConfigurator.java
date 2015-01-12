@@ -44,11 +44,11 @@ import javax.swing.event.DocumentListener;
 import org.jgap.Configuration;
 import org.jgap.InvalidConfigurationException;
 import org.jgap.NaturalSelector;
-import org.jgap.impl.TournamentSelector;
 
 import ai.aitia.meme.paramsweep.gui.DescriptionPopupFactory;
 import ai.aitia.meme.paramsweep.gui.Page_IntelliExtension;
 import ai.aitia.meme.paramsweep.gui.component.DefaultJButton;
+import ai.aitia.meme.paramsweep.intellisweepPlugin.jgap.selector.TournamentSelector;
 import ai.aitia.meme.paramsweep.utils.WizardLoadingException;
 import ai.aitia.meme.utils.FormsUtils;
 
