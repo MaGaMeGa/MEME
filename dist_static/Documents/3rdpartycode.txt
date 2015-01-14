@@ -135,3 +135,7 @@ http://jakarta.apache.org/commons/license.html
 Copyright © 2013 The Eclipse Foundation. All Rights Reserved
 Eclipse Public License 1.0
 http://eclipse.org/legal/epl-v10.html 
+
+27. JGAP 3.3.4
+LGPL
+http://jgap.sourceforge.net/
