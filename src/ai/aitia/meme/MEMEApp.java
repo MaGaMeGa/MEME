@@ -17,7 +17,6 @@
 package ai.aitia.meme;
 
 import java.awt.IllegalComponentStateException;
-import java.awt.Component;
 import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
@@ -30,13 +29,7 @@ import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.Icon;
-import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JRootPane;
-import javax.swing.JTextField;
 
 import ai.aitia.meme.database.DatabaseConnection;
 import ai.aitia.meme.database.DatabaseSettings;
@@ -57,9 +50,9 @@ import ai.aitia.meme.paramsweep.utils.Utilities;
 import ai.aitia.meme.pluginmanager.IPlugin;
 import ai.aitia.meme.pluginmanager.PluginManager;
 import ai.aitia.meme.utils.OSUtils;
+import ai.aitia.meme.utils.OSUtils.OSType;
 import ai.aitia.meme.utils.TestableDialog;
 import ai.aitia.meme.utils.Utils;
-import ai.aitia.meme.utils.OSUtils.OSType;
 import ai.aitia.visu.globalhandlers.UserBreakException;
 
 /**
@@ -71,7 +64,7 @@ import ai.aitia.visu.globalhandlers.UserBreakException;
 public class MEMEApp
 {
 	/** Current version of the application. */
-	public static final String		CURRENT_VERSION		= "2.2.0";	
+	public static final String		CURRENT_VERSION		= "2.3.0";	
 
 	public static final int			EXIT_CODE_NORMAL		= 0;
 	public static final int			EXIT_CODE_CMDLINE_ERROR	= 1;
